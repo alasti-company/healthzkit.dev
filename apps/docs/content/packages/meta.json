@@ -1,0 +1,5 @@
+{
+  "title": "Packages",
+  "defaultOpen": true,
+  "pages": ["index", "postgres", "redis"]
+}

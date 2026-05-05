@@ -1,0 +1,109 @@
+---
+title: "@healthzkit/postgres"
+description: Health checks for PostgreSQL using node-pg or postgres.js — optional lazy clients, custom queries, and metadata.
+icon: Database
+---
+
+The **`@healthzkit/postgres`** package ships **`HealthAdapter`** implementations for two common PostgreSQL clients: **`pg`** (node-postgres) and **`postgres`** (postgres.js). Each adapter runs a lightweight query, measures latency, and returns **`status: "ok"`** with **`metadata.latencyMs`** on success, or **`status: "fail"`** with an **`error`** on failure.
+
+The package is **ESM-only** and lists **`pg`** and **`postgres`** as **optional peer dependencies** — install the client you use.
+
+## Install
+
+With **node-postgres** (`pg`):
+
+```bash
+npm install healthzkit @healthzkit/postgres pg
+```
+
+With **postgres.js**:
+
+```bash
+npm install healthzkit @healthzkit/postgres postgres
+```
+
+## `pgAdapter` (`pg`)
+
+Import from the package root or from **`@healthzkit/postgres/pg`** if you only bundle the `pg` path.
+
+```ts
+import { createHealthKit } from "healthzkit";
+import { pgAdapter } from "@healthzkit/postgres";
+import { Pool } from "pg";
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "postgres",
+      type: ["readiness"],
+      adapter: pgAdapter({
+        client: pool,
+        // query: "SELECT 1", // default
+      }),
+    },
+  ],
+});
+```
+
+### Options
+
+You must pass **either** a **`client`** **or** a **`connectionString`** (not both):
+
+| Option                 | Description                                                                                                                                                                                                                        |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`client`**           | An existing **`Pool`**, acquired **`PoolClient`**, or **`Client`**-compatible instance. If the value has **`connect()`** (a pool), the adapter checks out a client for the query and **`release()`**s it in a **`finally`** block. |
+| **`connectionString`** | If set, the adapter lazily creates an internal **`Pool`** with **`max: 1`** and uses **`pool.connect()`** per check. Prefer reusing your app’s pool via **`client`** when you already have one.                                    |
+| **`query`**            | SQL string to execute. Default **`"SELECT 1"`**.                                                                                                                                                                                   |
+| **`metadata`**         | Optional **`async (client) => Record<string, unknown>`** — runs after the main query; merge into the result **`metadata`** (alongside **`latencyMs`**).                                                                            |
+
+Successful checks return **`metadata`** including **`latencyMs`**. Errors are normalized to **`AdapterResult`** with **`status: "fail"`**.
+
+## `postgresJsAdapter` (`postgres`)
+
+Import from the package root or from **`@healthzkit/postgres/postgres`**.
+
+```ts
+import { createHealthKit } from "healthzkit";
+import { postgresJsAdapter } from "@healthzkit/postgres";
+import postgres from "postgres";
+
+const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
+
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "postgres",
+      type: ["readiness"],
+      adapter: postgresJsAdapter({
+        client: sql,
+      }),
+    },
+  ],
+});
+```
+
+### Options
+
+Same shape as **`pgAdapter`**, but **`client`** is a **`Sql`** (or **`TransactionSql`**) instance from **`postgres`**.
+
+| Option                 | Description                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`client`**           | Shared **`postgres`** client.                                                                                                                    |
+| **`connectionString`** | Lazily creates an internal client with **`{ max: 1 }`** (again, prefer passing **`client`** from your app when possible).                        |
+| **`query`**            | Default **`"SELECT 1"`**. Executed via **`sql.unsafe(query)`** — keep this string **static** in your code; do not build it from untrusted input. |
+| **`metadata`**         | Optional; receives the **`Sql`** instance.                                                                                                       |
+
+## Using with scheduling
+
+These adapters pair well with **`schedule`** on a check so probes read cached results while a background interval runs the query. See [healthzkit — Scheduling](/healthzkit#scheduling) in the core docs.
+
+## Public exports
+
+From **`@healthzkit/postgres`**:
+
+- **`pgAdapter`**, **`PostgresJsAdapterOptions`** (and related option types)
+- **`postgresJsAdapter`**, **`PgAdapterOptions`**
+
+Subpath exports **`./pg`** and **`./postgres`** mirror the main adapters for dependency-specific imports.

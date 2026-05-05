@@ -1,0 +1,49 @@
+---
+title: Welcome
+description: Healthzkit — framework-agnostic liveness and readiness probes for Node.js, with optional Postgres and Redis adapters.
+icon: HeartPulse
+---
+
+These docs cover **healthzkit** and the official **Postgres** and **Redis** adapter packages. The core library runs your checks in parallel, rolls up status, and returns JSON or plain text for HTTP probes without tying you to a specific framework.
+
+## Packages
+
+<Cards>
+  <Card
+    title="healthzkit"
+    href="/healthzkit"
+    description="Liveness and readiness probes, scheduling, and HTTP-friendly responses."
+  />
+  <Card
+    title="Postgres adapter"
+    href="/healthzkit/postgres"
+    description="Checks for pg and postgres.js."
+  />
+  <Card
+    title="Redis adapter"
+    href="/healthzkit/redis"
+    description="Checks for ioredis, node-redis, and Upstash."
+  />
+</Cards>
+
+Start with the **healthzkit** guide for install, quick start, routes, adapters, scheduling, and rollup behavior. Use the adapter pages when you wire a real **PostgreSQL** or **Redis** client into a check.
+
+## On npm
+
+<Cards>
+  <Card
+    title="healthzkit"
+    href="https://www.npmjs.com/package/healthzkit"
+    description="Core package — probes and HealthKit API."
+  />
+  <Card
+    title="@healthzkit/postgres"
+    href="https://www.npmjs.com/package/@healthzkit/postgres"
+    description="Postgres.js and node-pg adapters."
+  />
+  <Card
+    title="@healthzkit/redis"
+    href="https://www.npmjs.com/package/@healthzkit/redis"
+    description="ioredis, redis, and Upstash adapters."
+  />
+</Cards>
