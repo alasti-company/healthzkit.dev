@@ -1,29 +1,49 @@
 # Vite+ Monorepo Starter
 
-A starter for creating a Vite+ monorepo.
+A Vite+ starter for building a monorepo with the unified `vp` toolchain.
 
-## Development
+## Setup
 
-- Check everything is ready:
+- Install dependencies:
 
 ```bash
-vp run ready
+vp install
 ```
 
-- Run the tests:
+- Start all development workspaces:
+
+```bash
+vp run dev
+```
+
+## Helpful commands
+
+- Install/update dependencies after pulling changes:
+
+```bash
+vp install
+```
+
+- Run the workspace test suite:
 
 ```bash
 vp run test -r
 ```
 
-- Build the monorepo:
+- Run formatting, linting, and type checks:
+
+```bash
+vp check
+```
+
+- Build all packages/apps in the monorepo:
 
 ```bash
 vp run build -r
 ```
 
-- Run the development server:
+- Run a project-wide readiness check:
 
 ```bash
-vp run dev
+vp run ready
 ```
