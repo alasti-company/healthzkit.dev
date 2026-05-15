@@ -9,7 +9,9 @@ catalog:
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vite-plus: latest
+  vitepress: ^1.6.4
   vitest: npm:@voidzero-dev/vite-plus-test@latest
+  wrangler: ^4.88.0
 
 catalogMode: prefer
 overrides:

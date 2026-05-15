@@ -1,0 +1,15 @@
+{
+  "name": "@healthzkit/docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "catalog:",
+    "wrangler": "catalog:"
+  }
+}
