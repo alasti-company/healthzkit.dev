@@ -32,8 +32,8 @@ jobs:
       - name: Install dependencies
         run: vp install
 
-      #   - name: Build
-      #     run: vp run build -r
+      - name: Build
+        run: vp run -r build
 
       - name: Format
         run: vp fmt --check
@@ -42,4 +42,4 @@ jobs:
         run: vp lint
 
       - name: Test
-        run: vp run test -r
+        run: vp run -r test

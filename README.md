@@ -27,7 +27,7 @@ vp install
 - Run the workspace test suite:
 
 ```bash
-vp run test -r
+vp run -r test
 ```
 
 - Run formatting, linting, and type checks:
@@ -39,7 +39,7 @@ vp check
 - Build all packages/apps in the monorepo:
 
 ```bash
-vp run build -r
+vp run -r build
 ```
 
 - Run a project-wide readiness check:
