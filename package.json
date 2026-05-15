@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "ready": "vp fmt && vp lint && vp run test && vp run build",
-    "test": "vp run test -r",
-    "build": "vp run build -r",
+    "test": "vp run -r test",
+    "build": "vp run -r build",
     "dev": "vp run -r dev",
     "prepare": "vp config",
     "publish": "vp run build -r && changeset publish"
