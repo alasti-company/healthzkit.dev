@@ -2,7 +2,7 @@
   "name": "@healthzkit/root",
   "version": "0.0.1",
   "private": true,
-  "description": "Root healthzkit",
+  "description": "Root healthzkit repository",
   "type": "module",
   "scripts": {
     "ready": "vp fmt && vp lint && vp run test && vp run build",
