@@ -2,6 +2,10 @@ packages:
   - apps/*
   - packages/*
   - tools/*
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
 
 catalog:
   "@changesets/cli": ^2.31.0
