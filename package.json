@@ -9,7 +9,7 @@
     "build": "vp run -r build",
     "dev": "vp run -r dev",
     "prepare": "vp config",
-    "publish": "vp run -r build && changeset publish"
+    "publish": "vpx changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
