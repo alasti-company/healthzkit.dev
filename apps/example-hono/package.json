@@ -1,5 +1,7 @@
 {
   "name": "@healthzkit/example-hono",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
