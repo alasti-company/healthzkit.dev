@@ -4,11 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "ready": "vp fmt && vp lint && vp run test -r && vp run build -r",
+    "ready": "vp fmt && vp lint && vp run test && vp run build",
+    "test": "vp run -r test",
+    "build": "vp run -r build",
     "dev": "vp run -r dev",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "publish": "vp run -r build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {

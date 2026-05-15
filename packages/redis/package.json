@@ -7,6 +7,9 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
+    "./ioredis": "./dist/ioredis.mjs",
+    "./redis": "./dist/redis.mjs",
+    "./upstash": "./dist/upstash.mjs",
     "./package.json": "./package.json"
   },
   "publishConfig": {
