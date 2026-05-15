@@ -31,10 +31,13 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        run: vp install
+        run: vp install --frozen-lockfile
 
       - name: Clear vp cache
         run: vp cache clean
+
+      - name: Clean changeset cache
+        run: rm -rf node_modules/.cache/changesets
 
       - name: Create Release PR or Publish
         uses: changesets/action@v1
