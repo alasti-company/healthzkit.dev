@@ -40,11 +40,6 @@ jobs:
       - name: Clean changeset cache
         run: rm -rf node_modules/.cache/changesets
 
-      - name: Verify npm auth
-        run: npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Create Release PR or Publish
         uses: changesets/action@v1
         with:
@@ -53,5 +48,4 @@ jobs:
           commit: "chore: release packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
