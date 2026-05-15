@@ -1,5 +1,11 @@
 # @healthzkit/redis
 
+## 0.0.2
+
+### Patch Changes
+
+- c69f281: chore: sync versions and add readmes
+
 ## 0.0.1
 
 ### Patch Changes
