@@ -25,3 +25,5 @@ dist-ssr
 
 # AI agent worktrees
 .claude/worktrees/
+
+.pnpm-store/
