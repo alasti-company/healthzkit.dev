@@ -13,6 +13,7 @@ permissions:
   contents: write
   pull-requests: write
   actions: write
+  id-token: write
 
 jobs:
   release:
@@ -43,9 +44,6 @@ jobs:
         run: npm whoami
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Build
-        run: vp run -r build
 
       - name: Create Release PR or Publish
         uses: changesets/action@v1
