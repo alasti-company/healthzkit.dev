@@ -2,6 +2,14 @@
   "name": "@healthzkit/postgres",
   "version": "0.0.2",
   "license": "AGPL-3.0-only",
+<<<<<<< HEAD
+=======
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/postgres"
+  },
+>>>>>>> e234b1c (fix: missing repository field in package.json)
   "files": [
     "dist"
   ],

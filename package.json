@@ -4,6 +4,10 @@
   "private": true,
   "description": "Root healthzkit repository",
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev"
+  },
   "type": "module",
   "scripts": {
     "ready": "vp fmt && vp lint && vp run test && vp run build",
