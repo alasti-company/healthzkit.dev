@@ -1,6 +1,7 @@
 {
   "name": "@healthzkit/redis",
   "version": "0.0.2",
+  "license": "AGPL-3.0-only",
   "files": [
     "dist"
   ],
