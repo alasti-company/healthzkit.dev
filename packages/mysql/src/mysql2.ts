@@ -22,26 +22,40 @@ export type Mysql2AdapterOptions =
 
 export function mysql2Adapter(options: Mysql2AdapterOptions): HealthAdapter {
   let internalPool: Pool | null = null;
+  let internalPoolInit: Promise<Pool> | null = null;
 
-  async function getConnection(): Promise<Connection> {
-    if ("connectionString" in options && options.connectionString) {
-      if (!internalPool) {
+  async function getInternalPool(): Promise<Pool> {
+    if (internalPool) {
+      return internalPool;
+    }
+
+    if (!internalPoolInit) {
+      internalPoolInit = (async () => {
         const mysql2 = await import("mysql2/promise");
-        const parsed = parseConnectionString(options.connectionString);
+        const parsed = parseConnectionString(options.connectionString!);
 
         internalPool = mysql2.createPool({
           ...parsed,
           ...options.connectionOptions,
         });
-      }
+        return internalPool;
+      })();
+    }
 
-      return await internalPool.getConnection();
+    return internalPoolInit;
+  }
+
+  async function getConnection(): Promise<Connection> {
+    if ("connectionString" in options && options.connectionString) {
+      const pool = await getInternalPool();
+
+      return await pool.getConnection();
     }
 
     const client = options.client;
 
     if (!client) {
-      throw new Error("mysqlAdapter: provided a non-empty connectionString or a client");
+      throw new Error("mysql2Adapter: provided a non-empty connectionString or a client");
     }
 
     if ("getConnection" in client && typeof client.getConnection === "function") {
