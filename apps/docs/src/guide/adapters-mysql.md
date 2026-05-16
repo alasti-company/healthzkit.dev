@@ -122,11 +122,16 @@ const adapter = mysql2Adapter({
 
 Both adapters accept URLs with the **`mysql://`** or **`mysql2://`** scheme (default port **3306**). Userinfo and database name come from the URL; additional pool settings go in **`connectionOptions`**.
 
-```
+```text
 mysql://user:pass@db.example:3306/myapp
 mysql2://localhost:3307/myapp
+
 ```
 
 ## Scheduling
 
 For busy databases, pair these adapters with a **`schedule`** on the check so readiness reads cached results (see [Scheduling](./scheduling.md)).
+
+```
+
+```
