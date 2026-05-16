@@ -3,9 +3,18 @@ import { defineConfig } from "vitepress";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Healthzkit",
-  description:
-    "Documentation for the healthzkit npm package — liveness and readiness probes for Node.js.",
+  description: "Liveness and Readiness probes for Node.js.",
   srcDir: "./src",
+  markdown: {
+    theme: {
+      light: "vitesse-light",
+      dark: "vitesse-dark",
+    },
+    async shikiSetup(shiki) {
+      await shiki.loadLanguage("html", "xml", "markdown");
+    },
+  },
+  cleanUrls: true,
   themeConfig: {
     nav: [
       { text: "Home", link: "/" },
@@ -38,8 +47,11 @@ export default defineConfig({
         ],
       },
     ],
-
-    socialLinks: [{ icon: "github", link: "https://github.com/alasti-company" }],
+    footer: {
+      message: "Released under the AGPL-3.0 License.",
+      copyright: `Copyright © ${new Date().getFullYear()} The Alasti Company & Healthzkit.dev`,
+    },
+    socialLinks: [{ icon: "github", link: "https://github.com/alasti-company/healthzkit.dev" }],
   },
   sitemap: {
     hostname: "https://healthzkit.dev",
