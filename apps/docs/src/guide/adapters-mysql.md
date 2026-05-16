@@ -131,7 +131,3 @@ mysql2://localhost:3307/myapp
 ## Scheduling
 
 For busy databases, pair these adapters with a **`schedule`** on the check so readiness reads cached results (see [Scheduling](./scheduling.md)).
-
-```
-
-```
