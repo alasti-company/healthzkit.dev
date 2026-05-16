@@ -102,7 +102,7 @@ function parseConnectionString(connectionString: string): ConnectionOptions {
   const protocol = url.protocol.replace(":", "");
   if (protocol !== "mysql" && protocol !== "mysql2") {
     throw new Error(
-      `mysql2Adapter: invalid protocol in connection string: ${protocol}. expeceted mysql:// or mysql2://`,
+      `mysql2Adapter: invalid protocol in connectionString: ${protocol}. expected mysql:// or mysql2://`,
     );
   }
 

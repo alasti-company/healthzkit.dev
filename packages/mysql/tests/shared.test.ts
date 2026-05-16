@@ -13,9 +13,9 @@ describe("src/shared.ts", () => {
     expect(r.metadata).toEqual({ latencyMs: 1, version: "8" });
   });
 
-  test("buildResult allows metadata to override latencyMs", () => {
+  test("buildResult always uses measured latencyMs over metadata", () => {
     const r = buildResult(10, { latencyMs: 999 });
-    expect(r.metadata).toEqual({ latencyMs: 999 });
+    expect(r.metadata).toEqual({ latencyMs: 10 });
   });
 
   test("buildErrorResult wraps Error instances", () => {

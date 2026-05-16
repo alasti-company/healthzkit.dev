@@ -25,7 +25,7 @@ describe("mysql2Adapter", () => {
 
     expect(result.status).toBe("fail");
     expect((result.error as Error).message).toBe(
-      "mysqlAdapter: provided a non-empty connectionString or a client",
+      "mysql2Adapter: provided a non-empty connectionString or a client",
     );
   });
 
@@ -35,7 +35,7 @@ describe("mysql2Adapter", () => {
 
     expect(result.status).toBe("fail");
     expect((result.error as Error).message).toBe(
-      "mysqlAdapter: provided a non-empty connectionString or a client",
+      "mysql2Adapter: provided a non-empty connectionString or a client",
     );
   });
 
@@ -174,7 +174,7 @@ describe("mysql2Adapter", () => {
 
     expect(result.status).toBe("fail");
     expect((result.error as Error).message).toBe(
-      "mysql2Adapter: invalid protocol in connection string: postgres. expeceted mysql:// or mysql2://",
+      "mysql2Adapter: invalid protocol in connectionString: postgres. expected mysql:// or mysql2://",
     );
   });
 });
