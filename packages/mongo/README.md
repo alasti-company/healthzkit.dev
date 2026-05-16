@@ -89,7 +89,7 @@ const adapter = mongodbAdapter({
 
 **Peer:** `mongoose` ≥ 8 or ≥ 9.
 
-Each check runs `db.admin().command({ ping: 1 })` on the resolved connection. Works with a **`Mongoose`** instance (`conn.db`) or a mongoose **`Connection`** (`conn.connection.db`).
+Each check runs `db.admin().command({ ping: 1 })` on the resolved connection. Works with a **`Mongoose`** instance (`conn.connection.db`) or a mongoose **`Connection`** (`conn.db`).
 
 ### Connection string
 
