@@ -24,6 +24,7 @@ export default defineConfig({
         items: [
           { text: "Redis", link: "/guide/adapters-redis" },
           { text: "Postgres", link: "/guide/adapters-postgres" },
+          { text: "MySQL", link: "/guide/adapters-mysql" },
           { text: "MongoDB", link: "/guide/adapters-mongo" },
         ],
       },
@@ -45,6 +46,7 @@ export default defineConfig({
         items: [
           { text: "Redis", link: "/guide/adapters-redis" },
           { text: "Postgres", link: "/guide/adapters-postgres" },
+          { text: "MySQL", link: "/guide/adapters-mysql" },
           { text: "MongoDB", link: "/guide/adapters-mongo" },
         ],
       },
