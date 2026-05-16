@@ -33,3 +33,4 @@ npm install healthzkit
 
 - [Redis](./adapters-redis.md) — `@healthzkit/redis` (`ioredis`, `node-redis`, Upstash).
 - [Postgres](./adapters-postgres.md) — `@healthzkit/postgres` (`pg`, `postgres`).
+- [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo` (`mongodb`, `mongoose`).

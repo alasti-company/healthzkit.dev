@@ -20,6 +20,6 @@ hero:
 #     details: Tag checks for liveness, readiness, or both. Only the checks that belong to the current probe run, with per-check timeouts and clear rollup rules.
 #   - title: Optional scheduling
 #     details: Run expensive checks on an interval and serve probes from cache, with ISO timestamps and zero latency for cached hits when timers are active.
-#   - title: Redis and Postgres adapters
-#     details: Optional @healthzkit/redis and @healthzkit/postgres packages wire ioredis, node-redis, Upstash, pg, and postgres.js into checks with minimal configuration.
+#   - title: Redis, Postgres, and MongoDB adapters
+#     details: Optional @healthzkit/redis, @healthzkit/postgres, and @healthzkit/mongo packages wire common clients into checks with minimal configuration.
 ---
