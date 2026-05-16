@@ -30,4 +30,5 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 
 - [Redis](./adapters-redis.md) — `@healthzkit/redis`
 - [Postgres](./adapters-postgres.md) — `@healthzkit/postgres`
+- [MySQL](./adapters-mysql.md) — `@healthzkit/mysql`
 - [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo`

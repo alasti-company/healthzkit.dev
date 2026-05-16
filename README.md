@@ -12,6 +12,7 @@ This monorepo publishes the core library and optional adapters for common data s
 | [`@healthzkit/postgres`](./packages/postgres) | `@healthzkit/postgres` | Adapters for [`pg`](https://node-postgres.com/) and [`postgres`](https://github.com/porsager/postgres)                                                                       |
 | [`@healthzkit/redis`](./packages/redis)       | `@healthzkit/redis`    | Adapters for [`ioredis`](https://github.com/redis/ioredis), [`redis`](https://github.com/redis/node-redis), and [`@upstash/redis`](https://github.com/upstash/upstash-redis) |
 | [`@healthzkit/mongo`](./packages/mongo)       | `@healthzkit/mongo`    | Adapters for the official [`mongodb`](https://www.mongodb.com/docs/drivers/node/current/) driver and [`mongoose`](https://mongoosejs.com/)                                   |
+| [`@healthzkit/mysql`](./packages/mysql)       | `@healthzkit/mysql`    | Adapters for [`mysql`](https://github.com/mysqljs/mysql) and [`mysql2`](https://github.com/sidorares/node-mysql2)                                                            |
 
 See each package README for install instructions, API details, and examples.
 
