@@ -43,7 +43,11 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
       await client.connect();
       internalClient = client;
       return client;
-    })();
+    })().catch((error) => {
+      ownedConnectPromise = null;
+      internalClient = null;
+      throw error;
+    });
 
     return ownedConnectPromise;
   }
@@ -54,7 +58,13 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
     }
 
     if ("client" in options && options.client) {
-      injectedConnectPromise ??= options.client.connect().then(() => undefined);
+      injectedConnectPromise ??= options.client
+        .connect()
+        .then(() => undefined)
+        .catch((error) => {
+          injectedConnectPromise = null;
+          throw error;
+        });
       await injectedConnectPromise;
       return options.client;
     }
