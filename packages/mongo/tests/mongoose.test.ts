@@ -122,22 +122,25 @@ describe("mongooseAdapter", () => {
 
     vi.doMock("mongoose", () => ({ default: mongoose }));
 
-    const { mongooseAdapter: adapterFactory } = await import("../src/mongoose.ts");
-    const adapter = adapterFactory({
-      connectionString: "mongodb://localhost:27017",
-      mongooseOptions: { serverSelectionTimeoutMS: 50 },
-    });
+    try {
+      const { mongooseAdapter: adapterFactory } = await import("../src/mongoose.ts");
+      const adapter = adapterFactory({
+        connectionString: "mongodb://localhost:27017",
+        mongooseOptions: { serverSelectionTimeoutMS: 50 },
+      });
 
-    await adapter.check();
-    await adapter.check();
+      await adapter.check();
+      await adapter.check();
 
-    expect(connect).toHaveBeenCalledOnce();
-    expect(connect).toHaveBeenCalledWith("mongodb://localhost:27017", {
-      serverSelectionTimeoutMS: 50,
-    });
-    expect(command).toHaveBeenCalledTimes(2);
-
-    vi.doUnmock("mongoose");
+      expect(connect).toHaveBeenCalledOnce();
+      expect(connect).toHaveBeenCalledWith("mongodb://localhost:27017", {
+        serverSelectionTimeoutMS: 50,
+      });
+      expect(command).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.doUnmock("mongoose");
+      vi.resetModules();
+    }
   });
 
   test("reuses a single mongoose connect across concurrent checks", async () => {
@@ -152,19 +155,22 @@ describe("mongooseAdapter", () => {
 
     vi.doMock("mongoose", () => ({ default: mongoose }));
 
-    const { mongooseAdapter: adapterFactory } = await import("../src/mongoose.ts");
-    const adapter = adapterFactory({
-      connectionString: "mongodb://localhost:27017",
-      mongooseOptions: { serverSelectionTimeoutMS: 100 },
-    });
+    try {
+      const { mongooseAdapter: adapterFactory } = await import("../src/mongoose.ts");
+      const adapter = adapterFactory({
+        connectionString: "mongodb://localhost:27017",
+        mongooseOptions: { serverSelectionTimeoutMS: 100 },
+      });
 
-    await Promise.all([adapter.check(), adapter.check()]);
+      await Promise.all([adapter.check(), adapter.check()]);
 
-    expect(connectCount).toBe(1);
-    expect(connect).toHaveBeenCalledWith("mongodb://localhost:27017", {
-      serverSelectionTimeoutMS: 100,
-    });
-
-    vi.doUnmock("mongoose");
+      expect(connectCount).toBe(1);
+      expect(connect).toHaveBeenCalledWith("mongodb://localhost:27017", {
+        serverSelectionTimeoutMS: 100,
+      });
+    } finally {
+      vi.doUnmock("mongoose");
+      vi.resetModules();
+    }
   });
 });
