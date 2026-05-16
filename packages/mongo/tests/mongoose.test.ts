@@ -68,6 +68,18 @@ describe("mongooseAdapter", () => {
     expect(result.status).toBe("ok");
   });
 
+  test("returns fail when db is unavailable", async () => {
+    const connection = {
+      readyState: 1,
+      db: undefined,
+    } as never;
+
+    const result = await mongooseAdapter({ connection }).check();
+
+    expect(result.status).toBe("fail");
+    expect((result.error as Error).message).toBe("mongoose adapter: database unavailable");
+  });
+
   test("returns fail when ping rejects", async () => {
     const command = vi.fn().mockRejectedValue(new Error("topology closed"));
     const connection = {

@@ -69,7 +69,10 @@ export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter 
         const start = Date.now();
 
         const db = "db" in conn ? conn.db : conn.connection.db;
-        await db?.admin().command({ ping: 1 });
+        if (!db) {
+          throw new Error("mongoose adapter: database unavailable");
+        }
+        await db.admin().command({ ping: 1 });
 
         const latencyMs = Date.now() - start;
 
