@@ -19,8 +19,8 @@ export function buildResult(latencyMs: number, metadata?: Record<string, unknown
   return {
     status: "ok",
     metadata: {
-      latencyMs,
       ...metadata,
+      latencyMs,
     },
   };
 }
