@@ -109,6 +109,25 @@ describe("mysqlAdapter", () => {
     expect(result.metadata).toMatchObject({ engine: "InnoDB", latencyMs: expect.any(Number) });
   });
 
+  test("creates internal pool once when checks run concurrently", async () => {
+    const createPool = vi.fn(() => mockPool(mockConnection()));
+    vi.doMock("mysql", () => ({ createPool }));
+
+    try {
+      const { mysqlAdapter: adapterFactory } = await import("../src/mysql.ts");
+      const adapter = adapterFactory({
+        connectionString: "mysql://user:pass@db.example:3306/app",
+      });
+
+      await Promise.all([adapter.check(), adapter.check(), adapter.check()]);
+
+      expect(createPool).toHaveBeenCalledOnce();
+    } finally {
+      vi.doUnmock("mysql");
+      vi.resetModules();
+    }
+  });
+
   test("reuses internal pool across checks when using connectionString", async () => {
     const createPool = vi.fn(() => mockPool(mockConnection()));
     vi.doMock("mysql", () => ({ createPool }));
