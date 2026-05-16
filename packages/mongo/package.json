@@ -1,0 +1,54 @@
+{
+  "name": "@healthzkit/mongo",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/mongo"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./mongodb": "./dist/mongodb.mjs",
+    "./mongoose": "./dist/mongoose.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^4.0.7",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^25.6.2",
+    "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "bumpp": "^11.1.0",
+    "healthzkit": "workspace:*",
+    "mongodb": "^7.2.0",
+    "mongoose": "^9.6.2",
+    "typescript": "^6.0.3",
+    "vite-plus": "^0.1.20"
+  },
+  "peerDependencies": {
+    "mongodb": ">=6.0.0 || >=7.0.0",
+    "mongoose": ">= 8.0.0 || >=9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "mongodb": {
+      "optional": true
+    },
+    "mongoose": {
+      "optional": true
+    }
+  }
+}
