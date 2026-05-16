@@ -127,4 +127,32 @@ describe("mongooseAdapter", () => {
 
     vi.doUnmock("mongoose");
   });
+
+  test("reuses a single mongoose connect across concurrent checks", async () => {
+    let connectCount = 0;
+    const connect = vi.fn(async () => {
+      connectCount += 1;
+    });
+    const mongoose = {
+      connect,
+      db: mockDb(),
+    };
+
+    vi.doMock("mongoose", () => ({ default: mongoose }));
+
+    const { mongooseAdapter: adapterFactory } = await import("../src/mongoose.ts");
+    const adapter = adapterFactory({
+      connectionString: "mongodb://localhost:27017",
+      mongooseOptions: { serverSelectionTimeoutMS: 100 },
+    });
+
+    await Promise.all([adapter.check(), adapter.check()]);
+
+    expect(connectCount).toBe(1);
+    expect(connect).toHaveBeenCalledWith("mongodb://localhost:27017", {
+      serverSelectionTimeoutMS: 100,
+    });
+
+    vi.doUnmock("mongoose");
+  });
 });

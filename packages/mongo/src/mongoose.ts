@@ -27,17 +27,27 @@ export type MongooseAdapterOptions =
   | MongooseAdapterOptionsWithConnectionString;
 
 export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter {
-  let internalConnection: MongooseConnection | null = null;
+  let internalConnectionPromise: Promise<MongooseConnection> | null = null;
+
+  async function getOwnedConnection(
+    connectionString: string,
+    mongooseOptions?: ConnectOptions,
+  ): Promise<MongooseConnection> {
+    internalConnectionPromise ??= (async () => {
+      const { default: mongoose } = await import("mongoose");
+      await mongoose.connect(connectionString, mongooseOptions);
+      return mongoose;
+    })().catch((error) => {
+      internalConnectionPromise = null;
+      throw error;
+    });
+
+    return internalConnectionPromise;
+  }
 
   async function getConnection(): Promise<MongooseConnection> {
     if ("connectionString" in options && options.connectionString) {
-      if (!internalConnection) {
-        const { default: mongoose } = await import("mongoose");
-        await mongoose.connect(options.connectionString, options.mongooseOptions);
-        internalConnection = mongoose;
-      }
-
-      return internalConnection;
+      return getOwnedConnection(options.connectionString, options.mongooseOptions);
     }
 
     const conn = options.connection;
