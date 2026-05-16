@@ -23,21 +23,35 @@ export type MysqlAdapterOptions =
 
 export function mysqlAdapter(options: MysqlAdapterOptions): HealthAdapter {
   let internalPool: Pool | null = null;
+  let internalPoolInit: Promise<Pool> | null = null;
 
-  async function getConnection(): Promise<Connection> {
-    if ("connectionString" in options && options.connectionString) {
-      if (!internalPool) {
+  async function getInternalPool(): Promise<Pool> {
+    if (internalPool) {
+      return internalPool;
+    }
+
+    if (!internalPoolInit) {
+      internalPoolInit = (async () => {
         const mysql = await import("mysql");
-        const parsed = parseConnectionString(options.connectionString);
+        const parsed = parseConnectionString(options.connectionString!);
 
         internalPool = mysql.createPool({
           ...parsed,
           ...options.connectionOptions,
         });
-      }
+        return internalPool;
+      })();
+    }
+
+    return internalPoolInit;
+  }
+
+  async function getConnection(): Promise<Connection> {
+    if ("connectionString" in options && options.connectionString) {
+      const pool = await getInternalPool();
 
       return new Promise((resolve, reject) => {
-        internalPool!.getConnection((err, connection) => {
+        pool.getConnection((err, connection) => {
           if (err) reject(err);
           else resolve(connection);
         });
