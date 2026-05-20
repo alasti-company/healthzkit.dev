@@ -21,20 +21,31 @@ export type LibsqlAdapterOptions =
 
 export function libsqlAdapter(options: LibsqlAdapterOptions): HealthAdapter {
   let internalClient: Client | null = null;
+  let internalClientInit: Promise<Client> | null = null;
 
   async function getClient(): Promise<Client> {
     if ("url" in options && options.url) {
-      let client = internalClient;
-      if (!client) {
-        const { createClient } = await import("@libsql/client");
-        client = createClient({
-          url: options.url,
-          authToken: options.authToken,
-        });
-        internalClient = client;
+      if (internalClient) {
+        return internalClient;
       }
 
-      return client;
+      if (!internalClientInit) {
+        internalClientInit = (async () => {
+          try {
+            const { createClient } = await import("@libsql/client");
+            const client = createClient({
+              url: options.url,
+              authToken: options.authToken,
+            });
+            internalClient = client;
+            return client;
+          } finally {
+            internalClientInit = null;
+          }
+        })();
+      }
+
+      return internalClientInit;
     }
 
     if ("client" in options && options.client !== undefined) {
