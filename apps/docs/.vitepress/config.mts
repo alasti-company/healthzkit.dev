@@ -40,7 +40,6 @@ export default defineConfig({
         ],
       },
     ],
-
     sidebar: [
       {
         text: "Guide",
@@ -83,4 +82,14 @@ export default defineConfig({
     hostname: "https://healthzkit.dev",
     lastmodDateOnly: true,
   },
+  head: [
+    [
+      "script",
+      {
+        defer: "",
+        src: "https://assets.onedollarstats.com/stonks.js",
+        "data-hostname": "healthzkit.dev",
+      },
+    ],
+  ],
 });
