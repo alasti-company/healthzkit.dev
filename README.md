@@ -14,6 +14,7 @@ This monorepo publishes the core library and optional adapters for common data s
 | [`@healthzkit/mongo`](./packages/mongo)       | `@healthzkit/mongo`    | Adapters for the official [`mongodb`](https://www.mongodb.com/docs/drivers/node/current/) driver and [`mongoose`](https://mongoosejs.com/)                                                                    |
 | [`@healthzkit/mysql`](./packages/mysql)       | `@healthzkit/mysql`    | Adapters for [`mysql`](https://github.com/mysqljs/mysql) and [`mysql2`](https://github.com/sidorares/node-mysql2)                                                                                             |
 | [`@healthzkit/sqlite`](./packages/sqlite)     | `@healthzkit/sqlite`   | Adapters for [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3), [`sqlite3`](https://github.com/TryGhost/node-sqlite3), and [`@libsql/client`](https://github.com/tursodatabase/libsql-client-ts) |
+| [`@healthzkit/dynamo`](./packages/dynamo)     | `@healthzkit/dynamo`   | Adapters for AWS SDK v2 [`aws-sdk`](https://github.com/aws/aws-sdk-js) and v3 [`@aws-sdk/client-dynamodb`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/)                           |
 
 See each package README for install instructions, API details, and examples.
 
