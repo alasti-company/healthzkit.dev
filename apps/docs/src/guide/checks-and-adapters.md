@@ -33,3 +33,4 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 - [MySQL](./adapters-mysql.md) — `@healthzkit/mysql`
 - [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo`
 - [SQLite](./adapters-sqlite.md) — `@healthzkit/sqlite`
+- [DynamoDB](./adapters-dynamo.md) — `@healthzkit/dynamo`

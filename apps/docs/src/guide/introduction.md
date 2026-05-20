@@ -36,3 +36,4 @@ npm install healthzkit
 - [MySQL](./adapters-mysql.md) — `@healthzkit/mysql` (`mysql`, `mysql2`).
 - [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo` (`mongodb`, `mongoose`).
 - [SQLite](./adapters-sqlite.md) — `@healthzkit/sqlite` (`better-sqlite3`, `sqlite3`, `@libsql/client`).
+- [DynamoDB](./adapters-dynamo.md) — `@healthzkit/dynamo` (`aws-sdk`, `@aws-sdk/client-dynamodb`).
