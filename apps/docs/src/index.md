@@ -20,6 +20,6 @@ hero:
 #     details: Tag checks for liveness, readiness, or both. Only the checks that belong to the current probe run, with per-check timeouts and clear rollup rules.
 #   - title: Optional scheduling
 #     details: Run expensive checks on an interval and serve probes from cache, with ISO timestamps and zero latency for cached hits when timers are active.
-#   - title: Redis, Postgres, MySQL, MongoDB, SQLite, and DynamoDB adapters
-#     details: Optional @healthzkit/redis, @healthzkit/postgres, @healthzkit/mysql, @healthzkit/mongo, @healthzkit/sqlite, and @healthzkit/dynamo packages wire common clients into checks with minimal configuration.
+#   - title: Redis, RabbitMQ, Postgres, MySQL, MongoDB, SQLite, and DynamoDB adapters
+#     details: Optional @healthzkit/redis, @healthzkit/rabbitmq, @healthzkit/postgres, @healthzkit/mysql, @healthzkit/mongo, @healthzkit/sqlite, and @healthzkit/dynamo packages wire common clients into checks with minimal configuration.
 ---

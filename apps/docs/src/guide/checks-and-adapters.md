@@ -29,6 +29,7 @@ Thrown errors from `adapter.check()` are treated as **`fail`**, with the error m
 This monorepo publishes optional packages that return a `HealthAdapter` for common infrastructure:
 
 - [Redis](./adapters-redis.md) — `@healthzkit/redis`
+- [RabbitMQ](./adapters-rabbitmq.md) — `@healthzkit/rabbitmq`
 - [Postgres](./adapters-postgres.md) — `@healthzkit/postgres`
 - [MySQL](./adapters-mysql.md) — `@healthzkit/mysql`
 - [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo`
