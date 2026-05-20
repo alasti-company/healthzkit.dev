@@ -10,7 +10,7 @@ export interface DynamoV3AdapterOptionsWithClient extends BaseDynamoOptions<Dyna
 
 export interface DynamoV3AdapterOptionsWithConfig extends BaseDynamoOptions<DynamoDBClient> {
   config?: DynamoDBClientConfig;
-  client: never;
+  client?: never;
 }
 
 export type DynamoV3AdapterOptions =
