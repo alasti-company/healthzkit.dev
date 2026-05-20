@@ -1,0 +1,53 @@
+{
+  "name": "@healthzkit/rabbitmq",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/rabbitmq"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./amqp-connection-manager": "./dist/amqp-connection-manager.mjs",
+    "./amqplib": "./dist/amqplib.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/node": "^25.6.2",
+    "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "amqp-connection-manager": "^5.0.0",
+    "amqplib": "^2.0.1",
+    "bumpp": "^11.1.0",
+    "healthzkit": "workspace:*",
+    "typescript": "^6.0.3",
+    "vite-plus": "^0.1.20"
+  },
+  "peerDependencies": {
+    "amqp-connection-manager": ">=4.0.0 || >=5.0.0",
+    "amqplib": ">=1.0.0 || >=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "amqp-connection-manager": {
+      "optional": true
+    },
+    "amqplib": {
+      "optional": true
+    }
+  }
+}
