@@ -31,8 +31,15 @@ npm install healthzkit
 
 ### Optional adapters
 
-- [Redis](./adapters-redis.md) — `@healthzkit/redis` (`ioredis`, `node-redis`, Upstash).
+Official adapter packages cover **queues** and **databases** today.
+
+#### Queues
+
 - [RabbitMQ](./adapters-rabbitmq.md) — `@healthzkit/rabbitmq` (`amqplib`, `amqp-connection-manager`).
+
+#### Databases
+
+- [Redis](./adapters-redis.md) — `@healthzkit/redis` (`ioredis`, `node-redis`, Upstash).
 - [Postgres](./adapters-postgres.md) — `@healthzkit/postgres` (`pg`, `postgres`).
 - [MySQL](./adapters-mysql.md) — `@healthzkit/mysql` (`mysql`, `mysql2`).
 - [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo` (`mongodb`, `mongoose`).
