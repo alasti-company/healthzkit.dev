@@ -28,18 +28,30 @@ export function amqpConnectionManagerAdapter(
   options: AmqpConnectionManagerAdapterOptions,
 ): HealthAdapter {
   let internalConnection: AmqpConnectionManager | null = null;
+  let internalConnectionPromise: Promise<AmqpConnectionManager> | null = null;
 
   async function getConnection(): Promise<AmqpConnectionManager> {
     if ("connection" in options && options.connection) {
       return options.connection;
     }
 
-    if (!internalConnection) {
-      const { connect } = await import("amqp-connection-manager");
-      internalConnection = connect(options.urls, options.connectionOptions);
+    if (internalConnection) {
+      return internalConnection;
     }
 
-    return internalConnection;
+    if (internalConnectionPromise) {
+      return internalConnectionPromise;
+    }
+
+    internalConnectionPromise = (async () => {
+      const { connect } = await import("amqp-connection-manager");
+      const conn = connect(options.urls, options.connectionOptions);
+      internalConnection = conn;
+      internalConnectionPromise = null;
+      return conn;
+    })();
+
+    return internalConnectionPromise;
   }
 
   return {
