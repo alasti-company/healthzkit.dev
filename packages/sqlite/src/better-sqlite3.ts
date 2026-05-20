@@ -32,16 +32,28 @@ export type BetterSqlite3AdapterOptions =
 
 export function betterSqlite3Adapter(options: BetterSqlite3AdapterOptions): HealthAdapter {
   let internalDb: SqliteDatabase | null = null;
+  let internalDbInit: Promise<SqliteDatabase> | null = null;
 
   async function getClient(): Promise<SqliteDatabase> {
     if ("connectionString" in options && options.connectionString) {
-      if (!internalDb) {
-        const { default: DatabaseCtor } = await import("better-sqlite3");
-
-        internalDb = new DatabaseCtor(options.connectionString, options.options);
+      if (internalDb) {
+        return internalDb;
       }
 
-      return internalDb;
+      if (!internalDbInit) {
+        internalDbInit = (async () => {
+          try {
+            const { default: DatabaseCtor } = await import("better-sqlite3");
+            const db = new DatabaseCtor(options.connectionString, options.options);
+            internalDb = db;
+            return db;
+          } finally {
+            internalDbInit = null;
+          }
+        })();
+      }
+
+      return internalDbInit;
     }
 
     if ("client" in options && options.client !== undefined) {
