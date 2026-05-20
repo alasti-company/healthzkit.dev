@@ -28,18 +28,33 @@ export type AmqplibAdapterOptions =
 
 export function amqplibAdapter(options: AmqplibAdapterOptions): HealthAdapter {
   let internalConnection: AmqplibClient | null = null;
+  let connectionPromise: Promise<AmqplibClient> | null = null;
 
   async function getConnection(): Promise<AmqplibClient> {
     if ("connection" in options && options.connection) {
       return options.connection;
     }
 
-    if (!internalConnection) {
-      const { default: amqplib } = await import("amqplib");
-      internalConnection = await amqplib.connect(options.url, options.socketOptions);
+    if (internalConnection) {
+      return internalConnection;
     }
 
-    return internalConnection;
+    if (connectionPromise) {
+      return connectionPromise;
+    }
+
+    connectionPromise = (async () => {
+      try {
+        const { default: amqplib } = await import("amqplib");
+        const conn = await amqplib.connect(options.url, options.socketOptions);
+        internalConnection = conn;
+        return conn;
+      } finally {
+        connectionPromise = null;
+      }
+    })();
+
+    return connectionPromise;
   }
 
   return {
