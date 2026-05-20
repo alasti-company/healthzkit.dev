@@ -30,13 +30,13 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 
 ### Queues
 
-- [RabbitMQ](./adapters-rabbitmq.md) — `@healthzkit/rabbitmq`
+- [RabbitMQ](/adapter/rabbitmq) — `@healthzkit/rabbitmq`
 
 ### Databases
 
-- [Redis](./adapters-redis.md) — `@healthzkit/redis`
-- [Postgres](./adapters-postgres.md) — `@healthzkit/postgres`
-- [MySQL](./adapters-mysql.md) — `@healthzkit/mysql`
-- [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo`
-- [SQLite](./adapters-sqlite.md) — `@healthzkit/sqlite`
-- [DynamoDB](./adapters-dynamo.md) — `@healthzkit/dynamo`
+- [Redis](/adapter/redis) — `@healthzkit/redis`
+- [Postgres](/adapter/postgres) — `@healthzkit/postgres`
+- [MySQL](/adapter/mysql) — `@healthzkit/mysql`
+- [MongoDB](/adapter/mongo) — `@healthzkit/mongo`
+- [SQLite](/adapter/sqlite) — `@healthzkit/sqlite`
+- [DynamoDB](/adapter/dynamo) — `@healthzkit/dynamo`

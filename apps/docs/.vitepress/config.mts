@@ -24,17 +24,17 @@ export default defineConfig({
         items: [
           {
             text: "Queues",
-            items: [{ text: "RabbitMQ", link: "/guide/adapters-rabbitmq" }],
+            items: [{ text: "RabbitMQ", link: "/adapter/rabbitmq" }],
           },
           {
             text: "Databases",
             items: [
-              { text: "Redis", link: "/guide/adapters-redis" },
-              { text: "Postgres", link: "/guide/adapters-postgres" },
-              { text: "MySQL", link: "/guide/adapters-mysql" },
-              { text: "MongoDB", link: "/guide/adapters-mongo" },
-              { text: "SQLite", link: "/guide/adapters-sqlite" },
-              { text: "DynamoDB", link: "/guide/adapters-dynamo" },
+              { text: "Redis", link: "/adapter/redis" },
+              { text: "Postgres", link: "/adapter/postgres" },
+              { text: "MySQL", link: "/adapter/mysql" },
+              { text: "MongoDB", link: "/adapter/mongo" },
+              { text: "SQLite", link: "/adapter/sqlite" },
+              { text: "DynamoDB", link: "/adapter/dynamo" },
             ],
           },
         ],
@@ -48,6 +48,7 @@ export default defineConfig({
           { text: "Getting started", link: "/guide/getting-started" },
           { text: "Checks and adapters", link: "/guide/checks-and-adapters" },
           { text: "Scheduling", link: "/guide/scheduling" },
+          { text: "Framework guides", link: "/guide/frameworks" },
           { text: "Responses and HTTP", link: "/guide/responses-and-http" },
         ],
       },
@@ -56,17 +57,17 @@ export default defineConfig({
         items: [
           {
             text: "Queues",
-            items: [{ text: "RabbitMQ", link: "/guide/adapters-rabbitmq" }],
+            items: [{ text: "RabbitMQ", link: "/adapter/rabbitmq" }],
           },
           {
             text: "Databases",
             items: [
-              { text: "Redis", link: "/guide/adapters-redis" },
-              { text: "Postgres", link: "/guide/adapters-postgres" },
-              { text: "MySQL", link: "/guide/adapters-mysql" },
-              { text: "MongoDB", link: "/guide/adapters-mongo" },
-              { text: "SQLite", link: "/guide/adapters-sqlite" },
-              { text: "DynamoDB", link: "/guide/adapters-dynamo" },
+              { text: "Redis", link: "/adapter/redis" },
+              { text: "Postgres", link: "/adapter/postgres" },
+              { text: "MySQL", link: "/adapter/mysql" },
+              { text: "MongoDB", link: "/adapter/mongo" },
+              { text: "SQLite", link: "/adapter/sqlite" },
+              { text: "DynamoDB", link: "/adapter/dynamo" },
             ],
           },
         ],

@@ -27,6 +27,7 @@ npm install healthzkit
 - [Getting started](./getting-started.md) — create a kit, attach checks, handle HTTP.
 - [Checks and adapters](./checks-and-adapters.md) — configuration, timeouts, and failure mapping.
 - [Scheduling](./scheduling.md) — cached results and lifecycle (`start` / `stop`).
+- [Framework guides](./frameworks.md) — Elysia, Express, Hono, Next.js, and Node HTTP wiring patterns.
 - [Responses and HTTP](./responses-and-http.md) — rollup rules, status codes, output format, and public types.
 
 ### Optional adapters
@@ -35,13 +36,13 @@ Official adapter packages cover **queues** and **databases** today.
 
 #### Queues
 
-- [RabbitMQ](./adapters-rabbitmq.md) — `@healthzkit/rabbitmq` (`amqplib`, `amqp-connection-manager`).
+- [RabbitMQ](/adapter/rabbitmq) — `@healthzkit/rabbitmq` (`amqplib`, `amqp-connection-manager`).
 
 #### Databases
 
-- [Redis](./adapters-redis.md) — `@healthzkit/redis` (`ioredis`, `node-redis`, Upstash).
-- [Postgres](./adapters-postgres.md) — `@healthzkit/postgres` (`pg`, `postgres`).
-- [MySQL](./adapters-mysql.md) — `@healthzkit/mysql` (`mysql`, `mysql2`).
-- [MongoDB](./adapters-mongo.md) — `@healthzkit/mongo` (`mongodb`, `mongoose`).
-- [SQLite](./adapters-sqlite.md) — `@healthzkit/sqlite` (`better-sqlite3`, `sqlite3`, `@libsql/client`).
-- [DynamoDB](./adapters-dynamo.md) — `@healthzkit/dynamo` (`aws-sdk`, `@aws-sdk/client-dynamodb`).
+- [Redis](/adapter/redis) — `@healthzkit/redis` (`ioredis`, `node-redis`, Upstash).
+- [Postgres](/adapter/postgres) — `@healthzkit/postgres` (`pg`, `postgres`).
+- [MySQL](/adapter/mysql) — `@healthzkit/mysql` (`mysql`, `mysql2`).
+- [MongoDB](/adapter/mongo) — `@healthzkit/mongo` (`mongodb`, `mongoose`).
+- [SQLite](/adapter/sqlite) — `@healthzkit/sqlite` (`better-sqlite3`, `sqlite3`, `@libsql/client`).
+- [DynamoDB](/adapter/dynamo) — `@healthzkit/dynamo` (`aws-sdk`, `@aws-sdk/client-dynamodb`).
