@@ -20,27 +20,38 @@ export type Sqlite3AdapterOptions =
 
 export function sqlite3Adapter(options: Sqlite3AdapterOptions): HealthAdapter {
   let internalDb: Database | null = null;
+  let internalDbInit: Promise<Database> | null = null;
 
   async function getClient(): Promise<Database> {
     if ("connectionString" in options && options.connectionString) {
-      let db = internalDb;
-      if (!db) {
-        const { default: sqlite3 } = await import("sqlite3");
-
-        db = await new Promise<Database>((resolve, reject) => {
-          const mode = options.mode ?? sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE;
-          const database = new sqlite3.Database(options.connectionString, mode, (error) => {
-            if (error) {
-              reject(error);
-              return;
-            }
-            queueMicrotask(() => resolve(database));
-          });
-        });
-        internalDb = db;
+      if (internalDb) {
+        return internalDb;
       }
 
-      return db;
+      if (!internalDbInit) {
+        internalDbInit = (async () => {
+          try {
+            const { default: sqlite3 } = await import("sqlite3");
+
+            const db = await new Promise<Database>((resolve, reject) => {
+              const mode = options.mode ?? sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE;
+              const database = new sqlite3.Database(options.connectionString, mode, (error) => {
+                if (error) {
+                  reject(error);
+                  return;
+                }
+                queueMicrotask(() => resolve(database));
+              });
+            });
+            internalDb = db;
+            return db;
+          } finally {
+            internalDbInit = null;
+          }
+        })();
+      }
+
+      return internalDbInit;
     }
 
     if ("client" in options && options.client !== undefined) {
