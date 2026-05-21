@@ -1,6 +1,6 @@
 ---
 title: Checks and adapters
-description: Configure health checks, timeouts, failure mapping, and custom HealthAdapter implementations.
+description: Configure Healthzkit checks and adapters—probe types, per-check timeouts, degraded and fail rollup rules, metadata hooks, and custom HealthAdapter implementations.
 ---
 
 # Checks and adapters

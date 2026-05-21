@@ -1,6 +1,6 @@
 ---
 title: DynamoDB adapter
-description: Health checks for AWS SDK v2 and v3 DynamoDB clients with @healthzkit/dynamo.
+description: Use @healthzkit/dynamo adapters for AWS SDK v2 and v3 DynamoDB clients—ListTables probes, latency metadata, client options, and Healthzkit readiness examples for DynamoDB.
 ---
 
 # DynamoDB adapters (`@healthzkit/dynamo`)

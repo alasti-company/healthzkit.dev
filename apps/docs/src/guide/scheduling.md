@@ -1,6 +1,6 @@
 ---
 title: Scheduling
-description: Run expensive health checks on an interval and serve probes from cached results.
+description: Use Healthzkit scheduling to run slow dependency checks on an interval, serve probes from cache with low latency, and manage lifecycle with start, stop, and timestamps.
 ---
 
 # Scheduling

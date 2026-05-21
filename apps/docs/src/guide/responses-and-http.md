@@ -1,6 +1,6 @@
 ---
 title: Responses and HTTP
-description: Rollup rules, HTTP status codes, JSON and plain-text output, and public Healthzkit types.
+description: Understand Healthzkit rollup rules, HTTP status codes for liveness and readiness, JSON versus plain-text output, base paths, and public TypeScript types from the core package.
 ---
 
 # Responses and HTTP

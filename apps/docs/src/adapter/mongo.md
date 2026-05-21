@@ -1,6 +1,6 @@
 ---
 title: MongoDB adapter
-description: Health checks for the MongoDB driver and Mongoose with @healthzkit/mongo.
+description: Use @healthzkit/mongo adapters for the MongoDB driver and Mongoose—admin ping probes, latency metadata, connection options, and Healthzkit readiness examples for document databases.
 ---
 
 # MongoDB adapters (`@healthzkit/mongo`)

@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What Healthzkit is, when to use liveness and readiness probes, and how to install the core package.
+description: Learn what Healthzkit is, when to use liveness and readiness probes in Node.js, how checks and adapters fit together, and how to install the core ESM package.
 ---
 
 # Introduction

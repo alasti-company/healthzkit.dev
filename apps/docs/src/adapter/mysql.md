@@ -1,6 +1,6 @@
 ---
 title: MySQL adapter
-description: Health checks for mysql and mysql2 with @healthzkit/mysql.
+description: Use @healthzkit/mysql adapters for mysql and mysql2—SELECT probes, latency metadata, connection options, and Healthzkit examples that register MySQL readiness checks in Node.js.
 ---
 
 # MySQL adapters (`@healthzkit/mysql`)

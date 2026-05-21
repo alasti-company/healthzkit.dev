@@ -28,3 +28,4 @@ dist-ssr
 .vitepress/out
 
 .wrangler/
+worker-configuration.d.ts

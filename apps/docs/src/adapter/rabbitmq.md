@@ -1,6 +1,6 @@
 ---
 title: RabbitMQ adapter
-description: Health checks for amqplib and amqp-connection-manager with @healthzkit/rabbitmq.
+description: Use @healthzkit/rabbitmq adapters for amqplib and amqp-connection-manager—latency metadata, optional hooks, install steps, and Healthzkit readiness check examples.
 ---
 
 # RabbitMQ adapters (`@healthzkit/rabbitmq`)

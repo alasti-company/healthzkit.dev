@@ -2,7 +2,7 @@
 layout: home
 title: Healthzkit — Liveness & Readiness Probes for Node.js
 titleTemplate: false
-description: Framework-agnostic health checks with parallel runs, rollup status, HTTP mapping, and optional background scheduling for Node.js apps.
+description: Healthzkit gives Node.js apps framework-agnostic liveness and readiness probes with parallel checks, rollup status, HTTP mapping, scheduling, and database adapters.
 
 hero:
   name: Healthzkit

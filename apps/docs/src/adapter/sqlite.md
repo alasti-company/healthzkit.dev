@@ -1,6 +1,6 @@
 ---
 title: SQLite adapter
-description: Health checks for better-sqlite3, sqlite3, and libSQL with @healthzkit/sqlite.
+description: Use @healthzkit/sqlite adapters for better-sqlite3, sqlite3, and @libsql/client—SELECT probes, latency metadata, file and Turso options, and Healthzkit readiness examples for SQLite.
 ---
 
 # SQLite adapters (`@healthzkit/sqlite`)

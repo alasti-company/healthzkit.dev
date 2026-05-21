@@ -1,6 +1,6 @@
 ---
 title: Framework guides
-description: Wire Healthzkit into Elysia, Express, Fastify, Hono, Next.js, and Node HTTP servers.
+description: Wire Healthzkit into Elysia, Express, Fastify, Hono, Next.js, and Node http—examples that map AgnosticResponse status, headers, and body to each framework response API.
 ---
 
 # Framework guides

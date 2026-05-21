@@ -3,7 +3,7 @@ import type { HeadConfig } from "vitepress";
 
 const siteUrl = "https://healthzkit.dev";
 const siteDescription =
-  "Framework-agnostic liveness and readiness probes for Node.js. Parallel checks, rollup status, HTTP mapping, optional scheduling, and adapters for Redis, Postgres, MySQL, MongoDB, SQLite, DynamoDB, and RabbitMQ.";
+  "Healthzkit is a framework-agnostic library for Kubernetes-style liveness and readiness probes in Node.js—parallel checks, rollup status, HTTP mapping, and adapters.";
 
 function pagePath(relativePath: string): string {
   const slug = relativePath.replace(/\.md$/, "").replace(/(^|\/)index$/, "");

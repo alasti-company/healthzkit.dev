@@ -1,6 +1,6 @@
 ---
 title: Postgres adapter
-description: Health checks for pg and Postgres.js with @healthzkit/postgres.
+description: Use @healthzkit/postgres adapters for pg and Postgres.js—SQL probes, latency metadata, pool and connection options, and Healthzkit readiness check examples for your databases.
 ---
 
 # Postgres adapters (`@healthzkit/postgres`)

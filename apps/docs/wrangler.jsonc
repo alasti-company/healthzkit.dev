@@ -1,9 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "healthzkit-docs",
+  "main": "./worker.ts",
   "compatibility_date": "2026-05-14",
   "assets": {
     "directory": "./.vitepress/dist",
+    "binding": "ASSETS",
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page",
   },

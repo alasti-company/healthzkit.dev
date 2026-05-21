@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Create a health kit, attach checks, and wire Healthzkit into your HTTP server.
+description: Follow a minimal Healthzkit example—create a health kit, register liveness and readiness checks, handle probe requests, and map status, headers, and body to your server.
 ---
 
 # Getting started

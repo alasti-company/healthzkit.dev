@@ -1,6 +1,6 @@
 ---
 title: Redis adapter
-description: Health checks for ioredis, node-redis, and Upstash with @healthzkit/redis.
+description: Use @healthzkit/redis adapters for ioredis, node-redis, and @upstash/redis—ping-based readiness checks, latency metadata, configuration options, and Healthzkit registration examples.
 ---
 
 # Redis adapters (`@healthzkit/redis`)
