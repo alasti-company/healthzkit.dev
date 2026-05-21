@@ -1,3 +1,8 @@
+---
+title: Redis adapter
+description: Health checks for ioredis, node-redis, and Upstash with @healthzkit/redis.
+---
+
 # Redis adapters (`@healthzkit/redis`)
 
 The **`@healthzkit/redis`** package ships ready-made [`HealthAdapter`](/guide/checks-and-adapters) implementations for common Redis clients. Each adapter measures round-trip latency, returns **`ok`** with `metadata.latencyMs` (and any extra fields from an optional hook), or **`fail`** with the caught error.

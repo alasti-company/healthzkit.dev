@@ -1,3 +1,8 @@
+---
+title: Getting started
+description: Create a health kit, attach checks, and wire Healthzkit into your HTTP server.
+---
+
 # Getting started
 
 ## Minimal example

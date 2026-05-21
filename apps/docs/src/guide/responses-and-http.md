@@ -1,3 +1,8 @@
+---
+title: Responses and HTTP
+description: Rollup rules, HTTP status codes, JSON and plain-text output, and public Healthzkit types.
+---
+
 # Responses and HTTP
 
 ## Rollup status

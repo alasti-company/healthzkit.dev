@@ -1,3 +1,8 @@
+---
+title: Scheduling
+description: Run expensive health checks on an interval and serve probes from cached results.
+---
+
 # Scheduling
 
 For expensive checks (database, external APIs), you can run them on a timer and serve probes from cache.

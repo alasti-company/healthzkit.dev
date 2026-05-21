@@ -1,3 +1,8 @@
+---
+title: MySQL adapter
+description: Health checks for mysql and mysql2 with @healthzkit/mysql.
+---
+
 # MySQL adapters (`@healthzkit/mysql`)
 
 The **`@healthzkit/mysql`** package provides [`HealthAdapter`](/guide/checks-and-adapters) helpers for **`mysql`** (callback driver) and **`mysql2`** (promise API). Successful checks run a lightweight SQL probe (default **`SELECT 1`**) and return **`ok`** with `metadata.latencyMs` plus any fields from an optional **`metadata`** hook; failures return **`fail`** with the caught error.

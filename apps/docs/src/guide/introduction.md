@@ -1,3 +1,8 @@
+---
+title: Introduction
+description: What Healthzkit is, when to use liveness and readiness probes, and how to install the core package.
+---
+
 # Introduction
 
 **Healthzkit** is a small, framework-agnostic library for **liveness** and **readiness** probes in Node.js and similar runtimes.

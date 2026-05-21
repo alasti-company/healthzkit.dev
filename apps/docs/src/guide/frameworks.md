@@ -1,3 +1,8 @@
+---
+title: Framework guides
+description: Wire Healthzkit into Elysia, Express, Fastify, Hono, Next.js, and Node HTTP servers.
+---
+
 # Framework guides
 
 Use these examples to wire healthzkit into common runtimes. Each snippet maps `AgnosticResponse` (`status`, `headers`, `body`) to the framework response object.

@@ -1,5 +1,7 @@
 ---
 layout: home
+title: Healthzkit
+description: Framework-agnostic health checks with parallel runs, rollup status, HTTP mapping, and optional background scheduling for Node.js apps.
 
 hero:
   name: Healthzkit

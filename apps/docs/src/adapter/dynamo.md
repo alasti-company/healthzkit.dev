@@ -1,3 +1,8 @@
+---
+title: DynamoDB adapter
+description: Health checks for AWS SDK v2 and v3 DynamoDB clients with @healthzkit/dynamo.
+---
+
 # DynamoDB adapters (`@healthzkit/dynamo`)
 
 The **`@healthzkit/dynamo`** package provides [`HealthAdapter`](/guide/checks-and-adapters) helpers for AWS SDK v2 **[`aws-sdk`](https://github.com/aws/aws-sdk-js)** and v3 **[`@aws-sdk/client-dynamodb`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/)**. Successful checks call **`ListTables`** with **`Limit: 1`** and return **`ok`** with `metadata.latencyMs` plus any fields from an optional **`metadata`** hook; failures return **`fail`** with the caught error.

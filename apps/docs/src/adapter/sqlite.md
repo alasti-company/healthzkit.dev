@@ -1,3 +1,8 @@
+---
+title: SQLite adapter
+description: Health checks for better-sqlite3, sqlite3, and libSQL with @healthzkit/sqlite.
+---
+
 # SQLite adapters (`@healthzkit/sqlite`)
 
 The **`@healthzkit/sqlite`** package provides [`HealthAdapter`](/guide/checks-and-adapters) helpers for **`better-sqlite3`** (synchronous), **`sqlite3`** (callback driver), and **`@libsql/client`** (libSQL / Turso). Successful checks run a lightweight SQL probe (default **`SELECT 1`**) and return **`ok`** with `metadata.latencyMs` plus any fields from an optional **`metadata`** hook; failures return **`fail`** with the caught error.

@@ -1,3 +1,8 @@
+---
+title: Postgres adapter
+description: Health checks for pg and Postgres.js with @healthzkit/postgres.
+---
+
 # Postgres adapters (`@healthzkit/postgres`)
 
 The **`@healthzkit/postgres`** package provides [`HealthAdapter`](/guide/checks-and-adapters) helpers for **`pg`** (node-postgres) and **`postgres`** (Postgres.js). Successful checks return **`ok`** with `metadata.latencyMs` plus any fields from an optional **`metadata`** hook; failures return **`fail`** with the caught error.

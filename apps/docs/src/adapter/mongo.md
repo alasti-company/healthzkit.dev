@@ -1,3 +1,8 @@
+---
+title: MongoDB adapter
+description: Health checks for the MongoDB driver and Mongoose with @healthzkit/mongo.
+---
+
 # MongoDB adapters (`@healthzkit/mongo`)
 
 The **`@healthzkit/mongo`** package provides [`HealthAdapter`](/guide/checks-and-adapters) helpers for the official **`mongodb`** driver and **`mongoose`**. Successful checks run an admin **`ping`** and return **`ok`** with `metadata.latencyMs` plus any fields from an optional **`metadata`** hook; failures return **`fail`** with the caught error.

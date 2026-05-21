@@ -1,3 +1,8 @@
+---
+title: RabbitMQ adapter
+description: Health checks for amqplib and amqp-connection-manager with @healthzkit/rabbitmq.
+---
+
 # RabbitMQ adapters (`@healthzkit/rabbitmq`)
 
 The **`@healthzkit/rabbitmq`** package ships ready-made [`HealthAdapter`](/guide/checks-and-adapters) implementations for common AMQP clients. Each adapter measures round-trip latency, returns **`ok`** with `metadata.latencyMs` (and any extra fields from an optional hook), or **`fail`** with the caught error.

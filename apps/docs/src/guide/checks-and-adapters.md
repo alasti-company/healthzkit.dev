@@ -1,3 +1,8 @@
+---
+title: Checks and adapters
+description: Configure health checks, timeouts, failure mapping, and custom HealthAdapter implementations.
+---
+
 # Checks and adapters
 
 ## `CheckConfig`
