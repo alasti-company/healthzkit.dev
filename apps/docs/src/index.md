@@ -1,6 +1,7 @@
 ---
 layout: home
-title: Healthzkit
+title: Healthzkit — Liveness & Readiness Probes for Node.js
+titleTemplate: false
 description: Framework-agnostic health checks with parallel runs, rollup status, HTTP mapping, and optional background scheduling for Node.js apps.
 
 hero:

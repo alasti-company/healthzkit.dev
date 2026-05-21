@@ -160,23 +160,26 @@ export default defineConfig({
     hostname: siteUrl,
     lastmodDateOnly: true,
   },
-  transformPageData(pageData) {
-    pageData.frontmatter.canonicalUrl = `${siteUrl}${pagePath(pageData.relativePath)}`;
-  },
   transformHead({ pageData, siteData }) {
-    const canonical = pageData.frontmatter.canonicalUrl as string;
-    const pageTitle = pageData.title ? `${pageData.title} | ${siteData.title}` : siteData.title;
-    const pageDescription = pageData.description ?? siteData.description;
+    const canonical = `${siteUrl}${pagePath(pageData.relativePath)}`;
+    const pageTitle =
+      pageData.frontmatter.titleTemplate === false && pageData.title
+        ? pageData.title
+        : pageData.title
+          ? `${pageData.title} | ${siteData.title}`
+          : (siteData.title ?? "Healthzkit");
+    const pageDescription = pageData.description ?? siteData.description ?? siteDescription;
+    const ogImage = `${siteUrl}/favicon-light-100.png`;
 
     return [
       ["link", { rel: "canonical", href: canonical }],
       ["meta", { property: "og:url", content: canonical }],
       ["meta", { property: "og:title", content: pageTitle }],
       ["meta", { property: "og:description", content: pageDescription }],
-      ["meta", { property: "og:image", content: `${siteUrl}/favicon-light-100.png` }],
+      ["meta", { property: "og:image", content: ogImage }],
       ["meta", { name: "twitter:title", content: pageTitle }],
       ["meta", { name: "twitter:description", content: pageDescription }],
-      ["meta", { name: "twitter:image", content: `${siteUrl}/favicon-light-100.png` }],
+      ["meta", { name: "twitter:image", content: ogImage }],
     ];
   },
   head: [
