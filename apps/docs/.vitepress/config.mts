@@ -222,5 +222,13 @@ export default defineConfig({
         "data-hostname": "healthzkit.dev",
       },
     ],
+    [
+      "script",
+      {
+        src: "https://analytics.ahrefs.com/analytics.js",
+        "data-key": "poxM9X9HacyOaP3H6baR7A",
+        async: "",
+      },
+    ],
   ],
 });
