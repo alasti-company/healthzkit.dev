@@ -109,6 +109,10 @@ export default defineConfig({
               { text: "DynamoDB", link: "/adapter/dynamo" },
             ],
           },
+          {
+            text: "Search",
+            items: [{ text: "Elasticsearch", link: "/adapter/elasticsearch" }],
+          },
         ],
       },
     ],
@@ -141,6 +145,10 @@ export default defineConfig({
               { text: "SQLite", link: "/adapter/sqlite" },
               { text: "DynamoDB", link: "/adapter/dynamo" },
             ],
+          },
+          {
+            text: "Search",
+            items: [{ text: "Elasticsearch", link: "/adapter/elasticsearch" }],
           },
         ],
       },
@@ -190,7 +198,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, elasticsearch",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],
