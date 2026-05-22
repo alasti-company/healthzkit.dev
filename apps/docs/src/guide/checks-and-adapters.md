@@ -45,3 +45,4 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 - [MongoDB](/adapter/mongo) — `@healthzkit/mongo`
 - [SQLite](/adapter/sqlite) — `@healthzkit/sqlite`
 - [DynamoDB](/adapter/dynamo) — `@healthzkit/dynamo`
+- [Elasticsearch](/adapter/elasticsearch) — `@healthzkit/elasticsearch`
