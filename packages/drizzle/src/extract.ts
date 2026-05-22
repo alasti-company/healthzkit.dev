@@ -38,17 +38,17 @@ export function detectDriver(db: DrizzleInstance): "pg" | "mysql" | "sqlite" | "
   if (!session) return "unknown";
 
   if (
-    "query" in session ||
-    (session.client && typeof (session.client as { query?: unknown }).query === "function")
-  ) {
-    return "pg";
-  }
-
-  if (
     "execute" in session ||
     (session.client && typeof (session.client as { execute?: unknown }).execute === "function")
   ) {
     return "mysql";
+  }
+
+  if (
+    "query" in session ||
+    (session.client && typeof (session.client as { query?: unknown }).query === "function")
+  ) {
+    return "pg";
   }
 
   if (

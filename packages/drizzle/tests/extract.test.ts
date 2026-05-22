@@ -62,10 +62,17 @@ describe("detectDriver", () => {
     expect(detectDriver(db)).toBe("sqlite");
   });
 
-  test("prefers pg over mysql when both session markers exist", () => {
+  test("prefers mysql over pg when both session markers exist", () => {
     const db = {
       session: { client: {}, query: {}, execute: {} },
     } as never;
-    expect(detectDriver(db)).toBe("pg");
+    expect(detectDriver(db)).toBe("mysql");
+  });
+
+  test('returns "mysql" when client exposes both query() and execute() (mysql2)', () => {
+    const db = {
+      session: { client: { query: vi.fn(), execute: vi.fn() } },
+    } as never;
+    expect(detectDriver(db)).toBe("mysql");
   });
 });
