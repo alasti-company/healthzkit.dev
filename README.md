@@ -17,6 +17,7 @@ This monorepo publishes the core library and optional adapters for common data s
 | [`@healthzkit/dynamo`](./packages/dynamo)               | `@healthzkit/dynamo`        | Adapters for AWS SDK v2 [`aws-sdk`](https://github.com/aws/aws-sdk-js) and v3 [`@aws-sdk/client-dynamodb`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/)                           |
 | [`@healthzkit/rabbitmq`](./packages/rabbitmq)           | `@healthzkit/rabbitmq`      | Adapters for [`amqplib`](https://github.com/amqp-node/amqplib) and [`amqp-connection-manager`](https://github.com/jwalton/node-amqp-connection-manager)                                                       |
 | [`@healthzkit/elasticsearch`](./packages/elasticsearch) | `@healthzkit/elasticsearch` | Adapter for the official [`@elastic/elasticsearch`](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/index.html) client (`cluster.health`)                                         |
+| [`@healthzkit/drizzle`](./packages/drizzle)             | `@healthzkit/drizzle`       | Adapter for [Drizzle ORM](https://orm.drizzle.team/) — health-check an existing `db` instance via `execute` / `run` (peer: `drizzle-orm` only; drivers stay in your app)                                      |
 
 See each package README for install instructions, API details, and examples.
 

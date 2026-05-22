@@ -51,4 +51,5 @@ Official adapter packages cover **queues** and **databases** today.
 - [MongoDB](/adapter/mongo) — `@healthzkit/mongo` (`mongodb`, `mongoose`).
 - [SQLite](/adapter/sqlite) — `@healthzkit/sqlite` (`better-sqlite3`, `sqlite3`, `@libsql/client`).
 - [DynamoDB](/adapter/dynamo) — `@healthzkit/dynamo` (`aws-sdk`, `@aws-sdk/client-dynamodb`).
+- [Drizzle ORM](/adapter/drizzle) — `@healthzkit/drizzle` (`drizzle-orm`; pass your existing `db` instance).
 - [Elasticsearch](/adapter/elasticsearch) — `@healthzkit/elasticsearch` (`@elastic/elasticsearch`).
