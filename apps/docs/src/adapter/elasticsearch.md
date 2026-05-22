@@ -21,7 +21,7 @@ Install the adapter package and the peer client:
 pnpm add @healthzkit/elasticsearch @elastic/elasticsearch
 ```
 
-**Peer:** `@elastic/elasticsearch` >= 8 or >= 9.
+**Peer:** `@elastic/elasticsearch` >= 9.
 
 ## Package entrypoints
 
