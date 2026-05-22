@@ -45,4 +45,5 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 - [MongoDB](/adapter/mongo) — `@healthzkit/mongo`
 - [SQLite](/adapter/sqlite) — `@healthzkit/sqlite`
 - [DynamoDB](/adapter/dynamo) — `@healthzkit/dynamo`
+- [Drizzle ORM](/adapter/drizzle) — `@healthzkit/drizzle`
 - [Elasticsearch](/adapter/elasticsearch) — `@healthzkit/elasticsearch`
