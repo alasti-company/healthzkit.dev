@@ -24,18 +24,31 @@ export type ElasticsearchAdapterOptions =
 
 export function elasticsearchAdapter(options: ElasticsearchAdapterOptions): HealthAdapter {
   let internalClient: Client | null = null;
+  let internalClientInit: Promise<Client> | null = null;
 
   async function getClient(): Promise<Client> {
     if ("client" in options && options.client) {
       return options.client;
     }
 
-    if (!internalClient) {
-      const { Client } = await import("@elastic/elasticsearch");
-      internalClient = new Client(options.config ?? { node: "http://localhost:9200" });
+    if (internalClient) {
+      return internalClient;
     }
 
-    return internalClient;
+    if (!internalClientInit) {
+      internalClientInit = (async () => {
+        try {
+          const { Client } = await import("@elastic/elasticsearch");
+          const client = new Client(options.config ?? { node: "http://localhost:9200" });
+          internalClient = client;
+          return client;
+        } finally {
+          internalClientInit = null;
+        }
+      })();
+    }
+
+    return internalClientInit;
   }
 
   return {

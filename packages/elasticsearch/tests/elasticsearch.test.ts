@@ -172,6 +172,73 @@ describe("src/elasticsearch.ts", () => {
     vi.doUnmock("@elastic/elasticsearch");
   });
 
+  test("initializes a single owned client when checks run concurrently", async () => {
+    let constructCount = 0;
+    let resolveImport: (value: { Client: typeof Client }) => void;
+    const importPromise = new Promise<{ Client: typeof Client }>((resolve) => {
+      resolveImport = resolve;
+    });
+    const clusterHealth = vi.fn().mockResolvedValue({
+      status: "green",
+      cluster_name: "owned",
+      number_of_data_nodes: 1,
+    });
+    const Client = vi.fn(function Client(this: unknown) {
+      constructCount += 1;
+      return { cluster: { health: clusterHealth } };
+    });
+
+    vi.doMock("@elastic/elasticsearch", () => importPromise);
+
+    const { elasticsearchAdapter: adapterFactory } = await import("../src/elasticsearch.ts");
+    const adapter = adapterFactory({ config: { node: "http://localhost:9200" } });
+
+    const first = adapter.check();
+    const second = adapter.check();
+    resolveImport!({ Client });
+    await Promise.all([first, second]);
+
+    expect(constructCount).toBe(1);
+    expect(clusterHealth).toHaveBeenCalledTimes(2);
+
+    vi.doUnmock("@elastic/elasticsearch");
+  });
+
+  test("retries client initialization after a failed import", async () => {
+    let constructCount = 0;
+    let rejectImport: (reason: Error) => void;
+    const importPromise = new Promise<{ Client: typeof Client }>((_resolve, reject) => {
+      rejectImport = reject;
+    });
+    const clusterHealth = vi.fn().mockResolvedValue({
+      status: "green",
+      cluster_name: "retry",
+      number_of_data_nodes: 1,
+    });
+    const Client = vi.fn(function Client(this: unknown) {
+      constructCount += 1;
+      return { cluster: { health: clusterHealth } };
+    });
+
+    vi.doMock("@elastic/elasticsearch", () => importPromise);
+
+    const { elasticsearchAdapter: adapterFactory } = await import("../src/elasticsearch.ts");
+    const adapter = adapterFactory({ config: { node: "http://localhost:9200" } });
+
+    const failed = adapter.check();
+    rejectImport!(new Error("module load failed"));
+    await expect(failed).resolves.toMatchObject({ status: "fail" });
+
+    vi.doUnmock("@elastic/elasticsearch");
+    vi.doMock("@elastic/elasticsearch", () => ({ Client }));
+
+    const recovered = await adapter.check();
+    expect(recovered.status).toBe("ok");
+    expect(constructCount).toBe(1);
+
+    vi.doUnmock("@elastic/elasticsearch");
+  });
+
   test("reuses a single owned client across checks", async () => {
     let constructCount = 0;
     const clusterHealth = vi.fn().mockResolvedValue({
