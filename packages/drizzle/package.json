@@ -1,0 +1,47 @@
+{
+  "name": "@healthzkit/drizzle",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/drizzle"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./drizzle": "./dist/drizzle.mjs",
+    "./extract": "./dist/extract.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "bumpp": "^11.1.0",
+    "drizzle-orm": "0.45.2",
+    "healthzkit": "workspace:*",
+    "typescript": "^6.0.3",
+    "vite-plus": "^0.1.20"
+  },
+  "peerDependencies": {
+    "drizzle-orm": ">=0.40.0"
+  },
+  "peerDependenciesMeta": {
+    "drizzle-orm": {
+      "optional": false
+    }
+  }
+}
