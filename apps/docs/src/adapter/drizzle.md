@@ -90,6 +90,7 @@ Import from **`@healthzkit/drizzle`** or **`@healthzkit/drizzle/extract`**.
 | Situation                                  | Suggestion                                                                                                                     |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
 | App already uses Drizzle for all DB access | **`@healthzkit/drizzle`** — pass **`db`**, no second connection                                                                |
+| App already uses Prisma for all DB access  | [`@healthzkit/prisma`](/adapter/prisma) — pass your existing **`PrismaClient`**                                                |
 | Raw `pg` / `mysql2` pool without ORM       | [`@healthzkit/postgres`](/adapter/postgres), [`@healthzkit/mysql`](/adapter/mysql), or [`@healthzkit/sqlite`](/adapter/sqlite) |
 
 ## Scheduling
