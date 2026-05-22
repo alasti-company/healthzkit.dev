@@ -1,6 +1,6 @@
 # @healthzkit/elasticsearch
 
-Elasticsearch health adapters for [healthzkit](https://github.com/alasti-company/healthzkit). The adapter calls **`cluster.health()`** and maps cluster status to probe status: **`green`** → `ok`, **`yellow`** → `degraded`, **`red`** → `fail`.
+Elasticsearch health adapters for [healthzkit](https://healthzkit.dev). The adapter calls **`cluster.health()`** and maps cluster status to probe status: **`green`** → `ok`, **`yellow`** → `degraded`, **`red`** → `fail`.
 
 Install **`@elastic/elasticsearch`** as a peer dependency (v8 or v9).
 
@@ -107,7 +107,7 @@ On success (cluster status **`green`**):
 
 When the cluster reports **`yellow`**, the check status is **`degraded`** (metadata still includes `clusterStatus`, `clusterName`, and `numberOfNodes`). When the cluster is **`red`**, the check status is **`fail`**.
 
-On transport or API errors, `status` is **`fail`** and `error` is set (see [healthzkit](https://github.com/alasti-company/healthzkit) for how that rolls up into probe responses).
+On transport or API errors, `status` is **`fail`** and `error` is set (see [healthzkit](https://healthzkit.dev) for how that rolls up into probe responses).
 
 ## Development (this repo)
 
