@@ -31,7 +31,9 @@ async function runHealthQuery(
       return;
     }
     default: {
-      await (db as PgDatabase<never>).execute(query);
+      throw new Error(
+        `Unknown Drizzle driver: ${driver}. Pass driver: "pg", "mysql", or "sqlite" explicitly.`,
+      );
     }
   }
 }

@@ -86,13 +86,16 @@ describe("drizzleAdapter", () => {
     expect(db.run).toHaveBeenCalledWith("SELECT 1");
   });
 
-  test("unknown driver: falls back to execute", async () => {
+  test("unknown driver: returns fail without running a probe", async () => {
     const execute = vi.fn(async () => ({}));
     const db = { execute, session: { client: {} } };
     const result = await drizzleAdapter({ db: db as never }).check();
 
-    expect(result.status).toBe("ok");
-    expect(execute).toHaveBeenCalledWith("SELECT 1");
+    expect(result.status).toBe("fail");
+    expect((result.error as Error).message).toBe(
+      'Unknown Drizzle driver: unknown. Pass driver: "pg", "mysql", or "sqlite" explicitly.',
+    );
+    expect(execute).not.toHaveBeenCalled();
   });
 
   test("returns fail when the probe throws", async () => {
@@ -140,6 +143,7 @@ describe("drizzleAdapter", () => {
 
     const result = await drizzleAdapter({
       db: db as never,
+      driver: "pg",
       metadata,
     }).check();
 
