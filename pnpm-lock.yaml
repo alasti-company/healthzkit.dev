@@ -72,7 +72,7 @@ importers:
         version: 11.1.0
       drizzle-orm:
         specifier: 0.45.2
-        version: 0.45.2(@libsql/client@0.17.3)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(@upstash/redis@1.38.0)(better-sqlite3@12.10.0)(mysql2@3.22.3(@types/node@25.8.0))(pg@8.20.0)(postgres@3.4.9)(sqlite3@6.0.1)
+        version: 0.45.2(@libsql/client@0.17.3)(@opentelemetry/api@1.9.1)(@prisma/client@7.8.0(typescript@6.0.3))(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(@upstash/redis@1.38.0)(better-sqlite3@12.10.0)(mysql2@3.22.3(@types/node@25.8.0))(pg@8.20.0)(postgres@3.4.9)(sqlite3@6.0.1)
       healthzkit:
         specifier: workspace:*
         version: link:../healthzkit
@@ -246,6 +246,30 @@ importers:
         version: 6.0.3
       vite-plus:
         specifier: ^0.1.14
+        version: 0.1.22(@opentelemetry/api@1.9.1)(@types/node@25.8.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@6.0.3)(unrun@0.2.37)(vite@8.0.10(@types/node@25.8.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
+
+  packages/prisma:
+    devDependencies:
+      '@prisma/client':
+        specifier: 7.8.0
+        version: 7.8.0(typescript@6.0.3)
+      '@types/node':
+        specifier: ^25.6.2
+        version: 25.8.0
+      '@typescript/native-preview':
+        specifier: 7.0.0-dev.20260509.2
+        version: 7.0.0-dev.20260509.2
+      bumpp:
+        specifier: ^11.1.0
+        version: 11.1.0
+      healthzkit:
+        specifier: workspace:*
+        version: link:../healthzkit
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite-plus:
+        specifier: ^0.1.20
         version: 0.1.22(@opentelemetry/api@1.9.1)(@types/node@25.8.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@6.0.3)(unrun@0.2.37)(vite@8.0.10(@types/node@25.8.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/rabbitmq:
@@ -1455,6 +1479,21 @@ packages:
 
   '@poppinss/exception@1.2.3':
     resolution: {integrity: sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw==}
+
+  '@prisma/client-runtime-utils@7.8.0':
+    resolution: {integrity: sha512-5NQZztQ0oY/ADFkmd9gPuweH5A1/CCY8YQPorLLO0Mu6a87mY5gsnDkzmFmIHs9NFaLnZojzgddFVN4RpKYrdw==}
+
+  '@prisma/client@7.8.0':
+    resolution: {integrity: sha512-HFp3Dawv/3sU3JtlPha90IB+48lS7zHiH4LKZPjmcE8YH5P9DOXGPvo8dqOtO7MqLDd1p2hOWMcFlRT1DMblHw==}
+    engines: {node: ^20.19 || ^22.12 || >=24.0}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.4.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
 
   '@quansync/fs@1.0.0':
     resolution: {integrity: sha512-4TJ3DFtlf1L5LDMaM6CanJ/0lckGNtJcMjQ1NAV6zDmA0tEHKZtxNKin8EgPaVX1YzljbxckyT2tJrpQKAtngQ==}
@@ -4825,6 +4864,14 @@ snapshots:
 
   '@poppinss/exception@1.2.3': {}
 
+  '@prisma/client-runtime-utils@7.8.0': {}
+
+  '@prisma/client@7.8.0(typescript@6.0.3)':
+    dependencies:
+      '@prisma/client-runtime-utils': 7.8.0
+    optionalDependencies:
+      typescript: 6.0.3
+
   '@quansync/fs@1.0.0':
     dependencies:
       quansync: 1.0.0
@@ -5560,10 +5607,11 @@ snapshots:
     dependencies:
       path-type: 4.0.0
 
-  drizzle-orm@0.45.2(@libsql/client@0.17.3)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(@upstash/redis@1.38.0)(better-sqlite3@12.10.0)(mysql2@3.22.3(@types/node@25.8.0))(pg@8.20.0)(postgres@3.4.9)(sqlite3@6.0.1):
+  drizzle-orm@0.45.2(@libsql/client@0.17.3)(@opentelemetry/api@1.9.1)(@prisma/client@7.8.0(typescript@6.0.3))(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(@upstash/redis@1.38.0)(better-sqlite3@12.10.0)(mysql2@3.22.3(@types/node@25.8.0))(pg@8.20.0)(postgres@3.4.9)(sqlite3@6.0.1):
     optionalDependencies:
       '@libsql/client': 0.17.3
       '@opentelemetry/api': 1.9.1
+      '@prisma/client': 7.8.0(typescript@6.0.3)
       '@types/better-sqlite3': 7.6.13
       '@types/pg': 8.20.0
       '@upstash/redis': 1.38.0
