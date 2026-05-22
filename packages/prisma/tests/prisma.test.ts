@@ -59,7 +59,7 @@ describe("prismaAdapter", () => {
     const client = { ...mockPrismaClient(), schema: "public" };
     const result = await prismaAdapter({
       client: client as never,
-      metadata: (c) => ({ schema: (c as { schema: string }).schema }),
+      metadata: (c) => ({ schema: (c as unknown as { schema: string }).schema }),
     }).check();
 
     expect(result.status).toBe("ok");
@@ -71,7 +71,7 @@ describe("prismaAdapter", () => {
     const client = { ...mockPrismaClient(), schema: "public" };
     const result = await prismaAdapter({
       client: client as never,
-      metadata: async (c) => ({ schema: (c as { schema: string }).schema }),
+      metadata: async (c) => ({ schema: (c as unknown as { schema: string }).schema }),
     }).check();
 
     expect(result.status).toBe("ok");
