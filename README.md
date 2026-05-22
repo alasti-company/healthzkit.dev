@@ -18,6 +18,7 @@ This monorepo publishes the core library and optional adapters for common data s
 | [`@healthzkit/rabbitmq`](./packages/rabbitmq)           | `@healthzkit/rabbitmq`      | Adapters for [`amqplib`](https://github.com/amqp-node/amqplib) and [`amqp-connection-manager`](https://github.com/jwalton/node-amqp-connection-manager)                                                       |
 | [`@healthzkit/elasticsearch`](./packages/elasticsearch) | `@healthzkit/elasticsearch` | Adapter for the official [`@elastic/elasticsearch`](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/index.html) client (`cluster.health`)                                         |
 | [`@healthzkit/drizzle`](./packages/drizzle)             | `@healthzkit/drizzle`       | Adapter for [Drizzle ORM](https://orm.drizzle.team/) — health-check an existing `db` instance via `execute` / `run` (peer: `drizzle-orm` only; drivers stay in your app)                                      |
+| [`@healthzkit/prisma`](./packages/prisma)               | `@healthzkit/prisma`        | Adapter for [Prisma](https://www.prisma.io/) — health-check an existing `PrismaClient` via `$connect` and `$queryRawUnsafe` (peer: `@prisma/client`; drivers stay in your app)                                |
 
 See each package README for install instructions, API details, and examples.
 

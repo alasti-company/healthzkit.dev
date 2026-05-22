@@ -52,4 +52,5 @@ Official adapter packages cover **queues** and **databases** today.
 - [SQLite](/adapter/sqlite) — `@healthzkit/sqlite` (`better-sqlite3`, `sqlite3`, `@libsql/client`).
 - [DynamoDB](/adapter/dynamo) — `@healthzkit/dynamo` (`aws-sdk`, `@aws-sdk/client-dynamodb`).
 - [Drizzle ORM](/adapter/drizzle) — `@healthzkit/drizzle` (`drizzle-orm`; pass your existing `db` instance).
+- [Prisma](/adapter/prisma) — `@healthzkit/prisma` (`@prisma/client`; pass your existing `PrismaClient`).
 - [Elasticsearch](/adapter/elasticsearch) — `@healthzkit/elasticsearch` (`@elastic/elasticsearch`).

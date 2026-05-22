@@ -108,6 +108,7 @@ export default defineConfig({
               { text: "SQLite", link: "/adapter/sqlite" },
               { text: "DynamoDB", link: "/adapter/dynamo" },
               { text: "Drizzle ORM", link: "/adapter/drizzle" },
+              { text: "Prisma", link: "/adapter/prisma" },
             ],
           },
           {
@@ -146,6 +147,7 @@ export default defineConfig({
               { text: "SQLite", link: "/adapter/sqlite" },
               { text: "DynamoDB", link: "/adapter/dynamo" },
               { text: "Drizzle ORM", link: "/adapter/drizzle" },
+              { text: "Prisma", link: "/adapter/prisma" },
             ],
           },
           {
@@ -200,7 +202,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, elasticsearch",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],
