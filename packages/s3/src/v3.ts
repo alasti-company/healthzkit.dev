@@ -45,8 +45,9 @@ export function s3V3Adapter(options: S3V3AdapterOptions): HealthAdapter {
           ? (options.metadata as MetadataFn<S3Client>)(client)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+        const bucketCount = response.Buckets?.length ?? 0;
 
-        return buildResult(latencyMs, { bucketCount: response.Buckets?.length, ...metadata });
+        return buildResult(latencyMs, { ...metadata, bucketCount });
       } catch (error) {
         return buildErrorResult(error);
       }
