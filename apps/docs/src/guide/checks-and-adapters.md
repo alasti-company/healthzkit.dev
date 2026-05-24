@@ -31,7 +31,7 @@ Thrown errors from `adapter.check()` are treated as **`fail`**, with the error m
 
 ## Official adapters
 
-This monorepo publishes optional packages that return a `HealthAdapter` for common infrastructure. Today that means **queues** and **databases** only; other dependency types (HTTP APIs, object storage, and so on) use a custom `adapter.check()` implementation.
+This monorepo publishes optional packages that return a `HealthAdapter` for common infrastructure. Today that means **queues**, **databases**, and **storage**; other dependency types (HTTP APIs and so on) use a custom `adapter.check()` implementation.
 
 ### Queues
 
@@ -48,3 +48,7 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 - [Drizzle ORM](/adapter/drizzle) — `@healthzkit/drizzle`
 - [Prisma](/adapter/prisma) — `@healthzkit/prisma`
 - [Elasticsearch](/adapter/elasticsearch) — `@healthzkit/elasticsearch`
+
+### Storage
+
+- [S3](/adapter/s3) — `@healthzkit/s3`
