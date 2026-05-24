@@ -52,3 +52,4 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 ### Storage
 
 - [S3](/adapter/s3) — `@healthzkit/s3`
+- [MinIO](/adapter/minio) — `@healthzkit/minio`
