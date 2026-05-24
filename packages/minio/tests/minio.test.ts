@@ -80,6 +80,78 @@ describe("minioAdapter", () => {
     expect(listBuckets).toHaveBeenCalledTimes(2);
   });
 
+  test("initializes a single owned client when checks run concurrently", async () => {
+    let constructCount = 0;
+    let resolveImport: (value: { Client: typeof Client }) => void;
+    const importPromise = new Promise<{ Client: typeof Client }>((resolve) => {
+      resolveImport = resolve;
+    });
+    const { client, listBuckets } = mockMinioClient();
+    const Client = vi.fn(function (_config?: unknown) {
+      constructCount += 1;
+      return client;
+    });
+
+    vi.doMock("minio", () => importPromise);
+
+    vi.resetModules();
+    try {
+      const { minioAdapter: adapterFactory } = await import("../src/minio.ts");
+      const adapter = adapterFactory({
+        config: { endPoint: "localhost", port: 9000, useSSL: false },
+      } as MinioAdapterOptions);
+
+      const first = adapter.check();
+      const second = adapter.check();
+      resolveImport!({ Client });
+      await Promise.all([first, second]);
+
+      expect(constructCount).toBe(1);
+      expect(listBuckets).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.doUnmock("minio");
+      vi.resetModules();
+    }
+  });
+
+  test("retries client initialization after a failed import", async () => {
+    let constructCount = 0;
+    let rejectImport: (reason: Error) => void;
+    const importPromise = new Promise<{ Client: typeof Client }>((_resolve, reject) => {
+      rejectImport = reject;
+    });
+    const { client, listBuckets } = mockMinioClient();
+    const Client = vi.fn(function (_config?: unknown) {
+      constructCount += 1;
+      return client;
+    });
+
+    vi.doMock("minio", () => importPromise);
+
+    vi.resetModules();
+    try {
+      const { minioAdapter: adapterFactory } = await import("../src/minio.ts");
+      const adapter = adapterFactory({
+        config: { endPoint: "localhost", port: 9000, useSSL: false },
+      } as MinioAdapterOptions);
+
+      const failed = adapter.check();
+      rejectImport!(new Error("module load failed"));
+      await expect(failed).resolves.toMatchObject({ status: "fail" });
+
+      vi.doUnmock("minio");
+      vi.doMock("minio", () => ({ Client }));
+
+      const recovered = await adapter.check();
+      expect(recovered.status).toBe("ok");
+      expect(constructCount).toBe(1);
+      expect(listBuckets).toHaveBeenCalledOnce();
+    } finally {
+      vi.doUnmock("minio");
+      vi.resetModules();
+    }
+  });
+
   test("reuses internal client across checks when using config", async () => {
     const { client, listBuckets } = mockMinioClient();
     const Client = vi.fn(function (_config?: unknown) {

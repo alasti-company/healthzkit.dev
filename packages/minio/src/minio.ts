@@ -17,18 +17,31 @@ export type MinioAdapterOptions = MinioAdapterOptionsWithClient | MinioAdapterOp
 
 export function minioAdapter(options: MinioAdapterOptions): HealthAdapter {
   let internalClient: Client | null = null;
+  let internalClientInit: Promise<Client> | null = null;
 
   async function getClient(): Promise<Client> {
     if ("client" in options && options.client) {
       return options.client;
     }
 
-    if (!internalClient) {
-      const { Client } = await import("minio");
-      internalClient = new Client(options.config);
+    if (internalClient) {
+      return internalClient;
     }
 
-    return internalClient;
+    if (!internalClientInit) {
+      internalClientInit = (async () => {
+        try {
+          const { Client } = await import("minio");
+          const client = new Client(options.config);
+          internalClient = client;
+          return client;
+        } finally {
+          internalClientInit = null;
+        }
+      })();
+    }
+
+    return internalClientInit;
   }
 
   return {
