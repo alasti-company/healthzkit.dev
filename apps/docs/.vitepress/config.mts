@@ -113,7 +113,10 @@ export default defineConfig({
           },
           {
             text: "Storage",
-            items: [{ text: "S3", link: "/adapter/s3" }],
+            items: [
+              { text: "S3", link: "/adapter/s3" },
+              { text: "MinIO", link: "/adapter/minio" },
+            ],
           },
           {
             text: "Search",
@@ -156,7 +159,10 @@ export default defineConfig({
           },
           {
             text: "Storage",
-            items: [{ text: "S3", link: "/adapter/s3" }],
+            items: [
+              { text: "S3", link: "/adapter/s3" },
+              { text: "MinIO", link: "/adapter/minio" },
+            ],
           },
           {
             text: "Search",
@@ -210,7 +216,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, s3, aws",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, s3, minio, aws",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],

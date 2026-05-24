@@ -58,3 +58,4 @@ Official adapter packages cover **queues**, **databases**, and **storage** today
 #### Storage
 
 - [S3](/adapter/s3) — `@healthzkit/s3` (`aws-sdk`, `@aws-sdk/client-s3`).
+- [MinIO](/adapter/minio) — `@healthzkit/minio` (`minio`).
