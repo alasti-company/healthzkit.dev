@@ -112,6 +112,10 @@ export default defineConfig({
             ],
           },
           {
+            text: "Storage",
+            items: [{ text: "S3", link: "/adapter/s3" }],
+          },
+          {
             text: "Search",
             items: [{ text: "Elasticsearch", link: "/adapter/elasticsearch" }],
           },
@@ -149,6 +153,10 @@ export default defineConfig({
               { text: "Drizzle ORM", link: "/adapter/drizzle" },
               { text: "Prisma", link: "/adapter/prisma" },
             ],
+          },
+          {
+            text: "Storage",
+            items: [{ text: "S3", link: "/adapter/s3" }],
           },
           {
             text: "Search",
@@ -202,7 +210,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, s3, aws",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],

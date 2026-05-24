@@ -37,7 +37,7 @@ npm install healthzkit
 
 ### Optional adapters
 
-Official adapter packages cover **queues** and **databases** today.
+Official adapter packages cover **queues**, **databases**, and **storage** today.
 
 #### Queues
 
@@ -54,3 +54,7 @@ Official adapter packages cover **queues** and **databases** today.
 - [Drizzle ORM](/adapter/drizzle) — `@healthzkit/drizzle` (`drizzle-orm`; pass your existing `db` instance).
 - [Prisma](/adapter/prisma) — `@healthzkit/prisma` (`@prisma/client`; pass your existing `PrismaClient`).
 - [Elasticsearch](/adapter/elasticsearch) — `@healthzkit/elasticsearch` (`@elastic/elasticsearch`).
+
+#### Storage
+
+- [S3](/adapter/s3) — `@healthzkit/s3` (`aws-sdk`, `@aws-sdk/client-s3`).
