@@ -31,7 +31,7 @@ Thrown errors from `adapter.check()` are treated as **`fail`**, with the error m
 
 ## Official adapters
 
-This monorepo publishes optional packages that return a `HealthAdapter` for common infrastructure. Today that means **queues**, **databases**, and **storage**; other dependency types (HTTP APIs and so on) use a custom `adapter.check()` implementation.
+This monorepo publishes optional packages that return a `HealthAdapter` for common infrastructure: **queues**, **databases**, **storage**, **search**, and **HTTP endpoints**. For anything else, use a custom `adapter.check()` implementation.
 
 ### Queues
 
@@ -53,3 +53,7 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 
 - [S3](/adapter/s3) — `@healthzkit/s3`
 - [MinIO](/adapter/minio) — `@healthzkit/minio`
+
+### HTTP
+
+- [HTTP endpoints](/adapter/http) — `@healthzkit/http`

@@ -24,5 +24,5 @@ hero:
 #   - title: Optional scheduling
 #     details: Run expensive checks on an interval and serve probes from cache, with ISO timestamps and zero latency for cached hits when timers are active.
 #   - title: Queue and database adapters
-#     details: Optional packages for RabbitMQ, Redis, Postgres, MySQL, MongoDB, SQLite, DynamoDB, Drizzle ORM, Prisma, Elasticsearch, S3, and MinIO wire common clients into checks with minimal configuration.
+#     details: Optional packages for RabbitMQ, Redis, Postgres, MySQL, MongoDB, SQLite, DynamoDB, Drizzle ORM, Prisma, Elasticsearch, HTTP endpoints, S3, and MinIO wire common clients into checks with minimal configuration.
 ---

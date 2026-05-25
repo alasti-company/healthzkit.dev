@@ -37,7 +37,7 @@ npm install healthzkit
 
 ### Optional adapters
 
-Official adapter packages cover **queues**, **databases**, and **storage** today.
+Official adapter packages cover **queues**, **databases**, **storage**, **search**, and **HTTP endpoints** today.
 
 #### Queues
 
@@ -59,3 +59,7 @@ Official adapter packages cover **queues**, **databases**, and **storage** today
 
 - [S3](/adapter/s3) — `@healthzkit/s3` (`aws-sdk`, `@aws-sdk/client-s3`).
 - [MinIO](/adapter/minio) — `@healthzkit/minio` (`minio`).
+
+#### HTTP
+
+- [HTTP endpoints](/adapter/http) — `@healthzkit/http` (global `fetch`; Node.js 18+).
