@@ -122,6 +122,10 @@ export default defineConfig({
             text: "Search",
             items: [{ text: "Elasticsearch", link: "/adapter/elasticsearch" }],
           },
+          {
+            text: "HTTP",
+            items: [{ text: "HTTP endpoints", link: "/adapter/http" }],
+          },
         ],
       },
     ],
@@ -167,6 +171,10 @@ export default defineConfig({
           {
             text: "Search",
             items: [{ text: "Elasticsearch", link: "/adapter/elasticsearch" }],
+          },
+          {
+            text: "HTTP",
+            items: [{ text: "HTTP endpoints", link: "/adapter/http" }],
           },
         ],
       },
@@ -216,7 +224,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, s3, minio, aws",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, http, fetch, s3, minio, aws",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],
