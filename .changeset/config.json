@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@healthzkit/docs", "@healthzkit/example-hono"]
+  "ignore": ["@healthzkit/docs", "@healthzkit/example-hono", "@healthzkit/shared"]
 }
