@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["healthzkit", "mysql", "mysql2"],
+      neverBundle: ["@healthzkit/shared", "healthzkit", "mysql", "mysql2"],
     },
   },
   lint: {

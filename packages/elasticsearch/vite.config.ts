@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["healthzkit", "@elastic/elasticsearch"],
+      neverBundle: ["@healthzkit/shared", "healthzkit", "@elastic/elasticsearch"],
     },
   },
   lint: {

@@ -1,8 +1,4 @@
-import type { HealthAdapter, AdapterResult } from "healthzkit";
-
-export type MetadataFn<TClient> = (
-  client: TClient,
-) => Promise<Record<string, unknown>> | Record<string, unknown>;
+import type { MetadataFn } from "@healthzkit/shared";
 
 export interface BaseDrizzleOptions<TClient> {
   /**
@@ -12,21 +8,10 @@ export interface BaseDrizzleOptions<TClient> {
   metadata?: MetadataFn<TClient>;
 }
 
-export function buildResult(latencyMs: number, metadata?: Record<string, unknown>): AdapterResult {
-  return {
-    status: "ok",
-    metadata: {
-      ...metadata,
-      latencyMs,
-    },
-  };
-}
-
-export function buildErrorResult(error: unknown): AdapterResult {
-  return {
-    status: "fail",
-    error: error instanceof Error ? error : new Error(String(error)),
-  };
-}
-
-export type { HealthAdapter, AdapterResult };
+export {
+  buildResult,
+  buildErrorResult,
+  type MetadataFn,
+  type HealthAdapter,
+  type AdapterResult,
+} from "@healthzkit/shared";

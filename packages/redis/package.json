@@ -29,6 +29,7 @@
     "prepublishOnly": "vp run build"
   },
   "devDependencies": {
+    "@healthzkit/shared": "workspace:*",
     "@types/node": "^25.5.0",
     "@typescript/native-preview": "7.0.0-dev.20260328.1",
     "@upstash/redis": "^1.38.0",

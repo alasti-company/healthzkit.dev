@@ -28,6 +28,7 @@
     "prepublishOnly": "vp run build"
   },
   "devDependencies": {
+    "@healthzkit/shared": "workspace:*",
     "@types/mysql": "^2.15.27",
     "@types/node": "^25.6.2",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",

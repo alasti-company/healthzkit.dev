@@ -13,7 +13,13 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["sqlite3", "better-sqlite3", "@libsql/client", "healthzkit"],
+      neverBundle: [
+        "@healthzkit/shared",
+        "sqlite3",
+        "better-sqlite3",
+        "@libsql/client",
+        "healthzkit",
+      ],
     },
   },
   lint: {

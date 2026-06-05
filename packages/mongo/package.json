@@ -28,6 +28,7 @@
     "prepublishOnly": "vp run build"
   },
   "devDependencies": {
+    "@healthzkit/shared": "workspace:*",
     "@types/mongodb": "^4.0.7",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^25.6.2",

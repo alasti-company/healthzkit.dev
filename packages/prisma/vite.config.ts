@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["healthzkit", "@prisma/client"],
+      neverBundle: ["@healthzkit/shared", "healthzkit", "@prisma/client"],
     },
   },
   lint: {
