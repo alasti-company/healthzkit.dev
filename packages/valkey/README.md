@@ -89,7 +89,7 @@ The `command` string is split on whitespace and passed to **`customCommand` as a
 Shared options on every adapter:
 
 - **`command`** — Command to run. Default `"PING"`.
-- **`metadata`** — Optional async `(client) => Record<string, unknown>`. Merged into the check result with `latencyMs`.
+- **`metadata`** — Optional sync or async function (`MetadataFn<T>`) with signature `(client) => Record<string, unknown> | Promise<Record<string, unknown>>`. Its returned object is merged into the check result with `latencyMs` (same `metadata` / `MetadataFn<T>` pattern as other adapters, e.g. mongo).
 
 Connection options (mutually exclusive per adapter):
 

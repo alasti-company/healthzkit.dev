@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["@healthzkit/shared", "ioredis", "redis", "@upstash/redis", "healthkit"],
+      neverBundle: ["@healthzkit/shared", "ioredis", "redis", "@upstash/redis", "healthzkit"],
     },
   },
   lint: {

@@ -52,7 +52,7 @@ export function postgresJsAdapter(options: PostgresJsAdapterOptions): HealthAdap
         const latencyMs = Date.now() - start;
 
         const metadataResult = options.metadata
-          ? await (options.metadata as MetadataFn<Sql>)(sql)
+          ? (options.metadata as MetadataFn<Sql>)(sql)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 

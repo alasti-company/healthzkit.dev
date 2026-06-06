@@ -1,6 +1,6 @@
-# vite-plus-starter
+# @healthzkit/shared
 
-A starter for creating a Vite Plus project.
+Internal shared utilities for the HealthzKit monorepo (adapter result helpers and `MetadataFn`).
 
 ## Development
 

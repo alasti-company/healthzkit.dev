@@ -70,6 +70,22 @@ describe("src/valkey-glide.ts", () => {
     expect(result.metadata).toMatchObject({ mode: "standalone", latencyMs: expect.any(Number) });
   });
 
+  test("includes metadata from synchronous metadata hook", async () => {
+    const customCommand = vi.fn().mockResolvedValue(undefined);
+    const client = { customCommand } as unknown as GlideValkeyClient;
+    const adapter = glideValkeyAdapter({
+      client,
+      metadata: (c) => {
+        expect(c).toBe(client);
+        return { mode: "standalone" };
+      },
+    });
+    const result = await adapter.check();
+
+    expect(result.status).toBe("ok");
+    expect(result.metadata).toMatchObject({ mode: "standalone", latencyMs: expect.any(Number) });
+  });
+
   test("fails when connectionString protocol is invalid", async () => {
     const adapter = glideValkeyAdapter({
       connectionString: "postgres://localhost/db",

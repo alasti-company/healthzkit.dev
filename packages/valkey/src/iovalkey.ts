@@ -59,7 +59,7 @@ export function iovalkeyAdapter(options: IoValkeyAdapterOptions): HealthAdapter 
         const metadataResult = options.metadata
           ? (options.metadata as MetadataFn<Redis>)(client)
           : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : undefined;
+        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
         return buildResult(latencyMs, metadata);
       } catch (error) {

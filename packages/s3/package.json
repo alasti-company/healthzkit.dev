@@ -27,9 +27,11 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
+  "dependencies": {
+    "@healthzkit/shared": "workspace:*"
+  },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",
-    "@healthzkit/shared": "workspace:*",
     "@types/node": "^25.6.2",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
     "aws-sdk": "2.1693.0",

@@ -88,7 +88,7 @@ export function glideValkeyAdapter(options: GlideValkeyAdapterOptions): HealthAd
         const metadataResult = options.metadata
           ? (options.metadata as MetadataFn<GlideValkeyClient>)(client)
           : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : undefined;
+        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
         return buildResult(latencyMs, metadata);
       } catch (error) {

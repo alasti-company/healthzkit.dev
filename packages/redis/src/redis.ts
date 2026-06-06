@@ -68,7 +68,7 @@ export function nodeRedisAdapter(options: NodeRedisAdapterOptions): HealthAdapte
         const latencyMs = Date.now() - start;
 
         const metadataResult = options.metadata
-          ? await (options.metadata as MetadataFn<NodeRedisClient>)(client)
+          ? (options.metadata as MetadataFn<NodeRedisClient>)(client)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
