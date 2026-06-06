@@ -31,14 +31,14 @@
     "@healthzkit/shared": "workspace:*",
     "@types/mongodb": "^4.0.7",
     "@types/mongoose": "^5.11.97",
-    "@types/node": "^25.6.2",
+    "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
     "bumpp": "^11.1.0",
     "healthzkit": "workspace:*",
     "mongodb": "^7.2.0",
     "mongoose": "^9.6.2",
-    "typescript": "^6.0.3",
-    "vite-plus": "^0.1.20"
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
   },
   "peerDependencies": {
     "mongodb": ">=6.0.0 || >=7.0.0",
