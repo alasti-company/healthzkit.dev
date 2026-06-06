@@ -1,5 +1,11 @@
 # healthzkit
 
+## 0.0.3
+
+### Patch Changes
+
+- 419ebb1: chore: update dev deps
+
 ## 0.0.2
 
 ### Patch Changes
