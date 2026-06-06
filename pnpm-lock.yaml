@@ -351,11 +351,10 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/rabbitmq:
-    dependencies:
+    devDependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
-    devDependencies:
       '@types/amqplib':
         specifier: ^0.10.8
         version: 0.10.8
@@ -385,11 +384,10 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/redis:
-    dependencies:
+    devDependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
-    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -419,14 +417,13 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/s3:
-    dependencies:
-      '@healthzkit/shared':
-        specifier: workspace:*
-        version: link:../../tools/shared
     devDependencies:
       '@aws-sdk/client-s3':
         specifier: ^3.1053.0
         version: 3.1053.0
+      '@healthzkit/shared':
+        specifier: workspace:*
+        version: link:../../tools/shared
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -450,11 +447,10 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/sqlite:
-    dependencies:
+    devDependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
-    devDependencies:
       '@libsql/client':
         specifier: ^0.17.3
         version: 0.17.3
