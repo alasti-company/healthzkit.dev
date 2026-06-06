@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["@healthzkit/shared", "pg", "postgres", "healthzkit"],
+      neverBundle: ["pg", "postgres", "healthzkit"],
     },
   },
   lint: {

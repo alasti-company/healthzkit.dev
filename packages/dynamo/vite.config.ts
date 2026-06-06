@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["@healthzkit/shared", "healthzkit", "@aws-sdk/client-dynamodb", "aws-sdk"],
+      neverBundle: ["healthzkit", "@aws-sdk/client-dynamodb", "aws-sdk"],
     },
   },
   lint: {

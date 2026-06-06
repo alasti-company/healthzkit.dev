@@ -28,10 +28,8 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
-  "dependencies": {
-    "@healthzkit/shared": "workspace:*"
-  },
   "devDependencies": {
+    "@healthzkit/shared": "workspace:*",
     "@libsql/client": "^0.17.3",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "catalog:",

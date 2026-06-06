@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["@healthzkit/shared", "healthzkit", "iovalkey", "@valkey/valkey-glide"],
+      neverBundle: ["healthzkit", "iovalkey", "@valkey/valkey-glide"],
     },
   },
   lint: {

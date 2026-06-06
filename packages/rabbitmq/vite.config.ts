@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["@healthzkit/shared", "healthzkit", "amqplib", "amqp-connection-manager"],
+      neverBundle: ["healthzkit", "amqplib", "amqp-connection-manager"],
     },
   },
   lint: {
