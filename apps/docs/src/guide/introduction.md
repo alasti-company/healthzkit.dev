@@ -46,6 +46,7 @@ Official adapter packages cover **queues**, **databases**, **storage**, **search
 #### Databases
 
 - [Redis](/adapter/redis) — `@healthzkit/redis` (`ioredis`, `node-redis`, Upstash).
+- [Valkey](/adapter/valkey) — `@healthzkit/valkey` (`iovalkey`, `@valkey/valkey-glide`).
 - [Postgres](/adapter/postgres) — `@healthzkit/postgres` (`pg`, `postgres`).
 - [MySQL](/adapter/mysql) — `@healthzkit/mysql` (`mysql`, `mysql2`).
 - [MongoDB](/adapter/mongo) — `@healthzkit/mongo` (`mongodb`, `mongoose`).

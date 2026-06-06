@@ -1,0 +1,53 @@
+{
+  "name": "@healthzkit/valkey",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/valkey"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./iovalkey": "./dist/iovalkey.mjs",
+    "./valkey-glide": "./dist/valkey-glide.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "devDependencies": {
+    "@healthzkit/shared": "workspace:*",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "@valkey/valkey-glide": "^2.4.1",
+    "bumpp": "^11.1.0",
+    "healthzkit": "workspace:*",
+    "iovalkey": "^0.3.3",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "@valkey/valkey-glide": ">=1.0.0",
+    "iovalkey": ">=0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@valkey/valkey-glide": {
+      "optional": true
+    },
+    "iovalkey": {
+      "optional": true
+    }
+  }
+}

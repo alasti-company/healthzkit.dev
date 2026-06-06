@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["healthzkit", "drizzle-orm"],
+      neverBundle: ["@healthzkit/shared", "healthzkit", "drizzle-orm"],
     },
   },
   lint: {

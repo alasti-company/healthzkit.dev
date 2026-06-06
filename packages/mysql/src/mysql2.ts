@@ -76,9 +76,10 @@ export function mysql2Adapter(options: Mysql2AdapterOptions): HealthAdapter {
         await connection.query(options.query ?? DEFAULT_QUERY);
         const latencyMs = Date.now() - start;
 
-        const metadata = options.metadata
-          ? await (options.metadata as MetadataFn<Connection>)(connection)
+        const metadataResult = options.metadata
+          ? (options.metadata as MetadataFn<Connection>)(connection)
           : undefined;
+        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
         return buildResult(latencyMs, metadata);
       } catch (error) {

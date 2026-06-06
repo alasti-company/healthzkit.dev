@@ -27,13 +27,14 @@
     "prepublishOnly": "vp run build"
   },
   "devDependencies": {
-    "@types/node": "^25.6.2",
+    "@healthzkit/shared": "workspace:*",
+    "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
     "bumpp": "^11.1.0",
     "healthzkit": "workspace:*",
     "minio": "8.0.7",
-    "typescript": "^6.0.3",
-    "vite-plus": "^0.1.20"
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
   },
   "peerDependencies": {
     "minio": ">=7.1.0 || >=8.0.0"

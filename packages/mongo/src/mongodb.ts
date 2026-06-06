@@ -81,9 +81,10 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
         await client.db("admin").command({ ping: 1 });
         const latencyMs = Date.now() - start;
 
-        const metadata = options.metadata
-          ? await (options.metadata as MetadataFn<MongoClient>)(client)
+        const metadataResult = options.metadata
+          ? (options.metadata as MetadataFn<MongoClient>)(client)
           : undefined;
+        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
         return buildResult(latencyMs, metadata);
       } catch (error) {

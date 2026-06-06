@@ -76,9 +76,10 @@ export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter 
 
         const latencyMs = Date.now() - start;
 
-        const metadata = options.metadata
-          ? await (options.metadata as MetadataFn<MongooseConnection>)(conn)
+        const metadataResult = options.metadata
+          ? (options.metadata as MetadataFn<MongooseConnection>)(conn)
           : undefined;
+        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
         return buildResult(latencyMs, metadata);
       } catch (error) {

@@ -13,7 +13,7 @@ export default defineConfig({
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["healthzkit", "mongodb", "mongoose"],
+      neverBundle: ["@healthzkit/shared", "healthzkit", "mongodb", "mongoose"],
     },
   },
   lint: {

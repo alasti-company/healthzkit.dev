@@ -60,9 +60,10 @@ export function pgAdapter(options: PgAdapterOptions): HealthAdapter {
         await client.query(options.query ?? DEFAULT_QUERY);
         const latencyMs = Date.now() - start;
 
-        const metadata = options.metadata
-          ? await (options.metadata as MetadataFn<ClientBase>)(client)
+        const metadataResult = options.metadata
+          ? (options.metadata as MetadataFn<ClientBase>)(client)
           : undefined;
+        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
         return buildResult(latencyMs, metadata);
       } catch (error) {

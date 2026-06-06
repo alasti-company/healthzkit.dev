@@ -102,6 +102,7 @@ export default defineConfig({
             text: "Databases",
             items: [
               { text: "Redis", link: "/adapter/redis" },
+              { text: "Valkey", link: "/adapter/valkey" },
               { text: "Postgres", link: "/adapter/postgres" },
               { text: "MySQL", link: "/adapter/mysql" },
               { text: "MongoDB", link: "/adapter/mongo" },
@@ -152,6 +153,7 @@ export default defineConfig({
             text: "Databases",
             items: [
               { text: "Redis", link: "/adapter/redis" },
+              { text: "Valkey", link: "/adapter/valkey" },
               { text: "Postgres", link: "/adapter/postgres" },
               { text: "MySQL", link: "/adapter/mysql" },
               { text: "MongoDB", link: "/adapter/mongo" },
@@ -224,7 +226,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, http, fetch, s3, minio, aws",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, valkey, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, http, fetch, s3, minio, aws",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],

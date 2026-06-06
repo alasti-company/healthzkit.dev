@@ -27,15 +27,18 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
+  "dependencies": {
+    "@healthzkit/shared": "workspace:*"
+  },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",
-    "@types/node": "^25.6.2",
+    "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
     "aws-sdk": "2.1693.0",
     "bumpp": "^11.1.0",
     "healthzkit": "workspace:*",
-    "typescript": "^6.0.3",
-    "vite-plus": "^0.1.20"
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
   },
   "peerDependencies": {
     "@aws-sdk/client-s3": ">=3.0.0",

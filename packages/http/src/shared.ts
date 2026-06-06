@@ -1,5 +1,3 @@
-import type { AdapterResult, HealthAdapter } from "healthzkit";
-
 export type MetadataFn = (
   response: Response,
 ) => Promise<Record<string, unknown>> | Record<string, unknown>;
@@ -11,21 +9,9 @@ export interface BaseHttpOptions {
   metadata?: MetadataFn;
 }
 
-export function buildResult(latencyMs: number, metadata?: Record<string, unknown>): AdapterResult {
-  return {
-    status: "ok",
-    metadata: {
-      ...metadata,
-      latencyMs,
-    },
-  };
-}
-
-export function buildErrorResult(error: unknown): AdapterResult {
-  return {
-    status: "fail",
-    error: error instanceof Error ? error : new Error(String(error)),
-  };
-}
-
-export type { AdapterResult, HealthAdapter };
+export {
+  buildResult,
+  buildErrorResult,
+  type AdapterResult,
+  type HealthAdapter,
+} from "@healthzkit/shared";

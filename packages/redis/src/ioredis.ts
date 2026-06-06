@@ -51,9 +51,10 @@ export function ioredisAdapter(options: IoRedisAdapterOptions): HealthAdapter {
         await client.call(options.command ?? DEFAULT_COMMAND);
         const latencyMs = Date.now() - start;
 
-        const metadata = options.metadata
-          ? await (options.metadata as MetadataFn<Redis>)(client)
+        const metadataResult = options.metadata
+          ? (options.metadata as MetadataFn<Redis>)(client)
           : undefined;
+        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
         return buildResult(latencyMs, metadata);
       } catch (error) {
