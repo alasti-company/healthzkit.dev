@@ -1,5 +1,11 @@
 # @healthzkit/rabbitmq
 
+## 0.0.4
+
+### Patch Changes
+
+- fb6d62a: fix: dependency resolution for internal shared tooling
+
 ## 0.0.3
 
 ### Patch Changes
