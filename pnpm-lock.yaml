@@ -66,10 +66,11 @@ importers:
         version: 4.88.0
 
   packages/drizzle:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -93,13 +94,14 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/dynamo:
+    dependencies:
+      '@healthzkit/shared':
+        specifier: workspace:*
+        version: link:../../tools/shared
     devDependencies:
       '@aws-sdk/client-dynamodb':
         specifier: 3.1050.0
         version: 3.1050.0
-      '@healthzkit/shared':
-        specifier: workspace:*
-        version: link:../../tools/shared
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -123,13 +125,14 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/elasticsearch:
+    dependencies:
+      '@healthzkit/shared':
+        specifier: workspace:*
+        version: link:../../tools/shared
     devDependencies:
       '@elastic/elasticsearch':
         specifier: ^9.4.1
         version: 9.4.1
-      '@healthzkit/shared':
-        specifier: workspace:*
-        version: link:../../tools/shared
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -171,10 +174,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/http:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -195,10 +199,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/minio:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -222,10 +227,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/mongo:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/mongodb':
         specifier: ^4.0.7
         version: 4.0.7
@@ -258,10 +264,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/mysql:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/mysql':
         specifier: ^2.15.27
         version: 2.15.27
@@ -291,10 +298,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/postgres:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -324,10 +332,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/prisma:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@prisma/client':
         specifier: 7.8.0
         version: 7.8.0(typescript@5.9.3)
@@ -351,10 +360,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/rabbitmq:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/amqplib':
         specifier: ^0.10.8
         version: 0.10.8
@@ -384,10 +394,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/redis:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -417,13 +428,14 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/s3:
+    dependencies:
+      '@healthzkit/shared':
+        specifier: workspace:*
+        version: link:../../tools/shared
     devDependencies:
       '@aws-sdk/client-s3':
         specifier: ^3.1053.0
         version: 3.1053.0
-      '@healthzkit/shared':
-        specifier: workspace:*
-        version: link:../../tools/shared
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0
@@ -447,10 +459,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/sqlite:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@libsql/client':
         specifier: ^0.17.3
         version: 0.17.3
@@ -483,10 +496,11 @@ importers:
         version: 0.1.24(@opentelemetry/api@1.9.1)(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(typescript@5.9.3)(unrun@0.2.37)(vite@8.0.10(@types/node@24.13.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(yaml@2.8.4)
 
   packages/valkey:
-    devDependencies:
+    dependencies:
       '@healthzkit/shared':
         specifier: workspace:*
         version: link:../../tools/shared
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.0

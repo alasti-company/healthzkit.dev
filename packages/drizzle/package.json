@@ -27,8 +27,10 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
+  "dependencies": {
+    "@healthzkit/shared": "workspace:*"
+  },
   "devDependencies": {
-    "@healthzkit/shared": "workspace:*",
     "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
     "bumpp": "^11.1.0",
