@@ -27,8 +27,10 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
+  "dependencies": {
+    "@healthzkit/shared": "workspace:*"
+  },
   "devDependencies": {
-    "@healthzkit/shared": "workspace:*",
     "@types/mongodb": "^4.0.7",
     "@types/mongoose": "^5.11.97",
     "@types/node": "catalog:",

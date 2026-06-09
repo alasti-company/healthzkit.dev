@@ -28,8 +28,10 @@
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },
+  "dependencies": {
+    "@healthzkit/shared": "workspace:*"
+  },
   "devDependencies": {
-    "@healthzkit/shared": "workspace:*",
     "@types/node": "catalog:",
     "@typescript/native-preview": "7.0.0-dev.20260328.1",
     "@upstash/redis": "^1.38.0",

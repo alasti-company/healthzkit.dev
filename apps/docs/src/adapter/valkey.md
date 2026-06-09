@@ -22,10 +22,10 @@ Both clients are optional peers: install only the stack you use.
 
 Every factory accepts a small common shape (see `BaseValkeyOptions` in the package):
 
-| Option         | Description                                                                                                |
-| -------------- | ---------------------------------------------------------------------------------------------------------- |
-| **`command`**  | Valkey command to run. Default **`PING`**. How the string is sent depends on the client (see below).       |
-| **`metadata`** | Optional async `(client) => Record<string, unknown>` merged into the check metadata alongside `latencyMs`. |
+| Option         | Description                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| **`command`**  | Valkey command to run. Default **`PING`**. How the string is sent depends on the client (see below).  |
+| **`metadata`** | Optional `(client) => Record<string, unknown>` (sync or async) merged into metadata with `latencyMs`. |
 
 ## `iovalkeyAdapter`
 
