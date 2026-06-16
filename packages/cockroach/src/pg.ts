@@ -10,7 +10,7 @@ import {
 export interface CockroachPgAdapterOptionsWithClient extends BaseCockroachOptions<ClientBase> {
   client: Pool | PoolClient | ClientBase;
   connectionString?: never;
-  pgOptions?: never;
+  pgOption?: never;
 }
 
 export interface CockroachPgAdapterOptionsWithConfig extends BaseCockroachOptions<ClientBase> {
@@ -30,9 +30,9 @@ export function cockroachPgAdapter(options: CockroachPgAdapterOptions): HealthAd
     client: ClientBase;
     release: () => void;
   }> {
-    if ("connectionString" in options && options.connectionString) {
-      const { Pool } = await import("pg");
+    const { Pool } = await import("pg");
 
+    if ("connectionString" in options) {
       if (!internalPool) {
         internalPool = new Pool({
           connectionString: options.connectionString,
@@ -41,18 +41,20 @@ export function cockroachPgAdapter(options: CockroachPgAdapterOptions): HealthAd
         });
       }
 
-      const poolClient: PoolClient = await internalPool?.connect();
+      const poolClient: PoolClient = await internalPool.connect();
       return { client: poolClient, release: () => poolClient.release() };
     }
 
-    const pool = options.client as Pool;
+    if ("client" in options) {
+      if (options.client instanceof Pool) {
+        const poolClient: PoolClient = await options.client.connect();
+        return { client: poolClient, release: () => poolClient.release() };
+      }
 
-    if ("connect" in pool && typeof pool.connect === "function") {
-      const poolClient: PoolClient = await pool.connect();
-      return { client: poolClient, release: () => poolClient.release() };
+      return { client: options.client, release: () => {} };
     }
 
-    return { client: options.client as ClientBase, release: () => {} };
+    throw new Error("cockroachPgAdapter requires either connectionString or client");
   }
 
   return {

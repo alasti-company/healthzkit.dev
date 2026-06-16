@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import type { ClientBase, Pool } from "pg";
+import type { ClientBase } from "pg";
+import { Pool } from "pg";
 import { cockroachPgAdapter } from "../src/pg.ts";
 
 describe("src/pg.ts", () => {
@@ -27,7 +28,7 @@ describe("src/pg.ts", () => {
       release: vi.fn(),
     };
     const connect = vi.fn().mockResolvedValue(inner);
-    const pool = { connect } as unknown as Pool;
+    const pool = Object.assign(Object.create(Pool.prototype), { connect }) as Pool;
     const adapter = cockroachPgAdapter({ client: pool });
     const result = await adapter.check();
     expect(result.status).toBe("ok");
