@@ -33,6 +33,14 @@ export function cockroachPgAdapter(options: CockroachPgAdapterOptions): HealthAd
     const { Pool } = await import("pg");
 
     if ("connectionString" in options) {
+      if ("client" in options) {
+        throw new Error("cockroachPgAdapter accepts either connectionString or client, not both");
+      }
+
+      if (!options.connectionString) {
+        throw new Error("cockroachPgAdapter connectionString must be a non-empty string");
+      }
+
       if (!internalPool) {
         internalPool = new Pool({
           connectionString: options.connectionString,

@@ -45,6 +45,29 @@ describe("src/pg.ts", () => {
     expect((result.error as Error).message).toBe("ECONNREFUSED");
   });
 
+  test("returns fail when connectionString is empty", async () => {
+    const adapter = cockroachPgAdapter({ connectionString: "" });
+    const result = await adapter.check();
+    expect(result.status).toBe("fail");
+    expect((result.error as Error).message).toBe(
+      "cockroachPgAdapter connectionString must be a non-empty string",
+    );
+  });
+
+  test("returns fail when both connectionString and client are provided", async () => {
+    const query = vi.fn().mockResolvedValue({ rows: [] });
+    const adapter = cockroachPgAdapter({
+      connectionString: "postgres://localhost/db",
+      client: { query } as unknown as ClientBase,
+    } as unknown as Parameters<typeof cockroachPgAdapter>[0]);
+    const result = await adapter.check();
+    expect(result.status).toBe("fail");
+    expect((result.error as Error).message).toBe(
+      "cockroachPgAdapter accepts either connectionString or client, not both",
+    );
+    expect(query).not.toHaveBeenCalled();
+  });
+
   test("includes metadata from optional metadata hook", async () => {
     const query = vi.fn().mockResolvedValue({ rows: [] });
     const client = { query } as unknown as ClientBase;
