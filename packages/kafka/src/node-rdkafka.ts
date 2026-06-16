@@ -46,18 +46,26 @@ function fetchMetadata(client: RdKafkaClient): Promise<void> {
 
 export function nodeRdKafkaAdapter(options: NodeRdKafkaAdapterOptions): HealthAdapter {
   let internalClient: RdProducer | null = null;
+  let initPromise: Promise<RdProducer> | null = null;
 
   async function getClient(): Promise<RdKafkaClient> {
     if ("client" in options && options.client) {
       return options.client;
     }
 
-    if (!internalClient) {
-      const { Producer } = await import("node-rdkafka");
-      internalClient = new Producer(options.config);
+    if (internalClient) {
+      return internalClient;
     }
 
-    return internalClient;
+    if (!initPromise) {
+      initPromise = (async () => {
+        const { Producer } = await import("node-rdkafka");
+        internalClient = new Producer(options.config);
+        return internalClient;
+      })();
+    }
+
+    return initPromise;
   }
 
   return {
