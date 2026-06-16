@@ -36,6 +36,7 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 ### Queues
 
 - [RabbitMQ](/adapter/rabbitmq) — `@healthzkit/rabbitmq`
+- [Kafka](/adapter/kafka) — `@healthzkit/kafka`
 
 ### Databases
 

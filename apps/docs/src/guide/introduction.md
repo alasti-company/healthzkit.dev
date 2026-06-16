@@ -42,6 +42,7 @@ Official adapter packages cover **queues**, **databases**, **storage**, **search
 #### Queues
 
 - [RabbitMQ](/adapter/rabbitmq) — `@healthzkit/rabbitmq` (`amqplib`, `amqp-connection-manager`).
+- [Kafka](/adapter/kafka) — `@healthzkit/kafka` (`kafkajs`, `node-rdkafka`).
 
 #### Databases
 
