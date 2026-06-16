@@ -107,6 +107,7 @@ export default defineConfig({
               { text: "Redis", link: "/adapter/redis" },
               { text: "Valkey", link: "/adapter/valkey" },
               { text: "Postgres", link: "/adapter/postgres" },
+              { text: "CockroachDB", link: "/adapter/cockroach" },
               { text: "MySQL", link: "/adapter/mysql" },
               { text: "MongoDB", link: "/adapter/mongo" },
               { text: "SQLite", link: "/adapter/sqlite" },
@@ -161,6 +162,7 @@ export default defineConfig({
               { text: "Redis", link: "/adapter/redis" },
               { text: "Valkey", link: "/adapter/valkey" },
               { text: "Postgres", link: "/adapter/postgres" },
+              { text: "CockroachDB", link: "/adapter/cockroach" },
               { text: "MySQL", link: "/adapter/mysql" },
               { text: "MongoDB", link: "/adapter/mongo" },
               { text: "SQLite", link: "/adapter/sqlite" },
@@ -232,7 +234,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, rabbitmq, kafka, kafkajs, redis, valkey, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, http, fetch, s3, minio, aws",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, rabbitmq, kafka, kafkajs, redis, valkey, postgres, cockroachdb, cockroach, mysql, mongodb, drizzle, prisma, elasticsearch, http, fetch, s3, minio, aws",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],
