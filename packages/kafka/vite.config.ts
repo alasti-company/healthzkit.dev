@@ -9,11 +9,11 @@ export default defineConfig({
     sourcemap: false,
     format: ["esm"],
     clean: true,
-    entry: ["src/index.ts"],
+    entry: ["src/index.ts", "src/kafkajs.ts", "src/node-rdkafka.ts"],
     treeshake: true,
     minify: true,
     deps: {
-      neverBundle: ["healthzkit"],
+      neverBundle: ["healthzkit", "kafkajs", "node-rdkafka"],
     },
   },
   lint: {

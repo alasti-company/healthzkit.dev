@@ -5,7 +5,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
-    "directory": "packages/valkey"
+    "directory": "packages/kafka"
   },
   "files": [
     "dist"
@@ -13,6 +13,8 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
+    "./kafkajs": "./dist/kafkajs.mjs",
+    "./node-rdkafka": "./dist/node-rdkafka.mjs",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -38,10 +40,16 @@
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   },
-  "inlinedDependencies": {
-    "bindings": "1.5.0",
-    "file-uri-to-path": "1.0.0",
-    "kafkajs": "2.2.4",
-    "node-rdkafka": "v3.6.1"
+  "peerDependencies": {
+    "kafkajs": ">=2.0.0",
+    "node-rdkafka": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "kafkajs": {
+      "optional": true
+    },
+    "node-rdkafka": {
+      "optional": true
+    }
   }
 }
