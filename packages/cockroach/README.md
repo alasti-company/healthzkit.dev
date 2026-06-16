@@ -14,10 +14,11 @@ npm install @healthzkit/cockroach healthzkit pg
 
 `cockroachPgAdapter` accepts `BaseCockroachOptions`:
 
-| Option     | Description                                                                                       |
-| ---------- | ------------------------------------------------------------------------------------------------- |
-| `query`    | SQL executed for the probe. Default `SELECT 1`.                                                   |
-| `metadata` | Optional async `(client) => Record<string, unknown>` merged into check metadata with `latencyMs`. |
+| Option     | Description                                                                                                                        |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `query`    | SQL executed for the probe. Default `SELECT 1`.                                                                                    |
+| `metadata` | Optional async `(client) => Record<string, unknown>` merged into check metadata with `latencyMs`.                                  |
+| `pgOption` | Optional `pg` `Pool` constructor options (except `connectionString`). Only with `connectionString`. Merged into the internal pool. |
 
 Pass either `connectionString` or `client` (not both).
 
