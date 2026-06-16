@@ -13,6 +13,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
+    "./pg": "./dist/pg.mjs",
     "./package.json": "./package.json"
   },
   "publishConfig": {
