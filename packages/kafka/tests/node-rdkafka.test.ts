@@ -141,4 +141,38 @@ describe("nodeRdKafkaAdapter", () => {
       vi.resetModules();
     }
   });
+
+  test("retries client initialization after a failed import", async () => {
+    let constructCount = 0;
+    let rejectImport: (reason: Error) => void;
+    const { client, getMetadata } = mockRdKafkaClient(true);
+    const Producer = vi.fn(function (_config?: unknown) {
+      constructCount += 1;
+      return client;
+    });
+    const importPromise = new Promise<{ Producer: typeof Producer }>((_resolve, reject) => {
+      rejectImport = reject;
+    });
+
+    vi.doMock("node-rdkafka", () => importPromise);
+
+    vi.resetModules();
+    const { nodeRdKafkaAdapter: adapterFactory } = await import("../src/node-rdkafka.ts");
+    const adapter = adapterFactory({ config: { "bootstrap.servers": "localhost:9092" } });
+
+    const failed = adapter.check();
+    rejectImport!(new Error("module load failed"));
+    await expect(failed).resolves.toMatchObject({ status: "fail" });
+
+    vi.doUnmock("node-rdkafka");
+    vi.doMock("node-rdkafka", () => ({ Producer }));
+
+    const recovered = await adapter.check();
+    expect(recovered.status).toBe("ok");
+    expect(constructCount).toBe(1);
+    expect(getMetadata).toHaveBeenCalledOnce();
+
+    vi.doUnmock("node-rdkafka");
+    vi.resetModules();
+  });
 });

@@ -59,9 +59,13 @@ export function nodeRdKafkaAdapter(options: NodeRdKafkaAdapterOptions): HealthAd
 
     if (!initPromise) {
       initPromise = (async () => {
-        const { Producer } = await import("node-rdkafka");
-        internalClient = new Producer(options.config);
-        return internalClient;
+        try {
+          const { Producer } = await import("node-rdkafka");
+          internalClient = new Producer(options.config);
+          return internalClient;
+        } finally {
+          initPromise = null;
+        }
       })();
     }
 
