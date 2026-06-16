@@ -40,14 +40,14 @@ describe("nodeRdKafkaAdapter", () => {
     expect(result.metadata?.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
-  test("connects when not yet connected", async () => {
+  test("connects and fetches metadata when not yet connected", async () => {
     const { client, getMetadata, connect } = mockRdKafkaClient(false);
     const adapter = nodeRdKafkaAdapter({ client });
     const result = await adapter.check();
 
     expect(result.status).toBe("ok");
     expect(connect).toHaveBeenCalledOnce();
-    expect(getMetadata).not.toHaveBeenCalled();
+    expect(getMetadata).toHaveBeenCalledOnce();
     expect(result.metadata?.latencyMs).toBeGreaterThanOrEqual(0);
   });
 

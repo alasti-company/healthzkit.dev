@@ -24,17 +24,23 @@ export type NodeRdKafkaAdapterOptions = NodeRdKafkaOptionsWithClient | NodeRdKaf
 
 function fetchMetadata(client: RdKafkaClient): Promise<void> {
   return new Promise((resolve, reject) => {
-    const cb = (err: LibrdKafkaError | undefined) => {
+    const onMetadata = (err: LibrdKafkaError | undefined) => {
       if (err) reject(err);
       else resolve();
     };
 
     if (client.isConnected()) {
-      client.getMetadata({}, cb);
+      client.getMetadata({}, onMetadata);
       return;
     }
 
-    client.connect({}, cb);
+    client.connect({}, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      client.getMetadata({}, onMetadata);
+    });
   });
 }
 
