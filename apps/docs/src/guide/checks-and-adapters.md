@@ -43,6 +43,7 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 - [Redis](/adapter/redis) — `@healthzkit/redis`
 - [Valkey](/adapter/valkey) — `@healthzkit/valkey`
 - [Postgres](/adapter/postgres) — `@healthzkit/postgres`
+- [CockroachDB](/adapter/cockroach) — `@healthzkit/cockroach`
 - [MySQL](/adapter/mysql) — `@healthzkit/mysql`
 - [MongoDB](/adapter/mongo) — `@healthzkit/mongo`
 - [SQLite](/adapter/sqlite) — `@healthzkit/sqlite`
