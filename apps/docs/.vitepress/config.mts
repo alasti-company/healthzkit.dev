@@ -96,7 +96,10 @@ export default defineConfig({
         items: [
           {
             text: "Queues",
-            items: [{ text: "RabbitMQ", link: "/adapter/rabbitmq" }],
+            items: [
+              { text: "RabbitMQ", link: "/adapter/rabbitmq" },
+              { text: "Kafka", link: "/adapter/kafka" },
+            ],
           },
           {
             text: "Databases",
@@ -147,7 +150,10 @@ export default defineConfig({
         items: [
           {
             text: "Queues",
-            items: [{ text: "RabbitMQ", link: "/adapter/rabbitmq" }],
+            items: [
+              { text: "RabbitMQ", link: "/adapter/rabbitmq" },
+              { text: "Kafka", link: "/adapter/kafka" },
+            ],
           },
           {
             text: "Databases",
@@ -226,7 +232,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, redis, valkey, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, http, fetch, s3, minio, aws",
+          "healthzkit, health check, liveness probe, readiness probe, kubernetes, node.js, express, fastify, hono, rabbitmq, kafka, kafkajs, redis, valkey, postgres, mysql, mongodb, drizzle, prisma, elasticsearch, http, fetch, s3, minio, aws",
       },
     ],
     ["meta", { name: "robots", content: "index, follow" }],
