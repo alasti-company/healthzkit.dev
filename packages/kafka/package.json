@@ -1,0 +1,47 @@
+{
+  "name": "@healthzkit/kafka",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/valkey"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "dependencies": {
+    "@healthzkit/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "bumpp": "^11.1.0",
+    "healthzkit": "workspace:*",
+    "kafkajs": "^2.2.4",
+    "node-rdkafka": "^3.6.1",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "inlinedDependencies": {
+    "bindings": "1.5.0",
+    "file-uri-to-path": "1.0.0",
+    "kafkajs": "2.2.4",
+    "node-rdkafka": "v3.6.1"
+  }
+}
