@@ -190,7 +190,7 @@ export default defineConfig({
       },
     ],
     footer: {
-      message: "Released under the AGPL-3.0 License.",
+      message: "Released under the MIT License.",
       copyright: `Copyright © ${new Date().getFullYear()} The Alasti Company & Healthzkit.dev`,
     },
     socialLinks: [

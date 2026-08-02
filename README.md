@@ -102,5 +102,5 @@ See [`AGENTS.md`](./AGENTS.md) for Vite+ / `vp` conventions used in this repo.
 
 Copyright (C) 2026 Alasti Company
 
-This project is licensed under the GNU Affero General Public License v3.0.
+This project is licensed under the MIT License.
 See [LICENSE](./LICENSE) for the full license text.
