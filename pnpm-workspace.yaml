@@ -4,6 +4,8 @@ packages:
   - tools/*
 allowBuilds:
   aws-sdk: true
+  # better-sqlite3 >= 13 ships prebuilt N-API binaries (prebuilds/) and sets
+  # gypfile: false; forcing the build runs node-gyp for nothing and fails on CI.
   better-sqlite3: false
   esbuild: true
   node-rdkafka: true
@@ -17,7 +19,7 @@ catalog:
   "@types/node": ^24
   "@typescript/native-preview": 7.0.0-dev.20260707.2
   bumpp: ^12.3.0
-  node-gyp: ^13.0.2
+  node-gyp: ^12.4.0
   tsdown: ^0.23.0
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@0.3.0
