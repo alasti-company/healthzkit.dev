@@ -32,8 +32,8 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@typescript/native-preview": "7.0.0-dev.20260509.2",
-    "bumpp": "^11.1.0",
+    "@typescript/native-preview": "catalog:",
+    "bumpp": "catalog:",
     "drizzle-orm": "0.45.2",
     "healthzkit": "workspace:*",
     "typescript": "catalog:",

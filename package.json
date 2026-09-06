@@ -20,10 +20,11 @@
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
+    "node-gyp": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {
     "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@11.1.2"
+  "packageManager": "pnpm@12.3.4"
 }

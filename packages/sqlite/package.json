@@ -32,12 +32,12 @@
     "@healthzkit/shared": "workspace:*"
   },
   "devDependencies": {
-    "@libsql/client": "^0.17.3",
-    "@types/better-sqlite3": "^7.6.13",
+    "@libsql/client": "^0.18.0",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "catalog:",
-    "@typescript/native-preview": "7.0.0-dev.20260509.2",
-    "better-sqlite3": "^12.10.0",
-    "bumpp": "^11.1.0",
+    "@typescript/native-preview": "catalog:",
+    "better-sqlite3": "^13.0.3",
+    "bumpp": "catalog:",
     "healthzkit": "workspace:*",
     "sqlite3": "^6.0.1",
     "typescript": "catalog:",

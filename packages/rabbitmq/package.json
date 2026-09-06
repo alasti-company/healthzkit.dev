@@ -33,10 +33,10 @@
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
     "@types/node": "catalog:",
-    "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "@typescript/native-preview": "catalog:",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^2.0.1",
-    "bumpp": "^11.1.0",
+    "bumpp": "catalog:",
     "healthzkit": "workspace:*",
     "typescript": "catalog:",
     "vite-plus": "catalog:"

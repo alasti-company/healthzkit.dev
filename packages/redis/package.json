@@ -33,12 +33,12 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@typescript/native-preview": "7.0.0-dev.20260328.1",
-    "@upstash/redis": "^1.38.0",
-    "bumpp": "^11.0.1",
+    "@typescript/native-preview": "catalog:",
+    "@upstash/redis": "^1.38.4",
+    "bumpp": "catalog:",
     "healthzkit": "workspace:*",
-    "ioredis": "^5.10.1",
-    "redis": "^5.12.1",
+    "ioredis": "^6.0.0",
+    "redis": "^6.2.1",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   },
