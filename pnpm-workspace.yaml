@@ -13,20 +13,21 @@ allowBuilds:
   workerd: true
 
 catalog:
-  "@changesets/cli": ^2.31.0
+  "@changesets/cli": ^3.0.2
   "@types/node": ^24
-  tsdown: ^0.21.10
+  "@typescript/native-preview": 7.0.0-dev.20260707.2
+  bumpp: ^12.3.0
+  tsdown: ^0.23.0
   typescript: ^5
-  vite: npm:@voidzero-dev/vite-plus-core@latest
-  vite-plus: latest
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.0
+  vite-plus: 0.3.0
   vitepress: ^1.6.4
-  vitest: npm:@voidzero-dev/vite-plus-test@latest
-  wrangler: ^4.88.0
+  wrangler: ^4.129.0
 
 catalogMode: prefer
 overrides:
-  vite: "catalog:"
-  vitest: "catalog:"
+  "vite@*": "catalog:"
+  "vitest@*": 4.1.11
 
 peerDependencyRules:
   allowAny:

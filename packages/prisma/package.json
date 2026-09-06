@@ -30,10 +30,10 @@
     "@healthzkit/shared": "workspace:*"
   },
   "devDependencies": {
-    "@prisma/client": "7.8.0",
+    "@prisma/client": "7.10.0",
     "@types/node": "catalog:",
-    "@typescript/native-preview": "7.0.0-dev.20260509.2",
-    "bumpp": "^11.1.0",
+    "@typescript/native-preview": "catalog:",
+    "bumpp": "catalog:",
     "healthzkit": "workspace:*",
     "typescript": "catalog:",
     "vite-plus": "catalog:"

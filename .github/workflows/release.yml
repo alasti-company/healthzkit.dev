@@ -44,7 +44,7 @@ jobs:
         run: rm -rf node_modules/.cache/changesets
 
       - name: Create Release PR or Publish
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           publish: vp run publish
           title: "chore: release packages"
