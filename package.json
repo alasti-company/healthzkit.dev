@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
+    "node-gyp": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {
