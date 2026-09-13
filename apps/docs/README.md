@@ -26,3 +26,9 @@ Use the wrangler already installed as a docs `devDependency`:
 Turn **off** non-production branch builds. `preview_urls`, `workers_dev`, and the custom-domain `previews_enabled` flag are all `false`, so `wrangler versions upload` would store a version with no reachable preview URL.
 
 Workers Builds does not read custom build commands from `wrangler.jsonc`; these values live in the Worker dashboard under **Settings → Build**.
+
+## GitHub Actions
+
+`.github/workflows/deploy-docs.yml` publishes with the workspace `wrangler` on pushes to `main` that touch the docs app (and via **workflow_dispatch**). That path does not use `pnpm dlx`.
+
+Add repository secrets `CLOUDFLARE_API_TOKEN` (Workers edit) and `CLOUDFLARE_ACCOUNT_ID` before the first run.
