@@ -1,0 +1,64 @@
+---
+title: Healthzkit
+description: Framework-agnostic liveness and readiness probes for Node.js—parallel checks, rollup status, HTTP mapping, scheduling, and official adapters.
+---
+
+Healthzkit is a small, framework-agnostic library for Kubernetes-style **liveness** and **readiness** probes in Node.js.
+
+You define checks as adapters that return `ok`, `degraded`, or `fail`. Healthzkit runs the relevant checks in parallel, rolls up an overall status, maps that to an HTTP response, and can schedule slow checks in the background so probes read cached results.
+
+<CardGroup cols={2}>
+  <Card title="Get started" icon="rocket" href="/guide/getting-started">
+    Install `healthzkit` and wire `/healthz/live` and `/healthz/ready`.
+  </Card>
+  <Card title="Framework guides" icon="code" href="/guide/frameworks">
+    Hono, Express, Fastify, Elysia, Next.js, and Node `http`.
+  </Card>
+  <Card title="Checks and adapters" icon="plug" href="/guide/checks-and-adapters">
+    Timeouts, failure mapping, and official adapter packages.
+  </Card>
+  <Card title="Scheduling" icon="clock" href="/guide/scheduling">
+    Cache expensive probes so kubelet does not stampede your database.
+  </Card>
+</CardGroup>
+
+## What you get
+
+<CardGroup cols={2}>
+  <Card title="Liveness and readiness" icon="heart-pulse">
+    Tag checks for liveness, readiness, or both. Kubernetes-style `/healthz/live` and
+    `/healthz/ready`, with per-check timeouts and a clear rollup to 200 or 503.
+  </Card>
+  <Card title="Fetch, Hono, Express, Next.js" icon="globe">
+    `toFetchResponse` and `createFetchHandler` map onto Fetch APIs. Framework guides cover Express,
+    Fastify, Hono, Elysia, and Next.js App Router.
+  </Card>
+  <Card title="Background scheduling" icon="timer">
+    Run expensive checks on an interval and serve probes from cache so kubelet does not stampede
+    Postgres on every poll.
+  </Card>
+  <Card title="Official adapters" icon="database">
+    Postgres, Redis, Valkey, MySQL, MongoDB, SQLite, Kafka, RabbitMQ, S3, DynamoDB, Elasticsearch,
+    Drizzle, Prisma, HTTP, and more — install only the clients you already use.
+  </Card>
+</CardGroup>
+
+## Install
+
+The package is ESM-only. Published packages declare Node.js 22.12+.
+
+<CodeGroup>
+```bash pnpm
+pnpm add healthzkit
+```
+
+```bash npm
+npm install healthzkit
+```
+
+</CodeGroup>
+
+<Tip>
+  New here? Start with the [introduction](/guide/introduction), then copy a [Hono or Fetch
+  handler](/guide/getting-started).
+</Tip>

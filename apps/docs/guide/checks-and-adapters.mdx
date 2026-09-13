@@ -1,0 +1,63 @@
+---
+title: Checks and adapters
+description: Configure Healthzkit checks and adapters—probe types, per-check timeouts, degraded and fail rollup rules, metadata hooks, and custom HealthAdapter implementations.
+---
+
+## `CheckConfig`
+
+Each check is a `CheckConfig` entry in the `checks` array on the root config:
+
+| Field            | Purpose                                                                                                                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`name`**       | Key in the response `checks` object.                                                                                                                                                   |
+| **`type`**       | One or both of `"liveness"` and `"readiness"`. Only checks that include the probe type run for that probe. If none match, the response is still **200** with an empty `checks` object. |
+| **`adapter`**    | Must implement `HealthAdapter`: `check(): Promise<AdapterResult>`.                                                                                                                     |
+| **`timeout`**    | Per-check timeout in milliseconds. Default **5000**, unless overridden by `defaults.timeout`.                                                                                          |
+| **`schedule`**   | Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](/guide/scheduling)).                     |
+| **`onFail`**     | Optional `httpStatus`, `treatAs` (for example map `"fail"` to `"degraded"` for rollup and body while adjusting HTTP rules).                                                            |
+| **`onDegraded`** | Present on the type; degraded HTTP status for the overall response is controlled via **`defaults.onDegraded`** (see [Responses and HTTP](/guide/responses-and-http)).                  |
+
+## `AdapterResult`
+
+Each `adapter.check()` resolves to:
+
+- **`status`**: `"ok" | "degraded" | "fail"`.
+- **`error`**: Optional `Error` or string (included in the serialized check unless `output.exposeError` is `false`).
+- **`metadata`**: Optional object merged into the check result.
+
+Thrown errors from `adapter.check()` are treated as **`fail`**, with the error message captured when `exposeError` is true.
+
+## Official adapters
+
+This monorepo publishes optional packages that return a `HealthAdapter` for common infrastructure: **queues**, **databases**, **storage**, **search**, and **HTTP endpoints**. For anything else, use a custom `adapter.check()` implementation.
+
+### Queues
+
+- [RabbitMQ](/adapter/rabbitmq) — `@healthzkit/rabbitmq`
+- [Kafka](/adapter/kafka) — `@healthzkit/kafka`
+
+### Databases
+
+- [Redis](/adapter/redis) — `@healthzkit/redis`
+- [Valkey](/adapter/valkey) — `@healthzkit/valkey`
+- [Postgres](/adapter/postgres) — `@healthzkit/postgres`
+- [CockroachDB](/adapter/cockroach) — `@healthzkit/cockroach`
+- [MySQL](/adapter/mysql) — `@healthzkit/mysql`
+- [MongoDB](/adapter/mongo) — `@healthzkit/mongo`
+- [SQLite](/adapter/sqlite) — `@healthzkit/sqlite`
+- [DynamoDB](/adapter/dynamo) — `@healthzkit/dynamo`
+- [Drizzle ORM](/adapter/drizzle) — `@healthzkit/drizzle`
+- [Prisma](/adapter/prisma) — `@healthzkit/prisma`
+
+### Storage
+
+- [S3](/adapter/s3) — `@healthzkit/s3`
+- [MinIO](/adapter/minio) — `@healthzkit/minio`
+
+### Search
+
+- [Elasticsearch](/adapter/elasticsearch) — `@healthzkit/elasticsearch`
+
+### HTTP
+
+- [HTTP endpoints](/adapter/http) — `@healthzkit/http`

@@ -1,0 +1,168 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Healthzkit",
+  "description": "Framework-agnostic liveness and readiness probes for Node.js—parallel checks, rollup status, HTTP mapping, scheduling, and official adapters.",
+  "colors": {
+    "primary": "#18181B",
+    "light": "#E4E4E7",
+    "dark": "#18181B"
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "background": {
+    "decoration": "grid",
+    "color": {
+      "light": "#F4F4F5",
+      "dark": "#09090B"
+    }
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs",
+    "codeblocks": {
+      "theme": {
+        "light": "vitesse-light",
+        "dark": "vitesse-dark"
+      }
+    }
+  },
+  "favicon": {
+    "light": "/favicon-light-100.png",
+    "dark": "/favicon-dark-100.png"
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "/"
+  },
+  "fonts": {
+    "family": "IBM Plex Sans",
+    "weight": 400,
+    "heading": {
+      "family": "IBM Plex Sans",
+      "weight": 600
+    }
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Guide",
+        "icon": "book-open",
+        "pages": [
+          "index",
+          "guide/introduction",
+          "guide/getting-started",
+          "guide/checks-and-adapters",
+          "guide/scheduling",
+          "guide/frameworks",
+          "guide/responses-and-http"
+        ]
+      },
+      {
+        "group": "Adapters",
+        "icon": "plug",
+        "pages": [
+          {
+            "group": "Queues",
+            "pages": ["adapter/rabbitmq", "adapter/kafka"]
+          },
+          {
+            "group": "Databases",
+            "pages": [
+              "adapter/redis",
+              "adapter/valkey",
+              "adapter/postgres",
+              "adapter/cockroach",
+              "adapter/mysql",
+              "adapter/mongo",
+              "adapter/sqlite",
+              "adapter/dynamo",
+              "adapter/drizzle",
+              "adapter/prisma"
+            ]
+          },
+          {
+            "group": "Storage",
+            "pages": ["adapter/s3", "adapter/minio"]
+          },
+          {
+            "group": "Search",
+            "pages": ["adapter/elasticsearch"]
+          },
+          {
+            "group": "HTTP",
+            "pages": ["adapter/http"]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/alasti-company/healthzkit.dev",
+          "icon": "github"
+        },
+        {
+          "anchor": "npm",
+          "href": "https://www.npmjs.com/package/healthzkit",
+          "icon": "npm"
+        }
+      ]
+    }
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "npm",
+        "href": "https://www.npmjs.com/package/healthzkit"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "GitHub",
+      "href": "https://github.com/alasti-company/healthzkit.dev"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/alasti-company/healthzkit.dev",
+      "website": "https://healthzkit.dev"
+    }
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
+  },
+  "search": {
+    "prompt": "Search healthzkit…"
+  },
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "og:site_name": "Healthzkit",
+      "og:type": "website",
+      "og:locale": "en_US",
+      "twitter:card": "summary",
+      "author": "The Alasti Company"
+    },
+    "organization": {
+      "legalName": "The Alasti Company",
+      "url": "https://healthzkit.dev",
+      "sameAs": [
+        "https://github.com/alasti-company/healthzkit.dev",
+        "https://www.npmjs.com/package/healthzkit"
+      ]
+    }
+  },
+  "redirects": [
+    {
+      "source": "/guide",
+      "destination": "/guide/introduction"
+    },
+    {
+      "source": "/quickstart",
+      "destination": "/guide/getting-started"
+    }
+  ]
+}
