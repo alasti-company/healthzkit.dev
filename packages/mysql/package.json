@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/mysql",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "MySQL health-check adapters for healthzkit (mysql and mysql2).",
   "keywords": [
     "health-check",

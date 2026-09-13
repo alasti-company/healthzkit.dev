@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/cockroach",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CockroachDB health-check adapter for healthzkit via the PostgreSQL wire protocol (pg).",
   "keywords": [
     "cockroach",

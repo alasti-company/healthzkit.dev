@@ -1,5 +1,11 @@
 # @healthzkit/shared
 
+## 0.0.2
+
+### Patch Changes
+
+- 3b0c4b0: Add npm `description`, `keywords`, `homepage`, and `bugs` so the adapters show up in search. Published `engines.node` is `>=22.12.0`, matching CI.
+
 ## 0.0.1
 
 ### Patch Changes

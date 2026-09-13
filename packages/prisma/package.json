@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/prisma",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Prisma health-check adapter for healthzkit (PrismaClient $connect / $queryRawUnsafe).",
   "keywords": [
     "health-check",

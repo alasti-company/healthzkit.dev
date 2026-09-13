@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/rabbitmq",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "RabbitMQ health-check adapters for healthzkit (amqplib and amqp-connection-manager).",
   "keywords": [
     "amqp",

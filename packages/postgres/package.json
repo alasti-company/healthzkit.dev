@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/postgres",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Postgres health-check adapters for healthzkit (pg and postgres.js).",
   "keywords": [
     "health-check",

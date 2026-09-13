@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/mongo",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "MongoDB health-check adapters for healthzkit (mongodb driver and mongoose).",
   "keywords": [
     "health-check",
