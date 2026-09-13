@@ -13,16 +13,16 @@ hero:
       text: Get started
       link: /guide/getting-started
     - theme: alt
-      text: Checks & adapters
-      link: /guide/checks-and-adapters
+      text: GitHub
+      link: https://github.com/alasti-company/healthzkit.dev
 
-# features:
-#   - title: Agnostic HTTP layer
-#     details: Map any incoming path and method to JSON or plain-text responses using a small request/response shape that fits Express, Fastify, fetch, and more.
-#   - title: Liveness and readiness
-#     details: Tag checks for liveness, readiness, or both. Only the checks that belong to the current probe run, with per-check timeouts and clear rollup rules.
-#   - title: Optional scheduling
-#     details: Run expensive checks on an interval and serve probes from cache, with ISO timestamps and zero latency for cached hits when timers are active.
-#   - title: Queue and database adapters
-#     details: Optional packages for RabbitMQ, Kafka, Redis, Valkey, Postgres, CockroachDB, MySQL, MongoDB, SQLite, DynamoDB, Drizzle ORM, Prisma, Elasticsearch, HTTP endpoints, S3, and MinIO wire common clients into checks with minimal configuration.
+features:
+  - title: Liveness and readiness
+    details: Tag checks for liveness, readiness, or both. Kubernetes-style /healthz/live and /healthz/ready, with per-check timeouts and clear rollup to 200 or 503.
+  - title: Fetch, Hono, Express, Next.js
+    details: toFetchResponse and createFetchHandler map onto Fetch APIs. Framework guides cover Express, Fastify, Hono, Elysia, and Next.js App Router.
+  - title: Background scheduling
+    details: Run expensive checks on an interval and serve probes from cache so kubelet does not stampede Postgres on every poll.
+  - title: Official adapters
+    details: Postgres, Redis, Valkey, MySQL, MongoDB, SQLite, Kafka, RabbitMQ, S3, DynamoDB, Elasticsearch, Drizzle, Prisma, HTTP, and more — install only the clients you already use.
 ---

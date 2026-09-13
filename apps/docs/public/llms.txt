@@ -1,0 +1,77 @@
+# Healthzkit
+
+> Framework-agnostic Kubernetes liveness and readiness probes for Node.js.
+
+- Docs: https://healthzkit.dev
+- npm: https://www.npmjs.com/package/healthzkit
+- Source: https://github.com/alasti-company/healthzkit.dev
+- License: MIT
+
+## Install
+
+```bash
+npm install healthzkit
+```
+
+Optional adapters: `@healthzkit/postgres`, `@healthzkit/redis`, `@healthzkit/valkey`, `@healthzkit/mongo`, `@healthzkit/mysql`, `@healthzkit/sqlite`, `@healthzkit/dynamo`, `@healthzkit/s3`, `@healthzkit/minio`, `@healthzkit/rabbitmq`, `@healthzkit/kafka`, `@healthzkit/elasticsearch`, `@healthzkit/http`, `@healthzkit/drizzle`, `@healthzkit/prisma`, `@healthzkit/cockroach`.
+
+Runtime: Node.js 18+ (ESM). Development of this repo uses Node.js 22.12+.
+
+## Default routes
+
+- `GET {basePath}/live` — checks tagged `liveness` (default basePath `/healthz`)
+- `GET {basePath}/ready` — checks tagged `readiness`
+- Failed readiness → HTTP 503 by default; degraded → 200; ok → 200
+
+## Minimal Hono example
+
+```ts
+import { Hono } from "hono";
+import { createHealthKit, toFetchResponse } from "healthzkit";
+
+const kit = createHealthKit({
+  checks: [
+    { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
+    {
+      name: "db",
+      type: ["readiness"],
+      adapter: { check: async () => ({ status: "ok" }) },
+      schedule: { intervalMs: 30_000 },
+    },
+  ],
+});
+kit.start();
+
+const app = new Hono();
+app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
+app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+```
+
+## Fetch-API handler
+
+```ts
+import { createFetchHandler, createHealthKit } from "healthzkit";
+
+const handler = createFetchHandler(createHealthKit({ checks: [/* ... */] }));
+// Deno.serve(handler) | Bun.serve({ fetch: handler }) | Cloudflare Workers
+```
+
+`toFetchResponse(res, "HEAD")` omits the body. `createFetchHandler` returns 404 for unknown paths.
+
+## Core API
+
+- `createHealthKit(config)` → `HealthKit`
+- `kit.handleLiveness()` / `kit.handleReadiness()` / `kit.handleRequest({ path, method })`
+- `kit.start()` / `kit.stop()` — background `schedule.intervalMs` cache
+- `toFetchResponse(agnosticResponse, method?)`
+- `createFetchHandler(kit)`
+
+Check adapter: `{ check(): Promise<{ status: "ok" | "degraded" | "fail"; error?: Error | string; metadata?: object }> }`.
+
+## Docs
+
+- Getting started: https://healthzkit.dev/guide/getting-started
+- Frameworks (Hono, Express, Fastify, Elysia, Next.js, Node http): https://healthzkit.dev/guide/frameworks
+- Checks and adapters: https://healthzkit.dev/guide/checks-and-adapters
+- Scheduling: https://healthzkit.dev/guide/scheduling
+- HTTP responses: https://healthzkit.dev/guide/responses-and-http

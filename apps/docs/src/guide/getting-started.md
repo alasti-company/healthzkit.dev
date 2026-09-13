@@ -1,43 +1,75 @@
 ---
 title: Getting started
-description: Follow a minimal Healthzkit example—create a health kit, register liveness and readiness checks, handle probe requests, and map status, headers, and body to your server.
+description: Install healthzkit, copy a Hono or Fetch handler, and point Kubernetes at /healthz/live and /healthz/ready.
 ---
 
 # Getting started
 
-## Minimal example
+```bash
+npm install healthzkit
+```
+
+## Hono (copy-paste)
 
 ```ts
-import { createHealthKit } from "healthzkit";
+import { Hono } from "hono";
+import { createHealthKit, toFetchResponse } from "healthzkit";
 
 const kit = createHealthKit({
   checks: [
-    {
-      name: "db",
-      type: ["readiness"],
-      adapter: {
-        check: async () => {
-          // ping your database, etc.
-          return { status: "ok" };
-        },
-      },
-    },
     {
       name: "process",
       type: ["liveness"],
       adapter: { check: async () => ({ status: "ok" }) },
     },
+    {
+      name: "db",
+      type: ["readiness"],
+      adapter: {
+        check: async () => {
+          // ping your database, or use @healthzkit/postgres, drizzle, prisma, …
+          return { status: "ok" };
+        },
+      },
+    },
   ],
 });
 
-// From your HTTP layer: path + method from the incoming request
+const app = new Hono();
+app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
+app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+
+export default app;
+```
+
+Point a liveness probe at `GET /healthz/live` and a readiness probe at `GET /healthz/ready`.
+
+## Fetch-API servers (Bun, Deno, Workers)
+
+```ts
+import { createFetchHandler, createHealthKit } from "healthzkit";
+
+const kit = createHealthKit({
+  checks: [
+    { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
+  ],
+});
+
+const handler = createFetchHandler(kit);
+```
+
+`createFetchHandler` answers `{basePath}/live` and `{basePath}/ready` (default `/healthz`) and returns 404 for every other path. `HEAD` gets the same status with an empty body.
+
+## `handleRequest`
+
+If you already route HTTP yourself, pass the incoming path:
+
+```ts
 const res = await kit.handleRequest({ path: "/healthz/ready", method: "GET" });
 if (res) {
   // res.status, res.headers, res.body
 }
 ```
-
-If you already route liveness and readiness yourself, call `kit.handleLiveness()` or `kit.handleReadiness()` directly instead of `handleRequest`.
 
 ## Default routes and `basePath`
 
@@ -64,4 +96,4 @@ interface AgnosticResponse {
 }
 ```
 
-Map `status`, `headers`, and `body` onto your framework’s response object (Express `res`, Fastify `reply`, `new Response(body, { status, headers })`, and so on).
+Map `status`, `headers`, and `body` onto your framework’s response object, or call `toFetchResponse(res)` for Hono, Next.js, Bun, and Workers.

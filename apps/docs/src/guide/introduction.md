@@ -19,7 +19,7 @@ Use healthzkit when you want:
 
 ## Install
 
-The package is **ESM-only** (`"type": "module"`). The published entry is `healthzkit` → `./dist/index.mjs`.
+The package is **ESM-only**. Published packages run on **Node.js 18+**. The published entry is `healthzkit` → `./dist/index.mjs`.
 
 ```bash
 pnpm add healthzkit
@@ -29,7 +29,7 @@ npm install healthzkit
 
 ## Next steps
 
-- [Getting started](./getting-started.md) — create a kit, attach checks, handle HTTP.
+- [Getting started](./getting-started.md) — Hono copy-paste, Fetch handler, `handleRequest`.
 - [Checks and adapters](./checks-and-adapters.md) — configuration, timeouts, and failure mapping.
 - [Scheduling](./scheduling.md) — cached results and lifecycle (`start` / `stop`).
 - [Framework guides](./frameworks.md) — Elysia, Express, Hono, Next.js, and Node HTTP wiring patterns.

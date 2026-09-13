@@ -1,52 +1,129 @@
 # healthzkit
 
-Framework-agnostic **liveness** and **readiness** probes for Node.js (and similar runtimes). You define checks as small adapters; **healthzkit** runs them in parallel, rolls up overall status, maps that to HTTP status and a JSON or plain-text body, and optionally **schedules** checks in the background so probes can read cached results instead of hitting dependencies on every request.
+Framework-agnostic **liveness** and **readiness** probes for Node.js. Define checks as small adapters; **healthzkit** runs them in parallel, rolls up overall status, maps that to HTTP status and a JSON or plain-text body, and optionally **schedules** checks in the background so probes can read cached results instead of hitting dependencies on every request.
 
-## Install
+Docs: [healthzkit.dev](https://healthzkit.dev)
 
 ```bash
 npm install healthzkit
 ```
 
-The package is ESM-only (`"type": "module"`). The published entry is `./dist/index.mjs` (see `package.json` `exports`).
+The package is ESM-only. Runtime: Node.js 18+ (and other runtimes with `fetch` / `Response` if you use the Fetch helper).
 
-## Quick start
+## Quick start (Hono)
 
 ```ts
-import { createHealthKit } from "healthzkit";
+import { Hono } from "hono";
+import { createHealthKit, toFetchResponse } from "healthzkit";
+import { pgAdapter } from "@healthzkit/postgres/pg";
 
 const kit = createHealthKit({
   checks: [
-    {
-      name: "db",
-      type: ["readiness"],
-      adapter: {
-        check: async () => {
-          // ping your database, etc.
-          return { status: "ok" };
-        },
-      },
-    },
     {
       name: "process",
       type: ["liveness"],
       adapter: { check: async () => ({ status: "ok" }) },
     },
+    {
+      name: "db",
+      type: ["readiness"],
+      adapter: pgAdapter({ connectionString: process.env.DATABASE_URL! }),
+      schedule: { intervalMs: 30_000 },
+    },
   ],
 });
 
-// Wire into your HTTP server: path + method from the incoming request
+kit.start();
+
+const app = new Hono();
+app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
+app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+
+export default app;
+```
+
+Point Kubernetes (or any orchestrator) at `GET /healthz/live` and `GET /healthz/ready`. A failed readiness check returns **503** by default so the instance is taken out of rotation.
+
+## Fetch, Next.js, Bun, Workers
+
+`createFetchHandler` mounts the default routes on any Fetch-API server:
+
+```ts
+import { createFetchHandler, createHealthKit } from "healthzkit";
+
+const kit = createHealthKit({
+  checks: [
+    { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
+  ],
+});
+
+const handler = createFetchHandler(kit);
+
+Deno.serve(handler); // also: Bun.serve({ fetch: handler })
+```
+
+```ts
+// app/healthz/live/route.ts  (Next.js App Router)
+import { createHealthKit, toFetchResponse } from "healthzkit";
+
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "process",
+      type: ["liveness", "readiness"],
+      adapter: { check: async () => ({ status: "ok" }) },
+    },
+  ],
+});
+
+export const dynamic = "force-dynamic";
+export const GET = async () => toFetchResponse(await kit.handleLiveness());
+export const HEAD = async () => toFetchResponse(await kit.handleLiveness(), "HEAD");
+```
+
+## Express
+
+```ts
+import express from "express";
+import { createHealthKit } from "healthzkit";
+
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "process",
+      type: ["liveness", "readiness"],
+      adapter: { check: async () => ({ status: "ok" }) },
+    },
+  ],
+});
+
+const app = express();
+app.get("/healthz/live", async (_req, res) => {
+  const out = await kit.handleLiveness();
+  res.status(out.status).set(out.headers).send(out.body);
+});
+app.get("/healthz/ready", async (_req, res) => {
+  const out = await kit.handleReadiness();
+  res.status(out.status).set(out.headers).send(out.body);
+});
+```
+
+More frameworks: [healthzkit.dev/guide/frameworks](https://healthzkit.dev/guide/frameworks).
+
+## `handleRequest`
+
+If you already have a router, pass the incoming path:
+
+```ts
 const res = await kit.handleRequest({ path: "/healthz/ready", method: "GET" });
 if (res) {
   // res.status, res.headers, res.body
 }
 ```
 
-Call `kit.handleLiveness()` or `kit.handleReadiness()` directly if you already route those endpoints yourself.
+`handleRequest` returns `null` when the path is not a probe route, so you can try it first and fall through.
 
 ## Routes and `basePath`
-
-By default, **healthzkit** expects:
 
 | Path               | Behavior                                        |
 | ------------------ | ----------------------------------------------- |
@@ -54,8 +131,6 @@ By default, **healthzkit** expects:
 | `{basePath}/ready` | Runs checks whose `type` includes `"readiness"` |
 
 Default `basePath` is `/healthz`. Override with `basePath` in config (e.g. `/api/health` → `/api/health/live`).
-
-`handleRequest(req)` returns `null` if `req.path` does not match either route, so you can try it first and fall through to your app.
 
 ## Checks and adapters
 
@@ -77,9 +152,11 @@ Each check is a `CheckConfig`:
 
 Thrown errors from `adapter.check()` are treated as **`fail`** with the error message captured when `exposeError` is true.
 
+Official adapters (Postgres, Redis, Kafka, S3, Prisma, Drizzle, and more) live in [`@healthzkit/*` packages](https://healthzkit.dev).
+
 ## Scheduling
 
-For expensive checks (database, external APIs), you can run them on a timer and serve probes from cache:
+For expensive checks (database, external APIs), run them on a timer and serve probes from cache:
 
 ```ts
 const kit = createHealthKit({
@@ -144,6 +221,8 @@ Exported from `healthzkit`:
 
 - `createHealthKit(config)` → `HealthKit`
 - `HealthKit`: `start()`, `stop()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`
+- `toFetchResponse(res, method?)` → Fetch `Response` (`HEAD` omits the body)
+- `createFetchHandler(kit)` → `(request: Request) => Promise<Response>`
 
 **Types**
 
