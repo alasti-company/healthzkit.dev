@@ -1,7 +1,27 @@
 {
   "name": "@healthzkit/mysql",
   "version": "0.0.5",
+  "description": "MySQL health-check adapters for healthzkit (mysql and mysql2).",
+  "keywords": [
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "mysql",
+    "mysql2",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/mysql",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -52,5 +72,8 @@
     "mysql2": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

@@ -1,7 +1,27 @@
 {
   "name": "@healthzkit/kafka",
   "version": "0.0.2",
+  "description": "Kafka health-check adapters for healthzkit (kafkajs and node-rdkafka).",
+  "keywords": [
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kafka",
+    "kafkajs",
+    "kubernetes",
+    "liveness",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/kafka",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -51,5 +71,8 @@
     "node-rdkafka": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

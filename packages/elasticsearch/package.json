@@ -1,7 +1,27 @@
 {
   "name": "@healthzkit/elasticsearch",
   "version": "0.0.5",
+  "description": "Elasticsearch cluster-health adapter for healthzkit.",
+  "keywords": [
+    "elasticsearch",
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "opensearch",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/elasticsearch",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -45,5 +65,8 @@
     "@elastic/elasticsearch": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

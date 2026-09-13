@@ -1,7 +1,28 @@
 {
   "name": "@healthzkit/postgres",
   "version": "0.0.5",
+  "description": "Postgres health-check adapters for healthzkit (pg and postgres.js).",
+  "keywords": [
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "pg",
+    "postgres",
+    "postgresql",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/postgres",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -52,5 +73,8 @@
     "postgres": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

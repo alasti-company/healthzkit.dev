@@ -1,7 +1,28 @@
 {
   "name": "@healthzkit/http",
   "version": "0.0.5",
+  "description": "HTTP/HTTPS endpoint health-check adapter for healthzkit using global fetch.",
+  "keywords": [
+    "fetch",
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "http",
+    "https",
+    "kubernetes",
+    "liveness",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/http",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -36,5 +57,8 @@
     "healthzkit": "workspace:*",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

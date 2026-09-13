@@ -1,7 +1,28 @@
 {
   "name": "@healthzkit/mongo",
   "version": "0.0.5",
+  "description": "MongoDB health-check adapters for healthzkit (mongodb driver and mongoose).",
+  "keywords": [
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "mongo",
+    "mongodb",
+    "mongoose",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/mongo",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -51,5 +72,8 @@
     "mongoose": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

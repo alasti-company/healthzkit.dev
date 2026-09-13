@@ -1,7 +1,29 @@
 {
   "name": "@healthzkit/cockroach",
   "version": "0.0.2",
+  "description": "CockroachDB health-check adapter for healthzkit via the PostgreSQL wire protocol (pg).",
+  "keywords": [
+    "cockroach",
+    "cockroachdb",
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "pg",
+    "postgres",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/cockroach",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -46,5 +68,8 @@
     "pg": {
       "optional": false
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

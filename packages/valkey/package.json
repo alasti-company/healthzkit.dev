@@ -1,7 +1,27 @@
 {
   "name": "@healthzkit/valkey",
   "version": "0.0.3",
+  "description": "Valkey health-check adapters for healthzkit (iovalkey and Valkey GLIDE).",
+  "keywords": [
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "probe",
+    "readiness",
+    "redis",
+    "valkey"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/valkey",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -51,5 +71,8 @@
     "iovalkey": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

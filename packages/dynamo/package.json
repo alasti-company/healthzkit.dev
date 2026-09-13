@@ -1,7 +1,27 @@
 {
   "name": "@healthzkit/dynamo",
   "version": "0.0.5",
+  "description": "DynamoDB health-check adapters for healthzkit (AWS SDK v2 and v3).",
+  "keywords": [
+    "aws",
+    "dynamodb",
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/dynamo",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -51,5 +71,8 @@
     "aws-sdk": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
