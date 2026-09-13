@@ -1,6 +1,10 @@
-import { defineConfig } from "vitepress";
+import { cpSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { HeadConfig } from "vitepress";
+import { defineConfig } from "vitepress";
 
+const configDir = dirname(fileURLToPath(import.meta.url));
 const siteUrl = "https://healthzkit.dev";
 const siteDescription =
   "Healthzkit is a framework-agnostic library for Kubernetes-style liveness and readiness probes in Node.js—parallel checks, rollup status, HTTP mapping, and adapters.";
@@ -77,6 +81,10 @@ export default defineConfig({
   titleTemplate: ":title | Healthzkit",
   description: siteDescription,
   srcDir: "./src",
+  buildEnd({ outDir }) {
+    // Vite+ / Rolldown skips VitePress's public-dir copy; ship favicons and llms.txt ourselves.
+    cpSync(resolve(configDir, "../public"), outDir, { recursive: true });
+  },
   markdown: {
     theme: {
       light: "vitesse-light",

@@ -5,12 +5,12 @@ description: Wire Healthzkit into Elysia, Express, Fastify, Hono, Next.js, and N
 
 # Framework guides
 
-Use these examples to wire healthzkit into common runtimes. Each snippet maps `AgnosticResponse` (`status`, `headers`, `body`) to the framework response object.
+Use these examples to wire healthzkit into common runtimes. Fetch-based frameworks can use `toFetchResponse` or `createFetchHandler`; Express and Node `http` map `status`, `headers`, and `body` onto the native response.
 
 ## Bun + Elysia (scheduled Postgres check)
 
 ```ts
-import { createHealthKit } from "healthzkit";
+import { createHealthKit, toFetchResponse } from "healthzkit";
 import { Elysia } from "elysia";
 import { pgAdapter } from "@healthzkit/postgres/pg";
 import { env } from "../env";
@@ -31,18 +31,8 @@ export const kit = createHealthKit({
 kit.start();
 
 const healthRoutes = new Elysia({ prefix: "/healthz", tags: ["Healthzkit"] })
-  .get("/live", async ({ set }) => {
-    const res = await kit.handleLiveness();
-    set.status = res.status;
-    for (const [key, value] of Object.entries(res.headers)) set.headers[key] = value;
-    return res.body;
-  })
-  .get("/ready", async ({ set }) => {
-    const res = await kit.handleReadiness();
-    set.status = res.status;
-    for (const [key, value] of Object.entries(res.headers)) set.headers[key] = value;
-    return res.body;
-  });
+  .get("/live", async () => toFetchResponse(await kit.handleLiveness()))
+  .get("/ready", async () => toFetchResponse(await kit.handleReadiness()));
 
 const app = new Elysia().use(healthRoutes).listen(8000);
 
@@ -93,7 +83,7 @@ process.on("SIGTERM", () => {
 
 ```ts
 import { Hono } from "hono";
-import { createHealthKit } from "healthzkit";
+import { createHealthKit, toFetchResponse } from "healthzkit";
 
 const kit = createHealthKit({
   checks: [
@@ -107,15 +97,8 @@ const kit = createHealthKit({
 
 const app = new Hono();
 
-app.get("/healthz/live", async () => {
-  const out = await kit.handleLiveness();
-  return new Response(out.body, { status: out.status, headers: out.headers });
-});
-
-app.get("/healthz/ready", async () => {
-  const out = await kit.handleReadiness();
-  return new Response(out.body, { status: out.status, headers: out.headers });
-});
+app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
+app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
 
 export default app;
 ```
@@ -125,7 +108,7 @@ export default app;
 For serverless deployments, skip `kit.start()` and run checks on demand. If you run Next.js in a long-lived Node process, you can enable scheduling with `kit.start()` in process bootstrap code and `kit.stop()` on shutdown.
 
 ```ts
-// app/healthz/live/route.ts
+// app/healthz/kit.ts
 import { createHealthKit } from "healthzkit";
 
 export const kit = createHealthKit({
@@ -137,20 +120,37 @@ export const kit = createHealthKit({
     },
   ],
 });
+```
+
+```ts
+// app/healthz/live/route.ts
+import { toFetchResponse } from "healthzkit";
+import { kit } from "../kit";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const out = await kit.handleLiveness();
-  return new Response(out.body, { status: out.status, headers: out.headers });
+  return toFetchResponse(await kit.handleLiveness());
+}
+
+export async function HEAD() {
+  return toFetchResponse(await kit.handleLiveness(), "HEAD");
 }
 ```
 
 ```ts
 // app/healthz/ready/route.ts
-import { kit } from "../live/route";
+import { toFetchResponse } from "healthzkit";
+import { kit } from "../kit";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const out = await kit.handleReadiness();
-  return new Response(out.body, { status: out.status, headers: out.headers });
+  return toFetchResponse(await kit.handleReadiness());
+}
+
+export async function HEAD() {
+  return toFetchResponse(await kit.handleReadiness(), "HEAD");
 }
 ```
 

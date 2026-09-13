@@ -1,7 +1,27 @@
 {
   "name": "@healthzkit/prisma",
   "version": "0.0.5",
+  "description": "Prisma health-check adapter for healthzkit (PrismaClient $connect / $queryRawUnsafe).",
+  "keywords": [
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "orm",
+    "prisma",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/prisma",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -45,5 +65,8 @@
     "@prisma/client": {
       "optional": false
     }
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

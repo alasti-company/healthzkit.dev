@@ -1,7 +1,28 @@
 {
   "name": "@healthzkit/redis",
   "version": "0.0.5",
+  "description": "Redis health-check adapters for healthzkit (ioredis, node-redis, and Upstash).",
+  "keywords": [
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "ioredis",
+    "kubernetes",
+    "liveness",
+    "probe",
+    "readiness",
+    "redis",
+    "upstash"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/redis",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -57,5 +78,8 @@
     "@upstash/redis": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

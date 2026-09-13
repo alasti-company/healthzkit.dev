@@ -1,14 +1,6 @@
-import { createHealthKit } from "healthzkit";
-import type { AgnosticResponse } from "healthzkit";
+import { createFetchHandler, createHealthKit, toFetchResponse } from "healthzkit";
 import type { Context } from "hono";
 import { Hono } from "hono";
-
-function toResponse(res: AgnosticResponse): Response {
-  return new Response(res.body, {
-    status: res.status,
-    headers: res.headers,
-  });
-}
 
 /** On-demand checks on every request; wired with `handleLiveness` / `handleReadiness`. */
 const manualKit = createHealthKit({
@@ -93,17 +85,15 @@ app.get("/", (c) => {
   return c.html(html);
 });
 
-app.get("/healthz/live", async () => toResponse(await manualKit.handleLiveness()));
+app.get("/healthz/live", async () => toFetchResponse(await manualKit.handleLiveness()));
 
-app.get("/healthz/ready", async () => toResponse(await manualKit.handleReadiness()));
+app.get("/healthz/ready", async () => toFetchResponse(await manualKit.handleReadiness()));
+
+const scheduledFetch = createFetchHandler(scheduledKit);
 
 const handleScheduledHealthz = async (c: Context) => {
   ensureScheduledKitStarted();
-  const res = await scheduledKit.handleRequest({
-    path: new URL(c.req.url).pathname,
-    method: c.req.method,
-  });
-  return res ? toResponse(res) : c.notFound();
+  return scheduledFetch(c.req.raw);
 };
 
 app.get("/api/healthz/live", handleScheduledHealthz);

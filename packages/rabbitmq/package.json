@@ -1,7 +1,28 @@
 {
   "name": "@healthzkit/rabbitmq",
   "version": "0.0.5",
+  "description": "RabbitMQ health-check adapters for healthzkit (amqplib and amqp-connection-manager).",
+  "keywords": [
+    "amqp",
+    "amqplib",
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "probe",
+    "rabbitmq",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/rabbitmq",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -52,5 +73,8 @@
     "amqplib": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

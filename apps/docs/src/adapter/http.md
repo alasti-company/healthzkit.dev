@@ -7,7 +7,7 @@ description: Use @healthzkit/http to probe HTTP and HTTPS endpoints with fetchâ€
 
 The **`@healthzkit/http`** package provides a [`HealthAdapter`](/guide/checks-and-adapters) that probes an HTTP or HTTPS endpoint with the global **[`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)** API. Each check records round-trip latency, validates the response status against **`expectedStatusCodes`**, and returns **`ok`** with **`metadata.statusCode`** and **`metadata.latencyMs`** on success. Unexpected status codes, timeouts, and transport errors return **`fail`** with the caught error.
 
-Requires a runtime with **`fetch`** (Node.js 18+). No peer client package.
+Requires a runtime with global **`fetch`**. No peer client package.
 
 ## Install
 

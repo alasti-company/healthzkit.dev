@@ -42,6 +42,12 @@ export class HealthKit {
     return this.runForType("readiness");
   }
 
+  /** True for `{basePath}/live` and `{basePath}/ready`. Does not run checks. */
+  matchHealthPath(path: string): boolean {
+    const basePath = this.config.basePath ?? DEFAULT_BASE_PATH;
+    return path === `${basePath}/live` || path === `${basePath}/ready`;
+  }
+
   async handleRequest(req: AgnosticRequest): Promise<AgnosticResponse | null> {
     const basePath = this.config.basePath ?? DEFAULT_BASE_PATH;
     const { path } = req;

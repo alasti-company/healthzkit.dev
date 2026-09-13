@@ -41,6 +41,8 @@ Response **`status`** (HTTP code) is derived from the rolled-up health status an
 
 - `createHealthKit(config)` → `HealthKit`
 - `HealthKit`: `start()`, `stop()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`
+- `toFetchResponse(res, method?)` → Fetch `Response` (`HEAD` omits the body)
+- `createFetchHandler(kit)` → `(request: Request) => Promise<Response>` for Deno, Bun, and Workers
 
 **Types**
 

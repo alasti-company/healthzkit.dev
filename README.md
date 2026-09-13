@@ -1,14 +1,52 @@
 # healthzkit
 
+[![npm](https://img.shields.io/npm/v/healthzkit.svg)](https://www.npmjs.com/package/healthzkit)
+[![license](https://img.shields.io/npm/l/healthzkit.svg)](LICENSE)
+[![docs](https://img.shields.io/badge/docs-healthzkit.dev-4F46E5.svg)](https://healthzkit.dev)
+
 Framework-agnostic **liveness** and **readiness** probes for Node.js. Define checks as small adapters; healthzkit runs them in parallel, rolls up status, maps to HTTP responses, and can schedule checks in the background so probes read cached results instead of hitting dependencies on every request.
 
 This monorepo publishes the core library and optional adapters for common data stores.
+
+```bash
+npm install healthzkit hono @healthzkit/postgres pg
+```
+
+```ts
+import { Hono } from "hono";
+import { createHealthKit, toFetchResponse } from "healthzkit";
+import { pgAdapter } from "@healthzkit/postgres/pg";
+
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "process",
+      type: ["liveness"],
+      adapter: { check: async () => ({ status: "ok" }) },
+    },
+    {
+      name: "db",
+      type: ["readiness"],
+      adapter: pgAdapter({ connectionString: process.env.DATABASE_URL! }),
+      schedule: { intervalMs: 30_000 },
+    },
+  ],
+});
+
+kit.start();
+
+const app = new Hono();
+app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
+app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+```
+
+`GET /healthz/live` and `GET /healthz/ready` are the Kubernetes-style probes. Failed readiness returns **503** by default. Full API: [`packages/healthzkit/README.md`](./packages/healthzkit/README.md) · site: [healthzkit.dev](https://healthzkit.dev).
 
 ## Packages
 
 | Package                                                 | npm                         | Description                                                                                                                                                                                                   |
 | ------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`healthzkit`](./packages/healthzkit)                   | `healthzkit`                | Core probe runner, routing, scheduling, and HTTP mapping                                                                                                                                                      |
+| [`healthzkit`](./packages/healthzkit)                   | `healthzkit`                | Core probe runner, routing, scheduling, HTTP mapping, and Fetch-API helpers                                                                                                                                   |
 | [`@healthzkit/postgres`](./packages/postgres)           | `@healthzkit/postgres`      | Adapters for [`pg`](https://node-postgres.com/) and [`postgres`](https://github.com/porsager/postgres)                                                                                                        |
 | [`@healthzkit/cockroach`](./packages/cockroach)         | `@healthzkit/cockroach`     | Adapter for CockroachDB via [`pg`](https://node-postgres.com/) — SQL probes over the PostgreSQL wire protocol                                                                                                 |
 | [`@healthzkit/redis`](./packages/redis)                 | `@healthzkit/redis`         | Adapters for [`ioredis`](https://github.com/redis/ioredis), [`redis`](https://github.com/redis/node-redis), and [`@upstash/redis`](https://github.com/upstash/upstash-redis)                                  |
@@ -22,49 +60,15 @@ This monorepo publishes the core library and optional adapters for common data s
 | [`@healthzkit/rabbitmq`](./packages/rabbitmq)           | `@healthzkit/rabbitmq`      | Adapters for [`amqplib`](https://github.com/amqp-node/amqplib) and [`amqp-connection-manager`](https://github.com/jwalton/node-amqp-connection-manager)                                                       |
 | [`@healthzkit/kafka`](./packages/kafka)                 | `@healthzkit/kafka`         | Adapters for [`kafkajs`](https://kafka.js.org/) and [`node-rdkafka`](https://github.com/Blizzard/node-rdkafka) — cluster metadata probes for readiness checks                                                 |
 | [`@healthzkit/elasticsearch`](./packages/elasticsearch) | `@healthzkit/elasticsearch` | Adapter for the official [`@elastic/elasticsearch`](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/index.html) client (`cluster.health`)                                         |
-| [`@healthzkit/http`](./packages/http)                   | `@healthzkit/http`          | Adapter that probes HTTP/HTTPS endpoints via global **`fetch`** — status codes, timeouts, redirects, and optional response metadata (Node.js 18+)                                                             |
+| [`@healthzkit/http`](./packages/http)                   | `@healthzkit/http`          | Adapter that probes HTTP/HTTPS endpoints via global **`fetch`** — status codes, timeouts, redirects, and optional response metadata                                                                           |
 | [`@healthzkit/drizzle`](./packages/drizzle)             | `@healthzkit/drizzle`       | Adapter for [Drizzle ORM](https://orm.drizzle.team/) — health-check an existing `db` instance via `execute` / `run` (peer: `drizzle-orm` only; drivers stay in your app)                                      |
 | [`@healthzkit/prisma`](./packages/prisma)               | `@healthzkit/prisma`        | Adapter for [Prisma](https://www.prisma.io/) — health-check an existing `PrismaClient` via `$connect` and `$queryRawUnsafe` (peer: `@prisma/client`; drivers stay in your app)                                |
 
 See each package README for install instructions, API details, and examples.
 
-## Quick start
-
-```bash
-npm install healthzkit
-```
-
-```ts
-import { createHealthKit } from "healthzkit";
-
-const kit = createHealthKit({
-  checks: [
-    {
-      name: "process",
-      type: ["liveness"],
-      adapter: { check: async () => ({ status: "ok" }) },
-    },
-    {
-      name: "db",
-      type: ["readiness"],
-      adapter: {
-        check: async () => {
-          // ping your database, etc.
-          return { status: "ok" };
-        },
-      },
-    },
-  ],
-});
-
-const res = await kit.handleRequest({ path: "/healthz/ready", method: "GET" });
-```
-
-Full API documentation: [`packages/healthzkit/README.md`](./packages/healthzkit/README.md).
-
 ## Development
 
-Requires [Node.js](https://nodejs.org/) ≥ 22.12 and [pnpm](https://pnpm.io/) (see `packageManager` in `package.json`). Commands use the [Vite+](https://viteplus.dev/) `vp` CLI.
+Requires [Node.js](https://nodejs.org/) ≥ 22.12 and [pnpm](https://pnpm.io/) (see `packageManager` in `package.json`). Commands use the [Vite+](https://viteplus.dev/) `vp` CLI. Published packages declare `engines.node` ≥ 22.12.
 
 Install dependencies:
 

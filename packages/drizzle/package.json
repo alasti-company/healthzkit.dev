@@ -1,7 +1,28 @@
 {
   "name": "@healthzkit/drizzle",
   "version": "0.0.5",
+  "description": "Drizzle ORM health-check adapter for healthzkit (SELECT 1 via execute or run).",
+  "keywords": [
+    "drizzle",
+    "drizzle-orm",
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "kubernetes",
+    "liveness",
+    "orm",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/drizzle",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -46,5 +67,8 @@
     "drizzle-orm": {
       "optional": false
     }
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

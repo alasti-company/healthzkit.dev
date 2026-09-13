@@ -1,7 +1,30 @@
 {
   "name": "healthzkit",
   "version": "0.0.4",
+  "description": "Framework-agnostic Kubernetes liveness and readiness probes for Node.js. Parallel checks, status rollup, HTTP mapping, and optional background scheduling.",
+  "keywords": [
+    "express",
+    "health-check",
+    "healthcheck",
+    "healthz",
+    "healthzkit",
+    "hono",
+    "kubernetes",
+    "liveness",
+    "nextjs",
+    "nodejs",
+    "probe",
+    "readiness"
+  ],
+  "homepage": "https://healthzkit.dev",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev",
@@ -32,5 +55,8 @@
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

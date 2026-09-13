@@ -2,7 +2,7 @@
 
 HTTP health adapters for [healthzkit](https://healthzkit.dev). The adapter sends a request with the global **`fetch`** API, treats configured status codes as success, and returns **`ok`** with round-trip latency and the response status code in metadata.
 
-Requires a runtime with **`fetch`** (Node.js 18+). No extra client dependencies.
+Requires a runtime with global **`fetch`**. No extra client dependencies.
 
 ## Install
 
