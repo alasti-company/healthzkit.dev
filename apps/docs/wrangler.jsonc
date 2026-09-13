@@ -1,5 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Cloudflare Workers Builds (Worker → Settings → Build) must use the
+  // workspace wrangler, not `pnpm dlx wrangler …`. pnpm 12 blocks esbuild and
+  // workerd postinstalls in the isolated dlx store (ERR_PNPM_IGNORED_BUILDS).
+  //   Root directory: apps/docs
+  //   Build command:  pnpm run build
+  //   Deploy command: pnpm run deploy
+  //   Non-production: pnpm run deploy:preview
   "name": "healthzkit-docs",
   "main": "./worker.ts",
   "compatibility_date": "2026-05-14",
