@@ -2,15 +2,7 @@
   "name": "@healthzkit/docs",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
-    "preview": "vitepress preview",
-    "deploy": "wrangler deploy"
-  },
-  "devDependencies": {
-    "vitepress": "catalog:",
-    "wrangler": "catalog:"
+    "dev": "npx --yes mint@4.2.890 dev"
   }
 }

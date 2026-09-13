@@ -1,0 +1,190 @@
+---
+title: Framework guides
+description: Wire Healthzkit into Elysia, Express, Fastify, Hono, Next.js, and Node http—examples that map AgnosticResponse status, headers, and body to each framework response API.
+---
+
+Use these examples to wire healthzkit into common runtimes. Fetch-based frameworks can use `toFetchResponse` or `createFetchHandler`; Express and Node `http` map `status`, `headers`, and `body` onto the native response.
+
+<Tabs>
+  <Tab title="Hono">
+    ```ts
+    import { Hono } from "hono";
+    import { createHealthKit, toFetchResponse } from "healthzkit";
+
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "process",
+          type: ["liveness", "readiness"],
+          adapter: { check: async () => ({ status: "ok" }) },
+        },
+      ],
+    });
+
+    const app = new Hono();
+
+    app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
+    app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+
+    export default app;
+    ```
+
+  </Tab>
+
+  <Tab title="Express">
+    ```ts
+    import express from "express";
+    import { createHealthKit } from "healthzkit";
+
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "process",
+          type: ["liveness", "readiness"],
+          adapter: { check: async () => ({ status: "ok" }) },
+        },
+      ],
+    });
+
+    const app = express();
+
+    app.get("/healthz/live", async (_req, res) => {
+      const out = await kit.handleLiveness();
+      res.status(out.status).set(out.headers).send(out.body);
+    });
+
+    app.get("/healthz/ready", async (_req, res) => {
+      const out = await kit.handleReadiness();
+      res.status(out.status).set(out.headers).send(out.body);
+    });
+
+    const server = app.listen(3000);
+
+    process.on("SIGTERM", () => {
+      kit.stop();
+      server.close();
+    });
+    ```
+
+  </Tab>
+
+  <Tab title="Elysia">
+    Bun + Elysia with a scheduled Postgres check:
+
+    ```ts
+    import { createHealthKit, toFetchResponse } from "healthzkit";
+    import { Elysia } from "elysia";
+    import { pgAdapter } from "@healthzkit/postgres/pg";
+    import { env } from "../env";
+
+    export const kit = createHealthKit({
+      checks: [
+        {
+          name: "database",
+          type: ["readiness"],
+          adapter: pgAdapter({
+            connectionString: env.DATABASE_URL,
+          }),
+          schedule: { intervalMs: 60_000 },
+        },
+      ],
+    });
+
+    kit.start();
+
+    const healthRoutes = new Elysia({ prefix: "/healthz", tags: ["Healthzkit"] })
+      .get("/live", async () => toFetchResponse(await kit.handleLiveness()))
+      .get("/ready", async () => toFetchResponse(await kit.handleReadiness()));
+
+    const app = new Elysia().use(healthRoutes).listen(8000);
+
+    process.on("SIGINT", async () => {
+      kit.stop();
+      await app.stop();
+      process.exit(0);
+    });
+    ```
+
+  </Tab>
+
+  <Tab title="Next.js">
+    For serverless deployments, skip `kit.start()` and run checks on demand. If you run Next.js in a long-lived Node process, you can enable scheduling with `kit.start()` in process bootstrap code and `kit.stop()` on shutdown.
+
+    ```ts app/healthz/kit.ts
+    import { createHealthKit } from "healthzkit";
+
+    export const kit = createHealthKit({
+      checks: [
+        {
+          name: "process",
+          type: ["liveness", "readiness"],
+          adapter: { check: async () => ({ status: "ok" }) },
+        },
+      ],
+    });
+    ```
+
+    ```ts app/healthz/live/route.ts
+    import { toFetchResponse } from "healthzkit";
+    import { kit } from "../kit";
+
+    export const dynamic = "force-dynamic";
+
+    export async function GET() {
+      return toFetchResponse(await kit.handleLiveness());
+    }
+
+    export async function HEAD() {
+      return toFetchResponse(await kit.handleLiveness(), "HEAD");
+    }
+    ```
+
+    ```ts app/healthz/ready/route.ts
+    import { toFetchResponse } from "healthzkit";
+    import { kit } from "../kit";
+
+    export const dynamic = "force-dynamic";
+
+    export async function GET() {
+      return toFetchResponse(await kit.handleReadiness());
+    }
+
+    export async function HEAD() {
+      return toFetchResponse(await kit.handleReadiness(), "HEAD");
+    }
+    ```
+
+  </Tab>
+
+  <Tab title="Node HTTP">
+    ```ts
+    import http from "node:http";
+    import { createHealthKit } from "healthzkit";
+
+    const kit = createHealthKit({
+      checks: [
+        { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
+      ],
+    });
+
+    const server = http.createServer(async (req, res) => {
+      const out = await kit.handleRequest({
+        method: req.method ?? "GET",
+        path: req.url ?? "/",
+      });
+
+      if (!out) {
+        res.statusCode = 404;
+        res.end("not found");
+        return;
+      }
+
+      res.writeHead(out.status, out.headers);
+      res.end(out.body);
+    });
+
+    server.listen(3000);
+    ```
+
+  </Tab>
+</Tabs>

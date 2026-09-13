@@ -1,0 +1,22 @@
+#page-title {
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+#navbar,
+#sidebar {
+  backdrop-filter: blur(10px);
+}
+
+card {
+  border-radius: 12px;
+}
+
+code-block,
+code-group {
+  border-radius: 10px;
+}
+
+callout {
+  border-radius: 10px;
+}
