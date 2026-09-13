@@ -1,5 +1,5 @@
 ---
-"healthzkit": minor
+"healthzkit": patch
 "@healthzkit/shared": patch
 "@healthzkit/postgres": patch
 "@healthzkit/cockroach": patch
@@ -19,4 +19,4 @@
 "@healthzkit/prisma": patch
 ---
 
-Improve npm discoverability (description, keywords, homepage, engines) and add Fetch-API helpers (`toFetchResponse`, `createFetchHandler`) so Hono, Next.js, Bun, and Workers can mount `/healthz/live` and `/healthz/ready` in a few lines.
+Add npm `description`, `keywords`, `homepage`, and `bugs` so the adapters show up in search. Published `engines.node` is `>=22.12.0`, matching CI.

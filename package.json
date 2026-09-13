@@ -2,26 +2,8 @@
   "name": "@healthzkit/root",
   "version": "0.0.1",
   "private": true,
-  "description": "Framework-agnostic Kubernetes liveness and readiness probes for Node.js — core kit plus official database, queue, and storage adapters.",
-  "keywords": [
-    "health-check",
-    "healthcheck",
-    "healthzkit",
-    "kubernetes",
-    "liveness",
-    "monorepo",
-    "probe",
-    "readiness"
-  ],
-  "homepage": "https://healthzkit.dev",
-  "bugs": {
-    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
-  },
+  "description": "Root healthzkit repository",
   "license": "MIT",
-  "author": {
-    "name": "Alasti Company",
-    "url": "https://healthzkit.dev"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/alasti-company/healthzkit.dev"
