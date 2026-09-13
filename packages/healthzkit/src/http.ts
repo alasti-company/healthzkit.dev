@@ -11,10 +11,11 @@ const allowGetHead = { allow: "GET, HEAD" };
 export function createFetchHandler(kit: HealthKit): (request: Request) => Promise<Response> {
   return async (request: Request): Promise<Response> => {
     const method = request.method.toUpperCase();
+    const path = new URL(request.url).pathname;
     if (method !== "GET" && method !== "HEAD") {
+      if (!kit.matchHealthPath(path)) return new Response(null, { status: 404 });
       return new Response(null, { status: 405, headers: allowGetHead });
     }
-    const path = new URL(request.url).pathname;
     const res = await kit.handleRequest({ path, method });
     if (!res) return new Response(null, { status: 404 });
     return toFetchResponse(res, method);

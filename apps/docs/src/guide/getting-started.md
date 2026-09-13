@@ -62,7 +62,7 @@ const kit = createHealthKit({
 const handler = createFetchHandler(kit);
 ```
 
-`createFetchHandler` answers `{basePath}/live` and `{basePath}/ready` (default `/healthz`) on GET and HEAD. Other methods return 405. Unknown paths return 404.
+`createFetchHandler` answers `{basePath}/live` and `{basePath}/ready` (default `/healthz`) on GET and HEAD. Other methods on those routes return 405. Unknown paths return 404.
 
 ## `handleRequest`
 

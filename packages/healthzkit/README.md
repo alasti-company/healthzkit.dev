@@ -62,7 +62,7 @@ const handler = createFetchHandler(kit);
 Deno.serve(handler); // also: Bun.serve({ fetch: handler })
 ```
 
-GET and HEAD are served; other methods return **405** with `Allow: GET, HEAD`. Unknown paths return **404**.
+GET and HEAD are served on the live/ready routes; other methods on those routes return **405** with `Allow: GET, HEAD`. Unknown paths return **404**.
 
 ```ts
 // app/healthz/live/route.ts  (Next.js App Router)

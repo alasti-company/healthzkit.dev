@@ -22,7 +22,7 @@ Runtime: Node.js 22.12+ (ESM), matching CI. The `@healthzkit/http` adapter needs
 
 - `GET` / `HEAD {basePath}/live` — checks tagged `liveness` (default basePath `/healthz`)
 - `GET` / `HEAD {basePath}/ready` — checks tagged `readiness`
-- Other methods on `createFetchHandler` → 405 with `Allow: GET, HEAD`
+- Other methods on `{basePath}/live` or `{basePath}/ready` via `createFetchHandler` → 405 with `Allow: GET, HEAD`
 - Failed readiness → HTTP 503 by default; degraded → 200; ok → 200
 
 ## Minimal Hono example
@@ -58,7 +58,7 @@ const handler = createFetchHandler(createHealthKit({ checks: [/* ... */] }));
 // Deno.serve(handler) | Bun.serve({ fetch: handler }) | Cloudflare Workers
 ```
 
-`toFetchResponse(res, "HEAD")` omits the body. `createFetchHandler` returns 404 for unknown paths and 405 for methods other than GET and HEAD.
+`toFetchResponse(res, "HEAD")` omits the body. `createFetchHandler` returns 404 for unknown paths and 405 for methods other than GET and HEAD on the live/ready routes.
 
 ## Core API
 

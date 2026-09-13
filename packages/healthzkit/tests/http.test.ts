@@ -92,4 +92,27 @@ describe("createFetchHandler", () => {
     expect(await res.text()).toBe("");
     expect(ran).toBe(0);
   });
+
+  test("POST to an unknown path is 404, not 405", async () => {
+    let ran = 0;
+    const guarded = createFetchHandler(
+      createHealthKit({
+        checks: [
+          {
+            name: "process",
+            type: ["liveness"],
+            adapter: {
+              check: async () => {
+                ran += 1;
+                return { status: "ok" };
+              },
+            },
+          },
+        ],
+      }),
+    );
+    const res = await guarded(new Request("http://localhost/nope", { method: "POST" }));
+    expect(res.status).toBe(404);
+    expect(ran).toBe(0);
+  });
 });
