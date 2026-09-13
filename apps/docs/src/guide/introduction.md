@@ -19,7 +19,7 @@ Use healthzkit when you want:
 
 ## Install
 
-The package is **ESM-only**. Published packages run on **Node.js 18+**. The published entry is `healthzkit` → `./dist/index.mjs`.
+The package is **ESM-only**. Published packages declare **Node.js 22.12+**. The published entry is `healthzkit` → `./dist/index.mjs`.
 
 ```bash
 pnpm add healthzkit
@@ -65,4 +65,4 @@ Official adapter packages cover **queues**, **databases**, **storage**, **search
 
 #### HTTP
 
-- [HTTP endpoints](/adapter/http) — `@healthzkit/http` (global `fetch`; Node.js 18+).
+- [HTTP endpoints](/adapter/http) — `@healthzkit/http` (global `fetch`).

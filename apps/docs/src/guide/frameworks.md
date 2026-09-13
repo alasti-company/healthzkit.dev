@@ -108,8 +108,8 @@ export default app;
 For serverless deployments, skip `kit.start()` and run checks on demand. If you run Next.js in a long-lived Node process, you can enable scheduling with `kit.start()` in process bootstrap code and `kit.stop()` on shutdown.
 
 ```ts
-// app/healthz/live/route.ts
-import { createHealthKit, toFetchResponse } from "healthzkit";
+// app/healthz/kit.ts
+import { createHealthKit } from "healthzkit";
 
 export const kit = createHealthKit({
   checks: [
@@ -120,6 +120,12 @@ export const kit = createHealthKit({
     },
   ],
 });
+```
+
+```ts
+// app/healthz/live/route.ts
+import { toFetchResponse } from "healthzkit";
+import { kit } from "../kit";
 
 export const dynamic = "force-dynamic";
 
@@ -135,7 +141,7 @@ export async function HEAD() {
 ```ts
 // app/healthz/ready/route.ts
 import { toFetchResponse } from "healthzkit";
-import { kit } from "../live/route";
+import { kit } from "../kit";
 
 export const dynamic = "force-dynamic";
 

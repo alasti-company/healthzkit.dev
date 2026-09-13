@@ -5,11 +5,11 @@ description: Install healthzkit, copy a Hono or Fetch handler, and point Kuberne
 
 # Getting started
 
-```bash
-npm install healthzkit
-```
-
 ## Hono (copy-paste)
+
+```bash
+npm install healthzkit hono
+```
 
 ```ts
 import { Hono } from "hono";
@@ -46,6 +46,10 @@ Point a liveness probe at `GET /healthz/live` and a readiness probe at `GET /hea
 
 ## Fetch-API servers (Bun, Deno, Workers)
 
+```bash
+npm install healthzkit
+```
+
 ```ts
 import { createFetchHandler, createHealthKit } from "healthzkit";
 
@@ -58,7 +62,7 @@ const kit = createHealthKit({
 const handler = createFetchHandler(kit);
 ```
 
-`createFetchHandler` answers `{basePath}/live` and `{basePath}/ready` (default `/healthz`) and returns 404 for every other path. `HEAD` gets the same status with an empty body.
+`createFetchHandler` answers `{basePath}/live` and `{basePath}/ready` (default `/healthz`) on GET and HEAD. Other methods return 405. Unknown paths return 404.
 
 ## `handleRequest`
 

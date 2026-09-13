@@ -9,7 +9,7 @@ Framework-agnostic **liveness** and **readiness** probes for Node.js. Define che
 This monorepo publishes the core library and optional adapters for common data stores.
 
 ```bash
-npm install healthzkit
+npm install healthzkit hono @healthzkit/postgres pg
 ```
 
 ```ts
@@ -60,7 +60,7 @@ app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness(
 | [`@healthzkit/rabbitmq`](./packages/rabbitmq)           | `@healthzkit/rabbitmq`      | Adapters for [`amqplib`](https://github.com/amqp-node/amqplib) and [`amqp-connection-manager`](https://github.com/jwalton/node-amqp-connection-manager)                                                       |
 | [`@healthzkit/kafka`](./packages/kafka)                 | `@healthzkit/kafka`         | Adapters for [`kafkajs`](https://kafka.js.org/) and [`node-rdkafka`](https://github.com/Blizzard/node-rdkafka) — cluster metadata probes for readiness checks                                                 |
 | [`@healthzkit/elasticsearch`](./packages/elasticsearch) | `@healthzkit/elasticsearch` | Adapter for the official [`@elastic/elasticsearch`](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/index.html) client (`cluster.health`)                                         |
-| [`@healthzkit/http`](./packages/http)                   | `@healthzkit/http`          | Adapter that probes HTTP/HTTPS endpoints via global **`fetch`** — status codes, timeouts, redirects, and optional response metadata (Node.js 18+)                                                             |
+| [`@healthzkit/http`](./packages/http)                   | `@healthzkit/http`          | Adapter that probes HTTP/HTTPS endpoints via global **`fetch`** — status codes, timeouts, redirects, and optional response metadata                                                                           |
 | [`@healthzkit/drizzle`](./packages/drizzle)             | `@healthzkit/drizzle`       | Adapter for [Drizzle ORM](https://orm.drizzle.team/) — health-check an existing `db` instance via `execute` / `run` (peer: `drizzle-orm` only; drivers stay in your app)                                      |
 | [`@healthzkit/prisma`](./packages/prisma)               | `@healthzkit/prisma`        | Adapter for [Prisma](https://www.prisma.io/) — health-check an existing `PrismaClient` via `$connect` and `$queryRawUnsafe` (peer: `@prisma/client`; drivers stay in your app)                                |
 
@@ -68,7 +68,7 @@ See each package README for install instructions, API details, and examples.
 
 ## Development
 
-Requires [Node.js](https://nodejs.org/) ≥ 22.12 and [pnpm](https://pnpm.io/) (see `packageManager` in `package.json`). Commands use the [Vite+](https://viteplus.dev/) `vp` CLI. Published packages declare `engines.node` ≥ 18.
+Requires [Node.js](https://nodejs.org/) ≥ 22.12 and [pnpm](https://pnpm.io/) (see `packageManager` in `package.json`). Commands use the [Vite+](https://viteplus.dev/) `vp` CLI. Published packages declare `engines.node` ≥ 22.12.
 
 Install dependencies:
 

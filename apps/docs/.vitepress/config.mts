@@ -81,9 +81,9 @@ export default defineConfig({
   titleTemplate: ":title | Healthzkit",
   description: siteDescription,
   srcDir: "./src",
-  buildEnd() {
+  buildEnd({ outDir }) {
     // Vite+ / Rolldown skips VitePress's public-dir copy; ship favicons and llms.txt ourselves.
-    cpSync(resolve(configDir, "../public"), resolve(configDir, "dist"), { recursive: true });
+    cpSync(resolve(configDir, "../public"), outDir, { recursive: true });
   },
   markdown: {
     theme: {

@@ -5,10 +5,10 @@ Framework-agnostic **liveness** and **readiness** probes for Node.js. Define che
 Docs: [healthzkit.dev](https://healthzkit.dev)
 
 ```bash
-npm install healthzkit
+npm install healthzkit hono @healthzkit/postgres pg
 ```
 
-The package is ESM-only. Runtime: Node.js 18+ (and other runtimes with `fetch` / `Response` if you use the Fetch helper).
+The package is ESM-only. Runtime: Node.js 22.12+ (CI). Other runtimes with `fetch` / `Response` work for the Fetch helper.
 
 ## Quick start (Hono)
 
@@ -61,6 +61,8 @@ const handler = createFetchHandler(kit);
 
 Deno.serve(handler); // also: Bun.serve({ fetch: handler })
 ```
+
+GET and HEAD are served; other methods return **405** with `Allow: GET, HEAD`. Unknown paths return **404**.
 
 ```ts
 // app/healthz/live/route.ts  (Next.js App Router)
