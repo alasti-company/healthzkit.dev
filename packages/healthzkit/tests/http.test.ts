@@ -67,4 +67,29 @@ describe("createFetchHandler", () => {
     const res = await handler(new Request("http://localhost/healthz/live?source=k8s"));
     expect(res.status).toBe(200);
   });
+
+  test("POST does not run checks and returns 405", async () => {
+    let ran = 0;
+    const guarded = createFetchHandler(
+      createHealthKit({
+        checks: [
+          {
+            name: "process",
+            type: ["liveness"],
+            adapter: {
+              check: async () => {
+                ran += 1;
+                return { status: "ok" };
+              },
+            },
+          },
+        ],
+      }),
+    );
+    const res = await guarded(new Request("http://localhost/healthz/live", { method: "POST" }));
+    expect(res.status).toBe(405);
+    expect(res.headers.get("allow")).toBe("GET, HEAD");
+    expect(await res.text()).toBe("");
+    expect(ran).toBe(0);
+  });
 });
