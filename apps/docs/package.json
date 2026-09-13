@@ -7,8 +7,7 @@
     "dev": "vitepress dev",
     "build": "vitepress build",
     "preview": "vitepress preview",
-    "deploy": "wrangler deploy",
-    "deploy:preview": "wrangler versions upload"
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "vitepress": "catalog:",
