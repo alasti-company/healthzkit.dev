@@ -1,5 +1,13 @@
 # @healthzkit/mongo
 
+## 0.0.6
+
+### Patch Changes
+
+- 3b0c4b0: Add npm `description`, `keywords`, `homepage`, and `bugs` so the adapters show up in search. Published `engines.node` is `>=22.12.0`, matching CI.
+- Updated dependencies [3b0c4b0]
+  - @healthzkit/shared@0.0.2
+
 ## 0.0.5
 
 ### Patch Changes

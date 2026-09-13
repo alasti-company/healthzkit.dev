@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/drizzle",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Drizzle ORM health-check adapter for healthzkit (SELECT 1 via execute or run).",
   "keywords": [
     "drizzle",

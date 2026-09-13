@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/kafka",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Kafka health-check adapters for healthzkit (kafkajs and node-rdkafka).",
   "keywords": [
     "health-check",

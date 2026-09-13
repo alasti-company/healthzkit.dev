@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/dynamo",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "DynamoDB health-check adapters for healthzkit (AWS SDK v2 and v3).",
   "keywords": [
     "aws",
