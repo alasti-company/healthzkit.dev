@@ -20,8 +20,9 @@ export class HealthKit {
   private started = false;
 
   constructor(private config: HealthkitConfig) {
+    this.config = { ...config, checks: config.checks.map((check) => ({ ...check })) };
     const names = new Set<string>();
-    for (const check of config.checks) {
+    for (const check of this.config.checks) {
       if (names.has(check.name)) {
         throw new Error(`Duplicate check name "${check.name}". Check names must be unique.`);
       }

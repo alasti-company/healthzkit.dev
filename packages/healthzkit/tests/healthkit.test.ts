@@ -61,6 +61,48 @@ describe("HealthKit configuration", () => {
       checks: { db: { status: "fail" }, cache: { status: "ok" } },
     });
   });
+
+  describe.each([false, true])("configuration mutations (scheduled: %s)", (scheduled) => {
+    test.each(["append", "rename", "replace entry", "replace list"])(
+      "%s cannot introduce duplicate names after construction",
+      async (mutation) => {
+        const config: HealthkitConfig = {
+          checks: [
+            {
+              name: "db",
+              type: ["readiness"],
+              adapter: { check: async () => ({ status: "fail" }) },
+              ...(scheduled && { schedule: { intervalMs: 60_000 } }),
+            },
+            {
+              name: "cache",
+              type: ["readiness"],
+              adapter: { check: async () => ({ status: "ok" }) },
+              ...(scheduled && { schedule: { intervalMs: 60_000 } }),
+            },
+          ],
+        };
+        const kit = createHealthKit(config);
+        if (scheduled) kit.start();
+        try {
+          const duplicate = { ...config.checks[1], name: "db" };
+          if (mutation === "append") config.checks.push(duplicate);
+          if (mutation === "rename") config.checks[1].name = "db";
+          if (mutation === "replace entry") config.checks[1] = duplicate;
+          if (mutation === "replace list") config.checks = [config.checks[0], duplicate];
+
+          const response = await kit.handleReadiness();
+          expect(response.status).toBe(503);
+          expect(JSON.parse(response.body)).toMatchObject({
+            status: "fail",
+            checks: { db: { status: "fail" }, cache: { status: "ok" } },
+          });
+        } finally {
+          kit.stop();
+        }
+      },
+    );
+  });
 });
 
 describe("HealthKit routing", () => {

@@ -138,7 +138,7 @@ Default `basePath` is `/healthz`. Override with `basePath` in config (e.g. `/api
 
 Each check is a `CheckConfig`:
 
-- **`name`** — Key in the response `checks` object.
+- **`name`** — Key in the response `checks` object. Must be unique across all checks, including different probe types; duplicate names throw during construction. Check names and the checks list are captured at construction, so later changes to the original configuration do not change them.
 - **`type`** — One or both of `"liveness"` and `"readiness"`. Only checks that include the probe type run for that probe. If none match, the response is still **200** with an empty `checks` object.
 - **`adapter`** — Must implement `HealthAdapter`: `check(): Promise<AdapterResult>`.
 - **`timeout`** — Per-check timeout in ms. Default is **5000**, unless overridden by `defaults.timeout`.
