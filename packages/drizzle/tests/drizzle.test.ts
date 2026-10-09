@@ -1,6 +1,10 @@
 import { describe, expect, test, vi } from "vite-plus/test";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
+import { LibSQLDatabase } from "drizzle-orm/libsql/driver-core";
+import { LibSQLSession } from "drizzle-orm/libsql/session";
+import { SQLiteAsyncDialect } from "drizzle-orm/sqlite-core";
 import { drizzleAdapter } from "../src/drizzle.ts";
+import { detectDriver } from "../src/extract.ts";
 
 function mockPgDb() {
   const execute = vi.fn(async () => ({}));
@@ -36,6 +40,18 @@ function mockSqliteAsyncDb() {
     run,
     session: { client, syncRun: {} },
   };
+}
+
+function libsqlDb(execute: (statement: unknown) => Promise<unknown>) {
+  const dialect = new SQLiteAsyncDialect();
+  const session = new LibSQLSession<Record<string, never>, Record<string, never>>(
+    { execute } as never,
+    dialect,
+    undefined,
+    {},
+    undefined,
+  );
+  return new LibSQLDatabase<Record<string, never>>("async", dialect, session, undefined);
 }
 
 describe("drizzleAdapter", () => {
@@ -85,6 +101,32 @@ describe("drizzleAdapter", () => {
 
     expect(result.status).toBe("ok");
     expect(db.run).toHaveBeenCalledWith("SELECT 1");
+  });
+
+  test("libsql: detects SQLite and executes the probe without a driver override", async () => {
+    const execute = vi.fn(async () => ({ rows: [] }));
+    const db = libsqlDb(execute);
+
+    expect(detectDriver(db)).toBe("sqlite");
+
+    const result = await drizzleAdapter({ db }).check();
+
+    expect(execute).toHaveBeenCalledExactlyOnceWith({ sql: "SELECT 1", args: [] });
+    expect(result.status).toBe("ok");
+  });
+
+  test("libsql: reports a failed probe without a driver override", async () => {
+    const error = new Error("database unavailable");
+    const execute = vi.fn(async () => {
+      throw error;
+    });
+    const db = libsqlDb(execute);
+
+    const result = await drizzleAdapter({ db }).check();
+
+    expect(execute).toHaveBeenCalledExactlyOnceWith({ sql: "SELECT 1", args: [] });
+    expect(result.status).toBe("fail");
+    expect(result.error).toMatchObject({ cause: error });
   });
 
   test("sqlite async: executes a real Drizzle lazy query before returning ok", async () => {
