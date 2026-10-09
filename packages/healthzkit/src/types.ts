@@ -13,6 +13,7 @@ export interface HealthAdapter {
 }
 
 export interface CheckConfig {
+  /** Must be unique across all checks in the HealthKit configuration. */
   name: string;
   type: CheckType[];
   adapter: HealthAdapter;
