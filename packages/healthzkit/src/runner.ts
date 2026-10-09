@@ -25,14 +25,14 @@ async function executeCheck(
 
 export async function runChecks(
   checks: CheckConfig[],
-  scheduler: Scheduler,
+  scheduler: Pick<Scheduler, "getCache" | "getPending">,
   defaultTimeout: number = DEFAULT_TIMEOUTMS,
   exposeError: boolean = true,
 ): Promise<Record<string, CheckResult>> {
   const results = await Promise.all(
     checks.map(async (check) => {
       const timeoutMs = check.timeout ?? defaultTimeout;
-      const cached = scheduler.getCache(check.name);
+      const cached = scheduler.getCache(check.name) ?? (await scheduler.getPending(check.name));
 
       let adapterResult: AdapterResult;
       let latency: number;

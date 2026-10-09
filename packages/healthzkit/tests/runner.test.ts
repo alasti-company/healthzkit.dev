@@ -5,10 +5,11 @@ import type { CheckConfig } from "../src/types.ts";
 
 function schedulerWithCache(
   entries: Record<string, { result: import("../src/types.ts").AdapterResult; cachedAt: Date }>,
-): Scheduler {
+): Pick<Scheduler, "getCache" | "getPending"> {
   return {
     getCache: (name: string) => entries[name],
-  } as Scheduler;
+    getPending: () => undefined,
+  };
 }
 
 describe("src/runner.ts", () => {

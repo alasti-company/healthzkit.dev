@@ -93,6 +93,74 @@ describe("scheduled timeouts", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
+  test("immediate concurrent probes share the initial scheduled check", async () => {
+    let resolveCheck!: (result: AdapterResult) => void;
+    const check = vi.fn(
+      () =>
+        new Promise<AdapterResult>((resolve) => {
+          resolveCheck = resolve;
+        }),
+    );
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "db",
+          type: ["readiness", "liveness"],
+          adapter: { check },
+          schedule: { intervalMs: 100 },
+        },
+      ],
+    });
+    kit.start();
+    try {
+      const responses = Promise.all([
+        kit.handleReadiness(),
+        kit.handleReadiness(),
+        kit.handleLiveness(),
+      ]);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(check).toHaveBeenCalledTimes(1);
+      resolveCheck({ status: "ok", metadata: { shared: true } });
+      const results = await responses;
+      for (const response of results) {
+        expect(response.status).toBe(200);
+        expect(JSON.parse(response.body).checks.db).toMatchObject({
+          status: "ok",
+          latency: 0,
+          cachedAt: expect.any(String),
+          metadata: { shared: true },
+        });
+      }
+      expect(check).toHaveBeenCalledTimes(1);
+    } finally {
+      kit.stop();
+    }
+  });
+
+  test("immediate probes share the initial timeout without launching extra checks", async () => {
+    const check = vi.fn<() => Promise<AdapterResult>>(() => new Promise(() => {}));
+    const kit = createHealthKit({
+      defaults: { timeout: 25 },
+      checks: [
+        { name: "db", type: ["readiness"], adapter: { check }, schedule: { intervalMs: 10 } },
+      ],
+    });
+    kit.start();
+    try {
+      const responses = Promise.all([kit.handleReadiness(), kit.handleReadiness()]);
+      await vi.advanceTimersByTimeAsync(25);
+      for (const response of await responses) {
+        expect(response.status).toBe(503);
+        expect(JSON.parse(response.body).checks.db.error).toContain("timed out after 25ms");
+      }
+      await vi.advanceTimersByTimeAsync(100);
+      expect((await kit.handleReadiness()).status).toBe(503);
+      expect(check).toHaveBeenCalledTimes(1);
+    } finally {
+      kit.stop();
+    }
+  });
+
   test("hung refresh fails readiness without accumulating checks and recovers after settling", async () => {
     let resolveRefresh!: (result: AdapterResult) => void;
     const check = vi

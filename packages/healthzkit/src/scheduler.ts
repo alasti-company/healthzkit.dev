@@ -10,6 +10,7 @@ export class Scheduler {
   private timers = new Map<string, ReturnType<typeof setInterval>>();
   private cache = new Map<string, CachedResult>();
   private inFlight = new Map<string, symbol>();
+  private pending = new Map<string, Promise<CachedResult>>();
   private generation = 0;
 
   start(checks: CheckConfig[], defaultTimeout: number = DEFAULT_TIMEOUTMS): void {
@@ -17,10 +18,10 @@ export class Scheduler {
       if (!check.schedule) continue;
       if (this.timers.has(check.name)) continue;
 
-      void this.runAndCache(check, check.timeout ?? defaultTimeout);
+      this.runAndCache(check, check.timeout ?? defaultTimeout);
 
       const timer = setInterval(
-        () => void this.runAndCache(check, check.timeout ?? defaultTimeout),
+        () => this.runAndCache(check, check.timeout ?? defaultTimeout),
         check.schedule.intervalMs,
       );
 
@@ -38,41 +39,59 @@ export class Scheduler {
     this.timers.clear();
     this.cache.clear();
     this.generation++;
+    for (const name of this.pending.keys()) {
+      if (!this.inFlight.has(name)) this.pending.delete(name);
+    }
   }
 
   getCache(name: string): CachedResult | undefined {
     return this.cache.get(name);
   }
 
-  private async runAndCache(check: CheckConfig, timeoutMs: number): Promise<void> {
-    if (this.inFlight.has(check.name)) return;
+  getPending(name: string): Promise<CachedResult> | undefined {
+    return this.timers.has(name) ? this.pending.get(name) : undefined;
+  }
 
+  private runAndCache(check: CheckConfig, timeoutMs: number): void {
+    if (this.inFlight.has(check.name)) return;
+    this.pending.set(check.name, this.executeAndCache(check, timeoutMs));
+  }
+
+  private async executeAndCache(check: CheckConfig, timeoutMs: number): Promise<CachedResult> {
     const run = Symbol();
     const generation = this.generation;
     this.inFlight.set(check.name, run);
     const release = () => {
-      if (this.inFlight.get(check.name) === run) this.inFlight.delete(check.name);
+      if (this.inFlight.get(check.name) === run) {
+        this.inFlight.delete(check.name);
+        if (!this.timers.has(check.name)) this.pending.delete(check.name);
+      }
     };
 
+    let result: AdapterResult;
     try {
       // Keep the check in flight until the adapter settles, even after a timeout.
       const pending = Promise.resolve()
         .then(() => check.adapter.check())
         .finally(release);
-      const result = await withTimeout(pending, timeoutMs, check.name);
-      if (generation === this.generation) {
-        this.cache.set(check.name, { result, cachedAt: new Date() });
-      }
+      result = await withTimeout(pending, timeoutMs, check.name);
     } catch (error) {
-      if (generation === this.generation) {
-        this.cache.set(check.name, {
-          result: {
-            status: "fail",
-            error: error instanceof Error ? error : new Error(String(error)),
-          },
-          cachedAt: new Date(),
-        });
-      }
+      result = {
+        status: "fail",
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
     }
+    if (generation !== this.generation) {
+      return {
+        result: {
+          status: "fail",
+          error: new Error(`Check "${check.name}" scheduled run was stopped`),
+        },
+        cachedAt: new Date(),
+      };
+    }
+    const cached = { result, cachedAt: new Date() };
+    this.cache.set(check.name, cached);
+    return cached;
   }
 }
