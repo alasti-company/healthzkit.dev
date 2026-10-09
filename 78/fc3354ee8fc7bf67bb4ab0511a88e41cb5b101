@@ -1,0 +1,35 @@
+packages/redis/tests/ioredis.test.ts
+  s_07f6cce18e640f::t_970c7278747266 16-20,23-26
+.changeset/fix-custom-command-arguments.md
+  s_07f6cce18e640f::t_970c7278747266 1-6
+apps/docs/adapter/valkey.mdx
+  s_07f6cce18e640f::t_970c7278747266 52
+packages/redis/src/ioredis.ts
+  s_07f6cce18e640f::t_970c7278747266 51-52
+apps/docs/adapter/redis.mdx
+  s_07f6cce18e640f::t_970c7278747266 53
+packages/valkey/src/iovalkey.ts
+  s_07f6cce18e640f::t_970c7278747266 56-57
+packages/redis/README.md
+  s_07f6cce18e640f::t_970c7278747266 67-68
+packages/valkey/tests/iovalkey.test.ts
+  s_07f6cce18e640f::t_970c7278747266 37-41,44-45,47-48
+packages/valkey/README.md
+  s_07f6cce18e640f::t_970c7278747266 65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "78fc3354ee8fc7bf67bb4ab0511a88e41cb5b101",
+  "prompts": {},
+  "sessions": {
+    "s_07f6cce18e640f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12314-0c48-7db3-b4d9-928d3e27914f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
