@@ -1,0 +1,23 @@
+packages/healthzkit/src/healthkit.ts
+  s_0753cf6208f203::t_48bdc520780290 23,25
+packages/healthzkit/tests/healthkit.test.ts
+  s_0753cf6208f203::t_48bdc520780290 64-105
+packages/healthzkit/README.md
+  s_0753cf6208f203::t_48bdc520780290 141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c0a9bfdb2eab0430301bd7be0cf2c6558f52cb58",
+  "prompts": {},
+  "sessions": {
+    "s_0753cf6208f203": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a122f6-7c0e-7b01-b750-69aab4dc82e4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
