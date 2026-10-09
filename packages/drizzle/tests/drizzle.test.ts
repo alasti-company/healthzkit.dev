@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vite-plus/test";
+import { drizzle } from "drizzle-orm/sqlite-proxy";
 import { drizzleAdapter } from "../src/drizzle.ts";
 
 function mockPgDb() {
@@ -70,7 +71,7 @@ describe("drizzleAdapter", () => {
     expect(db.execute).toHaveBeenCalledWith("SELECT 1");
   });
 
-  test("sqlite sync: runs query via run without awaiting", async () => {
+  test("sqlite sync: runs query via run and returns ok", async () => {
     const db = mockSqliteSyncDb();
     const result = await drizzleAdapter({ db: db as never }).check();
 
@@ -84,6 +85,31 @@ describe("drizzleAdapter", () => {
 
     expect(result.status).toBe("ok");
     expect(db.run).toHaveBeenCalledWith("SELECT 1");
+  });
+
+  test("sqlite async: executes a real Drizzle lazy query before returning ok", async () => {
+    const execute = vi.fn(async () => ({ rows: [] }));
+    const db = drizzle(execute);
+
+    const result = await drizzleAdapter({ db, driver: "sqlite" }).check();
+
+    expect(execute).toHaveBeenCalledExactlyOnceWith("SELECT 1", [], "run");
+    expect(result.status).toBe("ok");
+  });
+
+  test("sqlite async: reports a rejected lazy query", async () => {
+    const error = new Error("database unavailable");
+    const execute = vi.fn(async () => {
+      throw error;
+    });
+    const db = drizzle(execute);
+
+    const result = await drizzleAdapter({ db, driver: "sqlite" }).check();
+
+    expect(execute).toHaveBeenCalledExactlyOnceWith("SELECT 1", [], "run");
+    expect(result.status).toBe("fail");
+    expect(result.error).toBeInstanceOf(Error);
+    expect(result.error).toMatchObject({ cause: error });
   });
 
   test("unknown driver: returns fail without running a probe", async () => {
