@@ -1,0 +1,24 @@
+.changeset/fix-async-sqlite-checks.md
+  s_5444f62afe6f5c::t_c5c05b50dc778e 1-5
+packages/drizzle/src/drizzle.ts
+  s_5444f62afe6f5c::t_32b7b605bf179d 27
+packages/drizzle/tests/drizzle.test.ts
+  s_5444f62afe6f5c::t_c5758c16e875de 100,107,112
+  s_5444f62afe6f5c::t_39ef3e8ac5995d 2,74,90-99,101-106,108-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9544fddc3ed117ccb74522fae4e2534815b455bf",
+  "prompts": {},
+  "sessions": {
+    "s_5444f62afe6f5c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1225c-e3b0-7cb1-b53b-d3d147e231db",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
