@@ -38,10 +38,22 @@ export function pgAdapter(options: PgAdapterOptions): HealthAdapter {
       return { client: poolClient, release: () => poolClient.release() };
     }
 
-    const pool = options.client as Pool;
+    const suppliedClient = options.client;
 
-    if ("connect" in pool && typeof pool.connect === "function") {
-      const poolClient: PoolClient = await pool.connect();
+    // Pool-specific properties avoid class identity checks across pg installations.
+    // Direct clients also expose connect(), so that method alone cannot identify a pool.
+    if (
+      suppliedClient &&
+      !("release" in suppliedClient) &&
+      "totalCount" in suppliedClient &&
+      typeof suppliedClient.totalCount === "number" &&
+      "idleCount" in suppliedClient &&
+      typeof suppliedClient.idleCount === "number" &&
+      "waitingCount" in suppliedClient &&
+      typeof suppliedClient.waitingCount === "number" &&
+      typeof suppliedClient.connect === "function"
+    ) {
+      const poolClient: PoolClient = await suppliedClient.connect();
       return { client: poolClient, release: () => poolClient.release() };
     }
 
