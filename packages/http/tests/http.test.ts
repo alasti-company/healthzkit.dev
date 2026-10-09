@@ -1,3 +1,4 @@
+import { createServer } from "node:http";
 import { afterEach, describe, expect, test, vi } from "vite-plus/test";
 import { httpAdapter } from "../src/http.ts";
 
@@ -167,4 +168,115 @@ describe("httpAdapter", () => {
       latencyMs: expect.any(Number),
     });
   });
+
+  test.each(["success", "unexpected status", "sync metadata error", "async metadata error"])(
+    "cancels an unused body after %s",
+    async (scenario) => {
+      const cancel = vi.fn();
+      const response = new Response(new ReadableStream({ cancel }), {
+        status: scenario === "unexpected status" ? 503 : 200,
+      });
+      stubFetch(async () => response);
+      const error = new Error("Metadata failed");
+      const result = await httpAdapter({
+        url: "https://api.example/health",
+        metadata: () => {
+          expect(cancel).not.toHaveBeenCalled();
+          if (scenario === "sync metadata error") throw error;
+          if (scenario === "async metadata error") return Promise.reject(error);
+          return { server: "nginx" };
+        },
+      }).check();
+
+      expect(cancel).toHaveBeenCalledOnce();
+      expect(result.status).toBe(scenario === "success" ? "ok" : "fail");
+      if (scenario.includes("metadata error")) expect(result.error).toBe(error);
+      if (scenario === "success") expect(result.metadata?.server).toBe("nginx");
+    },
+  );
+
+  test("allows metadata to consume the body before cleanup", async () => {
+    const response = new Response('{"region":"us-east-1"}');
+    stubFetch(async () => response);
+
+    const result = await httpAdapter({
+      url: "https://api.example/health",
+      metadata: async (res) => ({ payload: await res.json() }),
+    }).check();
+
+    expect(result.status).toBe("ok");
+    expect(result.metadata?.payload).toEqual({ region: "us-east-1" });
+    expect(response.bodyUsed).toBe(true);
+  });
+
+  test("handles a response without a body", async () => {
+    stubFetch(async () => new Response(null, { status: 204 }));
+    const result = await httpAdapter({ url: "https://api.example/health" }).check();
+
+    expect(result.status).toBe("ok");
+  });
+
+  test.each([200, 503])(
+    "preserves the check result when body cancellation rejects (%s)",
+    async (status) => {
+      stubFetch(
+        async () =>
+          new Response(
+            new ReadableStream({
+              cancel: () => Promise.reject(new Error("Cleanup failed")),
+            }),
+            { status },
+          ),
+      );
+
+      const result = await httpAdapter({ url: "https://api.example/health" }).check();
+
+      expect(result.status).toBe(status === 200 ? "ok" : "fail");
+      if (status === 503)
+        expect((result.error as Error).message).toContain("Unexpected status code: 503");
+    },
+  );
+
+  test.each(["success", "unexpected status", "metadata error", "locked body", "locked body error"])(
+    "closes a streaming HTTP response after %s",
+    async (scenario) => {
+      let responseClosed = false;
+      const server = createServer((_req, res) => {
+        res.on("close", () => {
+          responseClosed = true;
+        });
+        res.writeHead(scenario === "unexpected status" ? 503 : 200);
+        res.write("stream remains open");
+      });
+      await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+
+      try {
+        const address = server.address();
+        if (!address || typeof address === "string") throw new Error("Missing server port");
+        const result = await httpAdapter({
+          url: `http://127.0.0.1:${address.port}`,
+          timeout: 5000,
+          metadata: async (res) => {
+            if (scenario.startsWith("locked body")) {
+              // Leave a reader locked after reading only part of the stream.
+              await res.body!.getReader().read();
+            }
+            if (scenario.endsWith("error")) throw new Error("Metadata failed");
+            return {};
+          },
+        }).check();
+
+        expect(result.status).toBe(
+          scenario === "unexpected status" || scenario.endsWith("error") ? "fail" : "ok",
+        );
+        // Cleanup should close the response promptly, without waiting for the timeout.
+        await vi.waitFor(() => expect(responseClosed).toBe(true), { timeout: 1000, interval: 10 });
+      } finally {
+        server.closeAllConnections();
+        await new Promise<void>((resolve, reject) =>
+          server.close((error) => (error ? reject(error) : resolve())),
+        );
+      }
+    },
+  );
 });
