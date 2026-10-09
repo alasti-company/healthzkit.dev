@@ -47,11 +47,12 @@ export function httpAdapter(options: HttpAdapterOptions): HealthAdapter {
     async check(): Promise<AdapterResult> {
       const abortController = new AbortController();
       const timer = setTimeout(() => abortController.abort(), timeout);
+      let response: Response | undefined;
 
       try {
         const start = Date.now();
 
-        const response = await fetch(options.url, {
+        response = await fetch(options.url, {
           method: options.method ?? "GET",
           headers: options.headers,
           body: options.body,
@@ -80,6 +81,15 @@ export function httpAdapter(options: HttpAdapterOptions): HealthAdapter {
         return buildErrorResult(error);
       } finally {
         clearTimeout(timer);
+        // Abort also releases bodies still locked by a metadata reader.
+        abortController.abort();
+        try {
+          if (response?.body && !response.body.locked) {
+            await response.body.cancel();
+          }
+        } catch {
+          // Cleanup must not replace the check result or its original error.
+        }
       }
     },
   };
