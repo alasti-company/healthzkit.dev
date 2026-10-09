@@ -24,10 +24,7 @@ async function runHealthQuery(
       return;
     }
     case "sqlite": {
-      const result: unknown = (db as BaseSQLiteDatabase<never, never>).run(query);
-      if (result instanceof Promise) {
-        await result;
-      }
+      await (db as BaseSQLiteDatabase<"sync" | "async", unknown>).run(query);
       return;
     }
     default: {
