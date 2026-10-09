@@ -1,10 +1,65 @@
 import { describe, expect, test } from "vite-plus/test";
 import { createHealthKit, HealthKit } from "../src/healthkit.ts";
+import type { HealthkitConfig } from "../src/types.ts";
 
 describe("createHealthKit", () => {
   test("returns a HealthKit instance", () => {
     const kit = createHealthKit({ checks: [] });
     expect(kit).toBeInstanceOf(HealthKit);
+  });
+});
+
+describe("HealthKit configuration", () => {
+  const constructors = [
+    { name: "createHealthKit", create: createHealthKit },
+    { name: "new HealthKit", create: (config: HealthkitConfig) => new HealthKit(config) },
+  ];
+
+  test.each(constructors)("$name rejects duplicate readiness check names", ({ create }) => {
+    expect(() =>
+      create({
+        checks: [
+          { name: "db", type: ["readiness"], adapter: { check: async () => ({ status: "fail" }) } },
+          { name: "db", type: ["readiness"], adapter: { check: async () => ({ status: "ok" }) } },
+        ],
+      }),
+    ).toThrow('Duplicate check name "db". Check names must be unique.');
+  });
+
+  test("rejects duplicate names across probe types for scheduled checks", () => {
+    expect(() =>
+      createHealthKit({
+        checks: [
+          {
+            name: "db",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "fail" }) },
+            schedule: { intervalMs: 100 },
+          },
+          {
+            name: "db",
+            type: ["liveness"],
+            adapter: { check: async () => ({ status: "ok" }) },
+            schedule: { intervalMs: 100 },
+          },
+        ],
+      }),
+    ).toThrow('Duplicate check name "db". Check names must be unique.');
+  });
+
+  test("distinct names preserve both results and the failing status", async () => {
+    const kit = createHealthKit({
+      checks: [
+        { name: "db", type: ["readiness"], adapter: { check: async () => ({ status: "fail" }) } },
+        { name: "cache", type: ["readiness"], adapter: { check: async () => ({ status: "ok" }) } },
+      ],
+    });
+    const response = await kit.handleReadiness();
+    expect(response.status).toBe(503);
+    expect(JSON.parse(response.body)).toMatchObject({
+      status: "fail",
+      checks: { db: { status: "fail" }, cache: { status: "ok" } },
+    });
   });
 });
 
