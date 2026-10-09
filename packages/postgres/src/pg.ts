@@ -24,9 +24,9 @@ export function pgAdapter(options: PgAdapterOptions): HealthAdapter {
     client: ClientBase;
     release: () => void;
   }> {
-    if ("connectionString" in options && options.connectionString) {
-      const { Pool } = await import("pg");
+    const { Pool } = await import("pg");
 
+    if ("connectionString" in options && options.connectionString) {
       if (!internalPool) {
         internalPool = new Pool({
           connectionString: options.connectionString,
@@ -38,10 +38,8 @@ export function pgAdapter(options: PgAdapterOptions): HealthAdapter {
       return { client: poolClient, release: () => poolClient.release() };
     }
 
-    const pool = options.client as Pool;
-
-    if ("connect" in pool && typeof pool.connect === "function") {
-      const poolClient: PoolClient = await pool.connect();
+    if (options.client instanceof Pool) {
+      const poolClient: PoolClient = await options.client.connect();
       return { client: poolClient, release: () => poolClient.release() };
     }
 
