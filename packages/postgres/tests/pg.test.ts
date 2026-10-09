@@ -68,41 +68,47 @@ describe("src/pg.ts", () => {
     expect(inner.release).toHaveBeenCalledOnce();
   });
 
-  test.each(["direct client", "supplied pool client"])(
-    "runs repeated checks on a connected %s without connecting or releasing it",
-    async (kind) => {
-      const release = vi.fn();
-      const client =
-        kind === "supplied pool client" ? Object.assign(new Client(), { release }) : new Client();
-      const connect = vi
-        .spyOn(client, "connect")
-        .mockRejectedValue(
-          new Error("Client has already been connected. You cannot reuse a client."),
-        );
-      const query = vi
-        .spyOn(client, "query")
-        .mockImplementation(vi.fn().mockResolvedValue({ rows: [] }));
-      const end = vi.spyOn(client, "end");
-      const metadata = vi.fn(async (resolvedClient: ClientBase) => {
-        expect(resolvedClient).toBe(client);
-        return { role: "replica" };
-      });
-      const adapter = pgAdapter({ client, metadata });
+  test.each([
+    "direct client",
+    "supplied pool client",
+    "direct client with totalCount",
+    "supplied pool client with pool counters",
+  ])("runs repeated checks on a connected %s without connecting or releasing it", async (kind) => {
+    const release = vi.fn();
+    const client = new Client();
+    if (kind.includes("pool client")) Object.assign(client, { release });
+    if (kind.includes("totalCount")) Object.assign(client, { totalCount: 0 });
+    if (kind.includes("pool counters")) {
+      Object.assign(client, { totalCount: 0, idleCount: 0, waitingCount: 0 });
+    }
+    const connect = vi
+      .spyOn(client, "connect")
+      .mockRejectedValue(
+        new Error("Client has already been connected. You cannot reuse a client."),
+      );
+    const query = vi
+      .spyOn(client, "query")
+      .mockImplementation(vi.fn().mockResolvedValue({ rows: [] }));
+    const end = vi.spyOn(client, "end");
+    const metadata = vi.fn(async (resolvedClient: ClientBase) => {
+      expect(resolvedClient).toBe(client);
+      return { role: "replica" };
+    });
+    const adapter = pgAdapter({ client, metadata });
 
-      for (let i = 0; i < 2; i++) {
-        const result = await adapter.check();
-        expect(result.status).toBe("ok");
-        expect(result.metadata).toMatchObject({ role: "replica" });
-      }
+    for (let i = 0; i < 2; i++) {
+      const result = await adapter.check();
+      expect(result.status).toBe("ok");
+      expect(result.metadata).toMatchObject({ role: "replica" });
+    }
 
-      expect(query).toHaveBeenCalledTimes(2);
-      expect(query).toHaveBeenCalledWith("SELECT 1");
-      expect(metadata).toHaveBeenCalledTimes(2);
-      expect(connect).not.toHaveBeenCalled();
-      expect(release).not.toHaveBeenCalled();
-      expect(end).not.toHaveBeenCalled();
-    },
-  );
+    expect(query).toHaveBeenCalledTimes(2);
+    expect(query).toHaveBeenCalledWith("SELECT 1");
+    expect(metadata).toHaveBeenCalledTimes(2);
+    expect(connect).not.toHaveBeenCalled();
+    expect(release).not.toHaveBeenCalled();
+    expect(end).not.toHaveBeenCalled();
+  });
 
   test.each(["query", "metadata"])(
     "releases acquired pool clients when %s fails",
