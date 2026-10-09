@@ -34,13 +34,18 @@ describe("src/iovalkey.ts", () => {
     expect(result.metadata?.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
-  test("uses custom command string", async () => {
+  test.each([
+    ["PING", ["PING"]],
+    ["ECHO hello", ["ECHO", "hello"]],
+    ["EXISTS first second", ["EXISTS", "first", "second"]],
+  ])("passes custom command %s as separate command and arguments", async (command, argv) => {
     const call = vi.fn().mockResolvedValue(undefined);
     const client = { call } as unknown as Redis;
-    const adapter = iovalkeyAdapter({ client, command: "ECHO x" });
-    await adapter.check();
+    const adapter = iovalkeyAdapter({ client, command });
+    const result = await adapter.check();
 
-    expect(call).toHaveBeenCalledWith("ECHO x");
+    expect(result.status).toBe("ok");
+    expect(call).toHaveBeenCalledExactlyOnceWith(...argv);
   });
 
   test("returns fail when call rejects", async () => {

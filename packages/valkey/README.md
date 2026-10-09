@@ -62,7 +62,7 @@ iovalkeyAdapter({ connectionString: "redis://localhost:6379" });
 iovalkeyAdapter({ client: new Redis(process.env.VALKEY_URL!) });
 ```
 
-The command string is passed to iovalkey **`client.call(...)`** as a single string (for example `"PING"` or `"ECHO x"`).
+The `command` string is split on spaces and passed to iovalkey **`client.call(command, ...args)`** (default `call("PING")`; custom example `"ECHO hello"` → `call("ECHO", "hello")`). Quoted arguments are not parsed.
 
 ### Valkey GLIDE
 

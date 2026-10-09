@@ -64,6 +64,8 @@ ioredisAdapter({ connectionString: "redis://localhost:6379" });
 ioredisAdapter({ client: new Redis(process.env.REDIS_URL!) });
 ```
 
+The `command` string is split on spaces and passed to ioredis **`client.call(command, ...args)`** (default `call("PING")`; custom example `"ECHO hello"` → `call("ECHO", "hello")`). Quoted arguments are not parsed.
+
 ### node-redis
 
 ```ts

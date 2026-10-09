@@ -48,7 +48,8 @@ export function ioredisAdapter(options: IoRedisAdapterOptions): HealthAdapter {
         const client = await getClient();
         const start = Date.now();
 
-        await client.call(options.command ?? DEFAULT_COMMAND);
+        const [command, ...args] = (options.command ?? DEFAULT_COMMAND).split(" ");
+        await client.call(command, ...args);
         const latencyMs = Date.now() - start;
 
         const metadataResult = options.metadata
