@@ -25,7 +25,7 @@ export class HealthKit {
 
   start(): void {
     if (this.started) return;
-    this.scheduler.start(this.config.checks);
+    this.scheduler.start(this.config.checks, this.config.defaults?.timeout);
     this.started = true;
   }
 

@@ -33,6 +33,8 @@ kit.stop();
 - **`stop()`** clears intervals and the cache.
 - When a cached result is used, that check’s **`latency`** is **0** and **`cachedAt`** is an ISO timestamp on the check result.
 
-Scheduled runs call **`adapter.check()`** directly (there is no per-request timeout wrapper in the scheduler). Timeouts still apply when there is **no** cache entry and the probe runs the check on demand.
+Scheduled runs use the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A timeout replaces the cached result with a failure. Refreshes do not overlap: if an adapter remains pending after its timeout, later intervals skip it until it settles. A late result cannot overwrite the timeout failure.
+
+A cached result becomes a failure when its age reaches **`intervalMs + timeout`**. This allows one interval plus the refresh timeout before a result becomes stale. Failures follow your configured `onFail` behavior. If there is no cached result, probes run the check on demand with the same timeout.
 
 Timers use `unref` when available so they do not keep the process alive by themselves.
