@@ -5,10 +5,11 @@ import type { CheckConfig } from "../src/types.ts";
 
 function schedulerWithCache(
   entries: Record<string, { result: import("../src/types.ts").AdapterResult; cachedAt: Date }>,
-): Scheduler {
+): Pick<Scheduler, "getCache" | "getPending"> {
   return {
     getCache: (name: string) => entries[name],
-  } as Scheduler;
+    getPending: () => undefined,
+  };
 }
 
 describe("src/runner.ts", () => {
@@ -109,5 +110,55 @@ describe("src/runner.ts", () => {
     const out = await runChecks(checks, scheduler, 60_000);
     expect(out.slow.status).toBe("fail");
     expect(out.slow.error).toMatch(/timed out/);
+  });
+});
+
+describe("scheduled cache freshness", () => {
+  test.each([undefined, 20])("fails at interval plus effective timeout (%s)", async (timeout) => {
+    const cachedAt = new Date(Date.now() - 100 - (timeout ?? 50));
+    const check = () => {
+      throw new Error("stale cache must not trigger an on-demand check");
+    };
+    const scheduler = schedulerWithCache({
+      db: { result: { status: "ok", metadata: { old: true } }, cachedAt },
+    });
+    const checks: CheckConfig[] = [
+      {
+        name: "db",
+        type: ["readiness"],
+        adapter: { check },
+        schedule: { intervalMs: 100 },
+        timeout,
+      },
+    ];
+    const out = await runChecks(checks, scheduler, 50);
+    expect(out.db.status).toBe("fail");
+    expect(out.db.error).toContain("cached result is stale");
+    expect(out.db.metadata).toBeUndefined();
+    expect(out.db.cachedAt).toBe(cachedAt.toISOString());
+    expect(out.db.latency).toBe(0);
+    checks[0].onFail = { treatAs: "degraded" };
+    const hidden = await runChecks(checks, scheduler, 50, false);
+    expect(hidden.db.status).toBe("degraded");
+    expect(hidden.db.error).toBeUndefined();
+  });
+
+  test("uses a scheduled result while it is still fresh", async () => {
+    const scheduler = schedulerWithCache({
+      db: { result: { status: "ok" }, cachedAt: new Date() },
+    });
+    const out = await runChecks(
+      [
+        {
+          name: "db",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "fail" }) },
+          schedule: { intervalMs: 100 },
+        },
+      ],
+      scheduler,
+      50,
+    );
+    expect(out.db.status).toBe("ok");
   });
 });

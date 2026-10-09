@@ -1,21 +1,6 @@
 import type { Scheduler } from "./scheduler.ts";
+import { DEFAULT_TIMEOUTMS, withTimeout } from "./timeout.ts";
 import type { AdapterResult, CheckConfig, CheckResult } from "./types.ts";
-
-const DEFAULT_TIMEOUTMS = 5_000;
-
-async function withTimeout<T>(promise: Promise<T>, ms: number, name: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout>;
-
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`Check "${name}" timed out after ${ms}ms`)), ms);
-  });
-
-  try {
-    return await Promise.race([promise, timeout]);
-  } finally {
-    clearTimeout(timer!);
-  }
-}
 
 async function executeCheck(
   check: CheckConfig,
@@ -40,21 +25,30 @@ async function executeCheck(
 
 export async function runChecks(
   checks: CheckConfig[],
-  scheduler: Scheduler,
+  scheduler: Pick<Scheduler, "getCache" | "getPending">,
   defaultTimeout: number = DEFAULT_TIMEOUTMS,
   exposeError: boolean = true,
 ): Promise<Record<string, CheckResult>> {
   const results = await Promise.all(
     checks.map(async (check) => {
       const timeoutMs = check.timeout ?? defaultTimeout;
-      const cached = scheduler.getCache(check.name);
+      const cached = scheduler.getCache(check.name) ?? (await scheduler.getPending(check.name));
 
       let adapterResult: AdapterResult;
       let latency: number;
       let cachedAt: string | undefined;
 
       if (cached) {
-        adapterResult = cached.result;
+        const maxAgeMs = check.schedule ? check.schedule.intervalMs + timeoutMs : undefined;
+        adapterResult =
+          maxAgeMs !== undefined && Date.now() - cached.cachedAt.getTime() >= maxAgeMs
+            ? {
+                status: "fail",
+                error: new Error(
+                  `Check "${check.name}" cached result is stale after ${maxAgeMs}ms`,
+                ),
+              }
+            : cached.result;
         latency = 0;
         cachedAt = cached.cachedAt.toISOString();
       } else {
