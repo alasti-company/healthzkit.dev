@@ -55,6 +55,17 @@ describe("detectDriver", () => {
     expect(detectDriver(db)).toBe("sqlite");
   });
 
+  test.each(["run", "syncRun"])(
+    'returns "sqlite" when session has %s and client exposes execute()',
+    (method) => {
+      const db = {
+        session: { client: { execute: vi.fn() }, [method]: vi.fn() },
+      } as never;
+
+      expect(detectDriver(db)).toBe("sqlite");
+    },
+  );
+
   test('returns "sqlite" when client exposes prepare()', () => {
     const db = {
       session: { client: { prepare: vi.fn() } },

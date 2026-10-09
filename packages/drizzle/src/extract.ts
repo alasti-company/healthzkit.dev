@@ -37,6 +37,11 @@ export function detectDriver(db: DrizzleInstance): "pg" | "mysql" | "sqlite" | "
 
   if (!session) return "unknown";
 
+  // SQLite sessions expose run(), even when their client also exposes execute() (libSQL).
+  if ("syncRun" in session || "run" in session) {
+    return "sqlite";
+  }
+
   if (
     "execute" in session ||
     (session.client && typeof (session.client as { execute?: unknown }).execute === "function")
@@ -51,11 +56,7 @@ export function detectDriver(db: DrizzleInstance): "pg" | "mysql" | "sqlite" | "
     return "pg";
   }
 
-  if (
-    "syncRun" in session ||
-    "run" in session ||
-    (session.client && typeof (session.client as { prepare?: unknown }).prepare === "function")
-  ) {
+  if (session.client && typeof (session.client as { prepare?: unknown }).prepare === "function") {
     return "sqlite";
   }
 
