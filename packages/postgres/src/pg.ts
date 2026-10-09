@@ -24,9 +24,9 @@ export function pgAdapter(options: PgAdapterOptions): HealthAdapter {
     client: ClientBase;
     release: () => void;
   }> {
-    const { Pool } = await import("pg");
-
     if ("connectionString" in options && options.connectionString) {
+      const { Pool } = await import("pg");
+
       if (!internalPool) {
         internalPool = new Pool({
           connectionString: options.connectionString,
@@ -38,8 +38,17 @@ export function pgAdapter(options: PgAdapterOptions): HealthAdapter {
       return { client: poolClient, release: () => poolClient.release() };
     }
 
-    if (options.client instanceof Pool) {
-      const poolClient: PoolClient = await options.client.connect();
+    const suppliedClient = options.client;
+
+    // Pool-specific properties avoid class identity checks across pg installations.
+    // Direct clients also expose connect(), so that method alone cannot identify a pool.
+    if (
+      suppliedClient &&
+      "totalCount" in suppliedClient &&
+      typeof suppliedClient.totalCount === "number" &&
+      typeof suppliedClient.connect === "function"
+    ) {
+      const poolClient: PoolClient = await suppliedClient.connect();
       return { client: poolClient, release: () => poolClient.release() };
     }
 

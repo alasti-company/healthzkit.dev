@@ -36,6 +36,38 @@ describe("src/pg.ts", () => {
     expect(inner.release).toHaveBeenCalledOnce();
   });
 
+  test("acquires and releases clients from pools without matching the local Pool class", async () => {
+    const inner = {
+      query: vi.fn().mockResolvedValue({ rows: [] }),
+      release: vi.fn(),
+    };
+    class OtherPool {
+      totalCount = 0;
+      idleCount = 0;
+      waitingCount = 0;
+      connect = vi.fn().mockResolvedValue(inner);
+      query = vi.fn().mockResolvedValue({ rows: [] });
+    }
+    const pool = new OtherPool();
+    const metadata = vi.fn(async (client: ClientBase) => {
+      expect(client).toBe(inner);
+      expect(inner.release).not.toHaveBeenCalled();
+      return { role: "replica" };
+    });
+    const adapter = pgAdapter({ client: pool as unknown as Pool, metadata });
+
+    expect(pool).not.toBeInstanceOf(Pool);
+    const result = await adapter.check();
+
+    expect(result.status).toBe("ok");
+    expect(result.metadata).toMatchObject({ role: "replica" });
+    expect(pool.connect).toHaveBeenCalledOnce();
+    expect(pool.query).not.toHaveBeenCalled();
+    expect(inner.query).toHaveBeenCalledWith("SELECT 1");
+    expect(metadata).toHaveBeenCalledOnce();
+    expect(inner.release).toHaveBeenCalledOnce();
+  });
+
   test.each(["direct client", "supplied pool client"])(
     "runs repeated checks on a connected %s without connecting or releasing it",
     async (kind) => {
