@@ -61,6 +61,31 @@ describe("src/iovalkey.ts", () => {
     expect(call).not.toHaveBeenCalled();
   });
 
+  test.each(["", "   ", "\t\n"])(
+    "does not create a client for empty command %j",
+    async (command) => {
+      const Redis = vi.fn(function Redis() {
+        return { call: vi.fn().mockResolvedValue("PONG") };
+      });
+      vi.doMock("iovalkey", () => ({ Redis }));
+
+      try {
+        const { iovalkeyAdapter: adapterFactory } = await import("../src/iovalkey.ts");
+        const result = await adapterFactory({
+          connectionString: "redis://localhost:6379",
+          command,
+        }).check();
+
+        expect(result.status).toBe("fail");
+        expect((result.error as Error).message).toBe("iovalkeyAdapter: command must not be empty");
+        expect(Redis).not.toHaveBeenCalled();
+      } finally {
+        vi.doUnmock("iovalkey");
+        vi.resetModules();
+      }
+    },
+  );
+
   test("returns fail when call rejects", async () => {
     const call = vi.fn().mockRejectedValue(new Error("LOADING"));
     const client = { call } as unknown as Redis;

@@ -39,6 +39,31 @@ describe("src/ioredis.ts", () => {
     expect(call).not.toHaveBeenCalled();
   });
 
+  test.each(["", "   ", "\t\n"])(
+    "does not create a client for empty command %j",
+    async (command) => {
+      const Redis = vi.fn(function Redis() {
+        return { call: vi.fn().mockResolvedValue("PONG") };
+      });
+      vi.doMock("ioredis", () => ({ Redis }));
+
+      try {
+        const { ioredisAdapter: adapterFactory } = await import("../src/ioredis.ts");
+        const result = await adapterFactory({
+          connectionString: "redis://localhost:6379",
+          command,
+        }).check();
+
+        expect(result.status).toBe("fail");
+        expect((result.error as Error).message).toBe("ioredisAdapter: command must not be empty");
+        expect(Redis).not.toHaveBeenCalled();
+      } finally {
+        vi.doUnmock("ioredis");
+        vi.resetModules();
+      }
+    },
+  );
+
   test("returns fail when call rejects", async () => {
     const call = vi.fn().mockRejectedValue(new Error("LOADING"));
     const client = { call } as unknown as Redis;

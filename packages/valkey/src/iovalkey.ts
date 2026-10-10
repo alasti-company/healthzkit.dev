@@ -50,13 +50,14 @@ export function iovalkeyAdapter(options: IoValkeyAdapterOptions): HealthAdapter 
   return {
     async check(): Promise<AdapterResult> {
       try {
-        const client = await getClient();
-        const start = Date.now();
-
         const [command, ...args] = (options.command ?? DEFAULT_COMMAND).trim().split(/\s+/);
         if (!command) {
           throw new Error("iovalkeyAdapter: command must not be empty");
         }
+
+        const client = await getClient();
+        const start = Date.now();
+
         await client.call(command, ...args);
         const latencyMs = Date.now() - start;
 
