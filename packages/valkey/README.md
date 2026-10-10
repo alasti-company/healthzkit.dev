@@ -62,7 +62,7 @@ iovalkeyAdapter({ connectionString: "redis://localhost:6379" });
 iovalkeyAdapter({ client: new Redis(process.env.VALKEY_URL!) });
 ```
 
-The `command` string is split on spaces and passed to iovalkey **`client.call(command, ...args)`** (default `call("PING")`; custom example `"ECHO hello"` → `call("ECHO", "hello")`). Quoted arguments are not parsed.
+The `command` string is trimmed, split on whitespace, and passed to iovalkey **`client.call(command, ...args)`** (default `call("PING")`; custom example `"ECHO hello"` → `call("ECHO", "hello")`). Repeated whitespace is ignored. Empty commands fail the check. Quoted arguments are not parsed.
 
 ### Valkey GLIDE
 

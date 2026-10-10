@@ -48,7 +48,10 @@ export function ioredisAdapter(options: IoRedisAdapterOptions): HealthAdapter {
         const client = await getClient();
         const start = Date.now();
 
-        const [command, ...args] = (options.command ?? DEFAULT_COMMAND).split(" ");
+        const [command, ...args] = (options.command ?? DEFAULT_COMMAND).trim().split(/\s+/);
+        if (!command) {
+          throw new Error("ioredisAdapter: command must not be empty");
+        }
         await client.call(command, ...args);
         const latencyMs = Date.now() - start;
 

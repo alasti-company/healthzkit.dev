@@ -17,6 +17,9 @@ describe("src/ioredis.ts", () => {
     ["PING", ["PING"]],
     ["ECHO hello", ["ECHO", "hello"]],
     ["EXISTS first second", ["EXISTS", "first", "second"]],
+    [" PING ", ["PING"]],
+    ["  ECHO  hello  ", ["ECHO", "hello"]],
+    ["\tEXISTS\tfirst\nsecond\n", ["EXISTS", "first", "second"]],
   ])("passes custom command %s as separate command and arguments", async (command, argv) => {
     const call = vi.fn().mockResolvedValue(undefined);
     const client = { call } as unknown as Redis;
@@ -24,6 +27,16 @@ describe("src/ioredis.ts", () => {
     const result = await adapter.check();
     expect(result.status).toBe("ok");
     expect(call).toHaveBeenCalledExactlyOnceWith(...argv);
+  });
+
+  test.each(["", "   ", "\t\n"])("rejects an empty command %j", async (command) => {
+    const call = vi.fn().mockResolvedValue(undefined);
+    const client = { call } as unknown as Redis;
+    const result = await ioredisAdapter({ client, command }).check();
+
+    expect(result.status).toBe("fail");
+    expect((result.error as Error).message).toBe("ioredisAdapter: command must not be empty");
+    expect(call).not.toHaveBeenCalled();
   });
 
   test("returns fail when call rejects", async () => {
