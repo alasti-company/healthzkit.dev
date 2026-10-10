@@ -1,5 +1,12 @@
 # @healthzkit/postgres
 
+## 0.0.7
+
+### Patch Changes
+
+- e02463f: Run health checks directly on supplied pg clients without reconnecting or releasing them. Acquire and release connections only when using a pool.
+- @healthzkit/shared@0.0.2
+
 ## 0.0.6
 
 ### Patch Changes

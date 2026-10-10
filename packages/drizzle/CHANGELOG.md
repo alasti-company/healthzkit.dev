@@ -1,5 +1,13 @@
 # @healthzkit/drizzle
 
+## 0.0.7
+
+### Patch Changes
+
+- 9554fe3: Await lazy async SQLite queries so health checks execute the SQL probe and report query failures.
+- 96ddd89: Detect SQLite sessions before inspecting client methods so libSQL health checks work without a driver override.
+- @healthzkit/shared@0.0.2
+
 ## 0.0.6
 
 ### Patch Changes

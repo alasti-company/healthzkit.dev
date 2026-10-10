@@ -1,5 +1,12 @@
 # healthzkit
 
+## 0.1.1
+
+### Patch Changes
+
+- 2d6259d: Reject duplicate check names when creating a HealthKit instance so one check cannot hide another check's failure or share its scheduled cache.
+- 4beef32: Apply timeouts to scheduled checks, prevent overlapping refreshes, and report stale cached results as failures instead of serving healthy results indefinitely.
+
 ## 0.1.0
 
 ### Minor Changes
