@@ -1,5 +1,12 @@
 # @healthzkit/http
 
+## 0.0.7
+
+### Patch Changes
+
+- 8d595c0: Release HTTP response bodies after metadata handling, including unexpected status codes and metadata errors, so streaming responses do not leave connections open after checks complete.
+- @healthzkit/shared@0.0.2
+
 ## 0.0.6
 
 ### Patch Changes

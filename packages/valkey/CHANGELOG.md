@@ -1,5 +1,12 @@
 # @healthzkit/valkey
 
+## 0.0.5
+
+### Patch Changes
+
+- 05b241b: Split ioredis and iovalkey custom commands into command names and arguments so commands such as `ECHO hello` run successfully. Ignore surrounding and repeated whitespace, and reject empty commands.
+- @healthzkit/shared@0.0.2
+
 ## 0.0.4
 
 ### Patch Changes

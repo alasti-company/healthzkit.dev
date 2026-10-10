@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/valkey",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Valkey health-check adapters for healthzkit (iovalkey and Valkey GLIDE).",
   "keywords": [
     "health-check",
