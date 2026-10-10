@@ -50,7 +50,7 @@ const kit = createHealthKit({
 });
 ```
 
-The command string is passed to ioredis **`client.call(...)`** as a single string (for example `"PING"` or `"ECHO x"`).
+The `command` string is trimmed, split on whitespace, and passed to ioredis **`client.call(command, ...args)`** (default `call("PING")`; custom example `"ECHO hello"` → `call("ECHO", "hello")`). Repeated whitespace is ignored. Empty commands fail the check. Quoted arguments are not parsed.
 
 ## `nodeRedisAdapter` (node-redis)
 
