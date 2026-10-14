@@ -1,0 +1,46 @@
+packages/memcached/README.md
+  s_3746861d7cf577::t_0f27aa63842d97 1-36,40-105
+packages/memcached/src/index.ts
+  s_3746861d7cf577::t_a49f96d6ee5284 1-12
+pnpm-lock.yaml
+  ai_agent 369-405,2085-2090,2742-2744,3049-3051,3143-3145,3287-3293,3675-3677,3759-3761,5264-5271,5788-5789,6000-6004,6097-6100,6206-6212,6676-6677,6810
+.changeset/tidy-memcached-adapters.md
+  s_3746861d7cf577::t_b6bc4e70f9dd89 1-5
+packages/memcached/tests/adapters.test.ts
+  s_3746861d7cf577::t_3da9dde2880fb9 1-194
+packages/memcached/vite.config.ts
+  s_3746861d7cf577::t_b22a17766f1807 1-26
+README.md
+  s_3746861d7cf577::t_b6bc4e70f9dd89 54
+packages/memcached/tests/protocol.test.ts
+  s_3746861d7cf577::t_8e9d2865e6b01c 1-82
+packages/memcached/package.json
+  s_3746861d7cf577::t_b22a17766f1807 1-53,56-61,64-80
+  s_3746861d7cf577::t_70110f214b214d 54-55,62-63
+packages/memcached/tsconfig.json
+  s_3746861d7cf577::t_b22a17766f1807 1-20
+packages/memcached/src/memcached.ts
+  s_3746861d7cf577::t_a49f96d6ee5284 1-48,52-66,68-88
+  s_3746861d7cf577::t_70110f214b214d 49-51
+  s_3746861d7cf577::t_3da9dde2880fb9 67
+packages/memcached/src/memjs.ts
+  s_3746861d7cf577::t_70110f214b214d 29
+  s_3746861d7cf577::t_3da9dde2880fb9 1,25,56
+  s_3746861d7cf577::t_a49f96d6ee5284 2-24,26-28,30-55,57-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "10ab4c13c916a1a8d87e3b0642cb82d7c5f4c986",
+  "prompts": {},
+  "sessions": {
+    "s_3746861d7cf577": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13c9a-bd69-7920-8637-7ab8d8df1d2e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
