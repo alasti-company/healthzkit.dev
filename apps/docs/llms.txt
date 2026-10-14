@@ -14,7 +14,7 @@ npm install healthzkit
 # Hono example also needs: npm install hono
 ```
 
-Optional adapters: `@healthzkit/postgres`, `@healthzkit/redis`, `@healthzkit/valkey`, `@healthzkit/mongo`, `@healthzkit/mysql`, `@healthzkit/sqlite`, `@healthzkit/dynamo`, `@healthzkit/s3`, `@healthzkit/minio`, `@healthzkit/rabbitmq`, `@healthzkit/kafka`, `@healthzkit/elasticsearch`, `@healthzkit/http`, `@healthzkit/drizzle`, `@healthzkit/prisma`, `@healthzkit/cockroach`.
+Optional adapters: `@healthzkit/postgres`, `@healthzkit/redis`, `@healthzkit/valkey`, `@healthzkit/memcached`, `@healthzkit/mongo`, `@healthzkit/mysql`, `@healthzkit/sqlite`, `@healthzkit/dynamo`, `@healthzkit/s3`, `@healthzkit/minio`, `@healthzkit/rabbitmq`, `@healthzkit/kafka`, `@healthzkit/elasticsearch`, `@healthzkit/http`, `@healthzkit/drizzle`, `@healthzkit/prisma`, `@healthzkit/cockroach`.
 
 Runtime: Node.js 22.12+ (ESM), matching CI. The `@healthzkit/http` adapter needs a runtime with `fetch`.
 
