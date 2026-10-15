@@ -1,0 +1,146 @@
+---
+title: Memcached adapter
+description: Check Memcached readiness with memcached or memjs clients, read-only commands, lazy connections, latency metadata, and optional metadata hooks.
+---
+
+The `@healthzkit/memcached` package provides [`HealthAdapter`](/guide/checks-and-adapters) implementations for the `memcached` and `memjs` clients. Each adapter runs a read-only check and returns `ok` with `metadata.latencyMs`, or `fail` with the caught error.
+
+## Install
+
+Install the adapter and the client you use:
+
+```bash
+pnpm add healthzkit @healthzkit/memcached
+# Choose one client:
+pnpm add memcached
+# or:
+pnpm add memjs
+```
+
+Both clients are optional peers. For TypeScript, also install `@types/memcached` or `@types/memjs` for your chosen client. The package requires Node.js 22.12+ and uses ESM.
+
+## Basic readiness check
+
+```ts
+import { createHealthKit } from "healthzkit";
+import { memcachedAdapter } from "@healthzkit/memcached/memcached";
+
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "memcached",
+      type: ["readiness"],
+      adapter: memcachedAdapter({
+        servers: "localhost:11211",
+        options: { timeout: 1000 },
+      }),
+    },
+  ],
+});
+```
+
+## Client imports
+
+Use a subpath import for your chosen client. Both factories and their option types are also exported from `@healthzkit/memcached`.
+
+| Client                                             | Import                            | Factory            | Read-only check                              |
+| -------------------------------------------------- | --------------------------------- | ------------------ | -------------------------------------------- |
+| [memcached](https://github.com/3rd-Eden/memcached) | `@healthzkit/memcached/memcached` | `memcachedAdapter` | `VERSION` across the client's server list    |
+| [memjs](https://github.com/memcachier/memjs)       | `@healthzkit/memcached/memjs`     | `memjsAdapter`     | `GET` on the server selected for a check key |
+
+## `memcachedAdapter`
+
+**Peer:** `memcached` >= 2.2.2.
+
+Supply either `servers` with optional client `options`, or an existing `client`:
+
+```ts
+import Memcached from "memcached";
+import { memcachedAdapter } from "@healthzkit/memcached/memcached";
+
+const adapter = memcachedAdapter({
+  servers: ["localhost:11211", "localhost:11212"],
+  options: { timeout: 1000, retries: 1 },
+});
+
+const client = new Memcached("localhost:11211");
+const sharedAdapter = memcachedAdapter({ client });
+```
+
+| Option     | Description                                                                                                             |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `servers`  | Non-empty `host:port` string, array of locations, or object mapping locations to weights.                               |
+| `options`  | Options forwarded to the client constructor. The adapter defaults to `retries: 1`. Client `timeout` is in milliseconds. |
+| `client`   | Existing `Memcached` instance. Mutually exclusive with `servers` and `options`.                                         |
+| `metadata` | Optional synchronous or asynchronous metadata hook receiving the resolved client.                                       |
+
+The adapter runs `VERSION` and fails on any reported server error or an empty version response. The client uses the ASCII protocol and does not support SASL authentication.
+
+## `memjsAdapter`
+
+**Peer:** `memjs` >= 1.3.2.
+
+```ts
+import { Client } from "memjs";
+import { memjsAdapter } from "@healthzkit/memcached/memjs";
+
+const adapter = memjsAdapter({
+  servers: "localhost:11211,localhost:11212",
+  options: {
+    username: "user",
+    password: "password",
+    timeout: 0.5,
+  },
+  key: "healthzkit:healthcheck",
+});
+
+const client = Client.create("localhost:11211");
+const sharedAdapter = memjsAdapter({ client });
+```
+
+| Option     | Description                                                                                                                                     |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `servers`  | Non-empty comma-separated servers in memjs format: `[user:pass@]host[:port]`.                                                                   |
+| `options`  | Client and server options, including SASL credentials. The adapter defaults to `retries: 1`. Client `timeout` and `conntimeout` are in seconds. |
+| `client`   | Existing memjs `Client`. Mutually exclusive with `servers` and `options`.                                                                       |
+| `key`      | Key to read. Defaults to `healthzkit:healthcheck`. Must be 1–250 UTF-8 bytes without whitespace or NUL.                                         |
+| `metadata` | Optional synchronous or asynchronous metadata hook receiving the resolved client.                                                               |
+
+A cache miss is healthy because the server responded successfully. The adapter does not write or delete data, and you do not need to create the key first.
+
+The check covers the server selected for that key. It does not verify every cluster member. Your client's failover settings also affect which server responds.
+
+## Metadata
+
+Both adapters measure command latency before running the optional metadata hook:
+
+```ts
+import { memcachedAdapter } from "@healthzkit/memcached/memcached";
+
+const adapter = memcachedAdapter({
+  servers: "localhost:11211",
+  metadata: () => ({ region: "us-west" }),
+});
+```
+
+A successful result includes:
+
+```json
+{
+  "status": "ok",
+  "metadata": {
+    "region": "us-west",
+    "latencyMs": 12
+  }
+}
+```
+
+Measured `latencyMs` takes precedence over a field with the same name from your hook. A hook error fails the check.
+
+## Client lifecycle and scheduling
+
+When you supply `servers`, the adapter creates the client on its first check and reuses it across later and concurrent checks. It keeps connections open between checks.
+
+For explicit shutdown control, supply your own client. Call `client.end()` for memcached or `client.close()` for memjs when your application stops. The adapter does not close supplied clients.
+
+Use [Scheduling](/guide/scheduling) to cache readiness results and avoid querying Memcached on every HTTP request.
