@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/memcached",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Memcached health-check adapters for healthzkit (memcached and memjs).",
   "keywords": [
     "health-check",
