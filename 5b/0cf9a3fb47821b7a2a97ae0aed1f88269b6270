@@ -1,0 +1,46 @@
+README.md
+  s_9bafbcfb86cab4::t_e878fcf15ee9f7 70-73
+apps/example-node/README.md
+  s_9bafbcfb86cab4::t_19eaaf5ed8ae3a 1-64
+apps/example-node/tests/app.test.ts
+  s_9bafbcfb86cab4::t_d517b569be47b2 1-97
+apps/example-node/src/index.ts
+  s_9bafbcfb86cab4::t_9d1a353a76ab02 1-44
+apps/example-node/package.json
+  s_9bafbcfb86cab4::t_3e731c9ae7cd35 1-26
+apps/example-node/Dockerfile
+  s_9bafbcfb86cab4::t_d490ddd87188a9 1-3,5,9-17
+  s_9bafbcfb86cab4::t_582d78a7c965c1 4,8
+  s_9bafbcfb86cab4::t_bcda9c3f7668a6 6-7
+.dockerignore
+  s_9bafbcfb86cab4::t_a5660e013aa7a9 1-7
+apps/docs/guide/frameworks.mdx
+  s_9bafbcfb86cab4::t_00b00f994b1da8 8-9
+apps/example-node/tsconfig.json
+  s_9bafbcfb86cab4::t_4bf460cb5a3871 1-15
+apps/example-node/src/app.ts
+  s_9bafbcfb86cab4::t_b4487a012dff42 1-49
+apps/example-node/vite.config.ts
+  s_9bafbcfb86cab4::t_0518a41f301321 1-10
+apps/example-node/src/shutdown.ts
+  s_9bafbcfb86cab4::t_146d88c74d68db 1-26
+apps/example-node/k8s.yaml
+  s_9bafbcfb86cab4::t_d6e4e6761f8518 40-41
+  s_9bafbcfb86cab4::t_355278c6c1df26 1-39,42-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "5b0cf9a3fb47821b7a2a97ae0aed1f88269b6270",
+  "prompts": {},
+  "sessions": {
+    "s_9bafbcfb86cab4": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a18095-db79-77e6-8e09-fd9f458d9cd6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
