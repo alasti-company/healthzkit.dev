@@ -53,3 +53,13 @@ jobs:
 
       - name: Packed consumer smoke
         run: vp run test:packages
+
+  ci-required:
+    # Preserve the existing required-check context while requiring every matrix leg.
+    name: CI
+    needs: ci
+    if: ${{ always() }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Require all Node versions to pass
+        run: test "${{ needs.ci.result }}" = success
