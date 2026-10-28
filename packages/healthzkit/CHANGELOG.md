@@ -1,5 +1,15 @@
 # healthzkit
 
+## 0.2.0
+
+### Minor Changes
+
+- e90e971: Validate timeout and scheduling values at construction. Timing values must be integer milliseconds from 1 to 2,147,483,647; invalid values (including zero) now throw a field-specific RangeError rather than relying on runtime timer coercion. Capture nested timing configuration to prevent later mutations from bypassing validation.
+
+### Patch Changes
+
+- 7d5caf8: Honor per-check `onDegraded.httpStatus` when the overall rollup is degraded. The first matching degraded check in configuration order wins over degraded defaults; failed rollups and per-check failure overrides retain precedence. Apply this to effective check statuses after `onFail.treatAs` remapping.
+
 ## 0.1.1
 
 ### Patch Changes
