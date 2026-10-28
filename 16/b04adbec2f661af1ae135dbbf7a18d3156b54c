@@ -1,0 +1,21 @@
+tools/integration/compose.yml
+  s_9bafbcfb86cab4::t_381bc820719338 12
+.github/workflows/ci.yml
+  s_9bafbcfb86cab4::t_73ee8d4f9aea33 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "16b04adbec2f661af1ae135dbbf7a18d3156b54c",
+  "prompts": {},
+  "sessions": {
+    "s_9bafbcfb86cab4": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a18095-db79-77e6-8e09-fd9f458d9cd6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
