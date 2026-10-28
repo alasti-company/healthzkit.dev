@@ -144,7 +144,7 @@ Each check is a `CheckConfig`:
 - **`timeout`** — Per-check timeout in ms. Default is **5000**, unless overridden by `defaults.timeout`.
 - **`schedule`** — Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](#scheduling)).
 - **`onFail`** — Optional `httpStatus`, `treatAs` (e.g. map `"fail"` to `"degraded"` for rollup and body while adjusting HTTP status rules).
-- **`onDegraded`** — Optional on `CheckConfig` in the type definition only; degraded HTTP status is set via **`defaults.onDegraded`** (see [HTTP status](#http-status)).
+- **`onDegraded`** — Optional `httpStatus` override when this check and the overall rollup are `"degraded"` (see [HTTP status](#http-status)).
 
 `AdapterResult`:
 
@@ -155,6 +155,12 @@ Each check is a `CheckConfig`:
 Thrown errors from `adapter.check()` are treated as **`fail`** with the error message captured when `exposeError` is true.
 
 Official adapters (Postgres, Redis, Kafka, S3, Prisma, Drizzle, and more) live in [`@healthzkit/*` packages](https://healthzkit.dev).
+
+## Timing configuration
+
+`timeout`, `defaults.timeout`, and `schedule.intervalMs` must be integer milliseconds from **1** to **2,147,483,647** (the timer limit), inclusive. `createHealthKit()` and `new HealthKit()` throw a `RangeError` during construction for invalid values, with the field and check name where applicable. Defaults are validated even when overridden by every check.
+
+Zero does **not** disable timeouts or scheduling; it is rejected along with negative, fractional, non-finite, and oversized values instead of relying on runtime timer coercion. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` to run on demand. Timing settings are captured at construction, so mutating the original defaults or schedule afterward does not change them.
 
 ## Scheduling
 
@@ -203,10 +209,10 @@ Response **`status`** (HTTP code) is derived from the rolled-up health status an
 
 - Any check with **`status === "fail"`** and **`onFail.httpStatus`** set → that value is returned (first matching check in config order wins among failed checks with a custom status).
 - Else if rollup is **`fail`**: `defaults.onFail.httpStatus` or **503**.
-- Else if rollup is **`degraded`**: `defaults.onDegraded.httpStatus` or **200**.
+- Else if rollup is **`degraded`**: the first check in config order with **`status === "degraded"`** and **`onDegraded.httpStatus`** set wins. If none matches, use `defaults.onDegraded.httpStatus` or **200**. A degraded override never takes precedence over a failed rollup.
 - Else **200**.
 
-Note: `onFail.treatAs` changes the **check** status used for rollup and JSON/text body; combine with `onFail.httpStatus` / defaults if you need a specific HTTP code.
+Note: `onFail.treatAs` changes the **check** status before HTTP mapping. A failure remapped to `"degraded"` uses `onDegraded.httpStatus` / degraded defaults, not `onFail.httpStatus`. Custom rollups to `"ok"` or `"fail"` do not use degraded overrides.
 
 ## Output
 

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vite-plus/test";
+import { describe, expect, test, vi } from "vite-plus/test";
 import { createHealthKit, HealthKit } from "../src/healthkit.ts";
 import type { HealthkitConfig } from "../src/types.ts";
 
@@ -14,6 +14,69 @@ describe("HealthKit configuration", () => {
     { name: "createHealthKit", create: createHealthKit },
     { name: "new HealthKit", create: (config: HealthkitConfig) => new HealthKit(config) },
   ];
+
+  describe.each(constructors)("$name timing validation", ({ create }) => {
+    const invalidValues = [0, -1, 0.5, 1.5, NaN, Infinity, -Infinity, 2_147_483_648];
+    const fields = ["defaults.timeout", "timeout", "schedule.intervalMs"] as const;
+
+    describe.each(fields)("%s", (field) => {
+      const configWith = (value: number): HealthkitConfig => ({
+        defaults: field === "defaults.timeout" ? { timeout: value } : undefined,
+        checks: [
+          {
+            name: "db",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "ok" }) },
+            // A check override must not hide an invalid default.
+            timeout: field === "timeout" ? value : 5_000,
+            schedule: field === "schedule.intervalMs" ? { intervalMs: value } : undefined,
+          },
+        ],
+      });
+
+      test.each(invalidValues)("rejects %s at construction", (value) => {
+        const label = field === "defaults.timeout" ? field : `Check "db" ${field}`;
+        expect(() => create(configWith(value))).toThrow(
+          new RangeError(`${label} must be an integer between 1 and 2147483647 milliseconds.`),
+        );
+      });
+
+      test.each([1, 5_000, 2_147_483_647])("accepts %s without starting timers", (value) => {
+        expect(() => create(configWith(value))).not.toThrow();
+      });
+    });
+
+    test("validates defaults even when there are no checks", () => {
+      expect(() => create({ checks: [], defaults: { timeout: 0 } })).toThrow(
+        "defaults.timeout must be an integer between 1 and 2147483647 milliseconds.",
+      );
+    });
+
+    test("captures validated nested timing configuration", async () => {
+      const defaults = { timeout: 5_000 };
+      const schedule = { intervalMs: 60_000 };
+      const adapter = { check: async () => ({ status: "ok" as const }) };
+      const kit = create({
+        defaults,
+        checks: [{ name: "db", type: ["readiness"], adapter, schedule }],
+      });
+      defaults.timeout = 0;
+      schedule.intervalMs = NaN;
+      // These are the snapshots passed to the actual timer APIs.
+      const interval = vi.spyOn(globalThis, "setInterval");
+      const timeout = vi.spyOn(globalThis, "setTimeout");
+      try {
+        kit.start();
+        expect(interval).toHaveBeenCalledWith(expect.any(Function), 60_000);
+        expect(timeout).toHaveBeenCalledWith(expect.any(Function), 5_000);
+        expect((await kit.handleReadiness()).status).toBe(200);
+      } finally {
+        kit.stop();
+        interval.mockRestore();
+        timeout.mockRestore();
+      }
+    });
+  });
 
   test.each(constructors)("$name rejects duplicate readiness check names", ({ create }) => {
     expect(() =>
@@ -235,6 +298,142 @@ describe("HealthKit responses", () => {
     const res = await kit.handleLiveness();
     expect(res.status).toBe(299);
   });
+
+  test("per-check onDegraded httpStatus overrides the degraded default", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "db",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+          onDegraded: { httpStatus: 503 },
+        },
+      ],
+      defaults: { onDegraded: { httpStatus: 299 } },
+    });
+    const res = await kit.handleReadiness();
+    expect(res.status).toBe(503);
+    expect(JSON.parse(res.body)).toMatchObject({
+      status: "degraded",
+      checks: { db: { status: "degraded" } },
+    });
+  });
+
+  test("first matching degraded override wins in config order, not completion order", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "no-override",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+        },
+        {
+          name: "first",
+          type: ["readiness"],
+          adapter: {
+            check: async () => {
+              await new Promise((resolve) => setTimeout(resolve, 10));
+              return { status: "degraded" };
+            },
+          },
+          onDegraded: { httpStatus: 429 },
+        },
+        {
+          name: "second",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+          onDegraded: { httpStatus: 503 },
+        },
+      ],
+    });
+    expect((await kit.handleReadiness()).status).toBe(429);
+  });
+
+  test.each([undefined, 502])(
+    "failure takes precedence over a degraded override (onFail: %s)",
+    async (httpStatus) => {
+      const kit = createHealthKit({
+        checks: [
+          {
+            name: "slow",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "degraded" }) },
+            onDegraded: { httpStatus: 200 },
+          },
+          {
+            name: "down",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "fail" }) },
+            onFail: { httpStatus },
+          },
+        ],
+        defaults: { onFail: { httpStatus: 504 } },
+      });
+      expect((await kit.handleReadiness()).status).toBe(httpStatus ?? 504);
+    },
+  );
+
+  test("onDegraded applies to failures remapped to degraded, not onFail.httpStatus", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "optional",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "fail" }) },
+          onFail: { treatAs: "degraded", httpStatus: 500 },
+          onDegraded: { httpStatus: 429 },
+        },
+      ],
+    });
+    expect((await kit.handleReadiness()).status).toBe(429);
+  });
+
+  test("degraded overrides ignore healthy checks and checks for another probe", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "healthy",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "ok" }) },
+          onDegraded: { httpStatus: 500 },
+        },
+        {
+          name: "live",
+          type: ["liveness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+          onDegraded: { httpStatus: 501 },
+        },
+        {
+          name: "ready",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+        },
+      ],
+      defaults: { onDegraded: { httpStatus: 299 } },
+    });
+    expect((await kit.handleReadiness()).status).toBe(299);
+  });
+
+  test.each([
+    { overallStatus: "ok", expected: 200 },
+    { overallStatus: "fail", expected: 503 },
+  ] as const)(
+    "custom $overallStatus rollup does not use degraded overrides",
+    async ({ overallStatus, expected }) => {
+      const kit = createHealthKit({
+        checks: [
+          {
+            name: "db",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "degraded" }) },
+            onDegraded: { httpStatus: 429 },
+          },
+        ],
+        rollup: { computeStatus: () => overallStatus },
+      });
+      expect((await kit.handleReadiness()).status).toBe(expected);
+    },
+  );
 
   test("text output format", async () => {
     const kit = createHealthKit({

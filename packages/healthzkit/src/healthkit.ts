@@ -14,19 +14,42 @@ import type {
 const DEFAULT_BASE_PATH = "/healthz";
 const DEFAULT_FAIL_STATUS = 503;
 const DEFAULT_DEGRADED_STATUS = 200;
+const MAX_TIMER_MS = 2_147_483_647;
+
+function validateTimer(value: number, field: string): void {
+  if (!Number.isInteger(value) || value < 1 || value > MAX_TIMER_MS) {
+    throw new RangeError(`${field} must be an integer between 1 and ${MAX_TIMER_MS} milliseconds.`);
+  }
+}
 
 export class HealthKit {
   private scheduler: Scheduler;
   private started = false;
 
   constructor(private config: HealthkitConfig) {
-    this.config = { ...config, checks: config.checks.map((check) => ({ ...check })) };
+    this.config = {
+      ...config,
+      defaults: config.defaults && { ...config.defaults },
+      checks: config.checks.map((check) => ({
+        ...check,
+        schedule: check.schedule && { ...check.schedule },
+      })),
+    };
+    if (this.config.defaults?.timeout !== undefined) {
+      validateTimer(this.config.defaults.timeout, "defaults.timeout");
+    }
     const names = new Set<string>();
     for (const check of this.config.checks) {
       if (names.has(check.name)) {
         throw new Error(`Duplicate check name "${check.name}". Check names must be unique.`);
       }
       names.add(check.name);
+      if (check.timeout !== undefined) {
+        validateTimer(check.timeout, `Check "${check.name}" timeout`);
+      }
+      if (check.schedule) {
+        validateTimer(check.schedule.intervalMs, `Check "${check.name}" schedule.intervalMs`);
+      }
     }
     this.scheduler = new Scheduler();
   }
@@ -111,6 +134,12 @@ export class HealthKit {
     }
 
     if (overallStatus === "degraded") {
+      for (const check of checks) {
+        const result = results[check.name];
+        if (result?.status === "degraded" && check.onDegraded?.httpStatus !== undefined) {
+          return check.onDegraded.httpStatus;
+        }
+      }
       return defaults?.onDegraded?.httpStatus ?? DEFAULT_DEGRADED_STATUS;
     }
 

@@ -15,7 +15,7 @@ Each check is a `CheckConfig` entry in the `checks` array on the root config:
 | **`timeout`**    | Per-check timeout in milliseconds. Default **5000**, unless overridden by `defaults.timeout`.                                                                                          |
 | **`schedule`**   | Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](/guide/scheduling)).                     |
 | **`onFail`**     | Optional `httpStatus`, `treatAs` (for example map `"fail"` to `"degraded"` for rollup and body while adjusting HTTP rules).                                                            |
-| **`onDegraded`** | Present on the type; degraded HTTP status for the overall response is controlled via **`defaults.onDegraded`** (see [Responses and HTTP](/guide/responses-and-http)).                  |
+| **`onDegraded`** | Optional `httpStatus` override when this check and the overall rollup are `"degraded"` (see [Responses and HTTP](/guide/responses-and-http)).                                          |
 
 ## `AdapterResult`
 

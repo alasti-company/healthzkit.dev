@@ -17,8 +17,10 @@ export interface CheckConfig {
   name: string;
   type: CheckType[];
   adapter: HealthAdapter;
-  timeout?: number; // in ms, default 5_000
+  /** Integer milliseconds, 1–2_147_483_647. Defaults to defaults.timeout, then 5_000. */
+  timeout?: number;
   schedule?: {
+    /** Integer milliseconds, 1–2_147_483_647. */
     intervalMs: number;
   };
   onFail?: {
@@ -71,6 +73,7 @@ export interface DefaultsConfig {
   onDegraded?: {
     httpStatus?: number;
   };
+  /** Integer milliseconds, 1–2_147_483_647. Default: 5_000. */
   timeout?: number;
 }
 
