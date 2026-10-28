@@ -13,5 +13,8 @@ ENV NODE_ENV=production PORT=3000
 WORKDIR /app
 COPY --from=build --chown=node:node /app .
 USER node
+# Verify the deployed workspace graph in the standalone runtime (including
+# postgres -> @healthzkit/shared), not just in the build stage's node_modules.
+RUN node --input-type=module -e 'await import("healthzkit"); await import("@healthzkit/postgres/pg");'
 EXPOSE 3000
 CMD ["node", "dist/index.mjs"]
