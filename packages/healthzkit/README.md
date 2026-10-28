@@ -156,6 +156,12 @@ Thrown errors from `adapter.check()` are treated as **`fail`** with the error me
 
 Official adapters (Postgres, Redis, Kafka, S3, Prisma, Drizzle, and more) live in [`@healthzkit/*` packages](https://healthzkit.dev).
 
+## Timing configuration
+
+`timeout`, `defaults.timeout`, and `schedule.intervalMs` must be integer milliseconds from **1** to **2,147,483,647** (the timer limit), inclusive. `createHealthKit()` and `new HealthKit()` throw a `RangeError` during construction for invalid values, with the field and check name where applicable. Defaults are validated even when overridden by every check.
+
+Zero does **not** disable timeouts or scheduling; it is rejected along with negative, fractional, non-finite, and oversized values instead of relying on runtime timer coercion. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` to run on demand. Timing settings are captured at construction, so mutating the original defaults or schedule afterward does not change them.
+
 ## Scheduling
 
 For expensive checks (database, external APIs), run them on a timer and serve probes from cache:

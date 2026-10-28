@@ -27,6 +27,12 @@ kit.start(); // starts background intervals for checks that define schedule
 kit.stop();
 ```
 
+## Timing validation
+
+`timeout`, `defaults.timeout`, and `schedule.intervalMs` must be integer milliseconds from **1** to **2,147,483,647**, inclusive. Both `createHealthKit()` and `new HealthKit()` reject invalid values at construction with a `RangeError` identifying the field and, where applicable, the check name. Defaults are validated even if all checks override them.
+
+Zero does not disable a timeout or interval. Zero, negative, fractional, non-finite, and oversized values are rejected instead of being coerced by runtime timers. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` for on-demand checks. Timing settings are captured at construction; later mutations of the original defaults or schedule do not affect the kit.
+
 ## Behavior
 
 - **`start()`** is idempotent; a second call does nothing.
