@@ -5,6 +5,8 @@ description: Wire Healthzkit into Elysia, Express, Fastify, Hono, Next.js, and N
 
 Use these examples to wire healthzkit into common runtimes. Fetch-based frameworks can use `toFetchResponse` or `createFetchHandler`; Express and Node `http` map `status`, `headers`, and `body` onto the native response.
 
+For a runnable long-lived Node.js deployment, see the [production Hono + Postgres example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node). It includes Kubernetes probes, shared-pool ownership, error redaction, and bounded graceful shutdown.
+
 <Tabs>
   <Tab title="Hono">
     ```ts
