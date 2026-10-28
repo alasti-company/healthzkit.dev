@@ -1,0 +1,19 @@
+.github/workflows/ci.yml
+  s_9bafbcfb86cab4::t_be5a6a3bc0d26e 56-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3fe67e14bda4b21951d6d6cdf4b099671ac0497c",
+  "prompts": {},
+  "sessions": {
+    "s_9bafbcfb86cab4": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a18095-db79-77e6-8e09-fd9f458d9cd6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
