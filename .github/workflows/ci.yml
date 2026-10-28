@@ -16,6 +16,46 @@ permissions:
   contents: read
 
 jobs:
+  integration:
+    name: Real-service integration
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: healthzkit
+          POSTGRES_PASSWORD: healthzkit
+          POSTGRES_DB: healthzkit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U healthzkit -d healthzkit"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      HEALTHZKIT_POSTGRES_URL: postgres://healthzkit:healthzkit@127.0.0.1:5432/healthzkit
+      HEALTHZKIT_REDIS_URL: redis://127.0.0.1:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: "22"
+          cache: true
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+      - name: Build
+        run: vp run -r build
+      - name: Integration tests
+        run: vp run test:integration
+
   ci:
     name: CI
     runs-on: blacksmith-4vcpu-ubuntu-2404
