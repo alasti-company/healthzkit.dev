@@ -236,6 +236,142 @@ describe("HealthKit responses", () => {
     expect(res.status).toBe(299);
   });
 
+  test("per-check onDegraded httpStatus overrides the degraded default", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "db",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+          onDegraded: { httpStatus: 503 },
+        },
+      ],
+      defaults: { onDegraded: { httpStatus: 299 } },
+    });
+    const res = await kit.handleReadiness();
+    expect(res.status).toBe(503);
+    expect(JSON.parse(res.body)).toMatchObject({
+      status: "degraded",
+      checks: { db: { status: "degraded" } },
+    });
+  });
+
+  test("first matching degraded override wins in config order, not completion order", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "no-override",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+        },
+        {
+          name: "first",
+          type: ["readiness"],
+          adapter: {
+            check: async () => {
+              await new Promise((resolve) => setTimeout(resolve, 10));
+              return { status: "degraded" };
+            },
+          },
+          onDegraded: { httpStatus: 429 },
+        },
+        {
+          name: "second",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+          onDegraded: { httpStatus: 503 },
+        },
+      ],
+    });
+    expect((await kit.handleReadiness()).status).toBe(429);
+  });
+
+  test.each([undefined, 502])(
+    "failure takes precedence over a degraded override (onFail: %s)",
+    async (httpStatus) => {
+      const kit = createHealthKit({
+        checks: [
+          {
+            name: "slow",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "degraded" }) },
+            onDegraded: { httpStatus: 200 },
+          },
+          {
+            name: "down",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "fail" }) },
+            onFail: { httpStatus },
+          },
+        ],
+        defaults: { onFail: { httpStatus: 504 } },
+      });
+      expect((await kit.handleReadiness()).status).toBe(httpStatus ?? 504);
+    },
+  );
+
+  test("onDegraded applies to failures remapped to degraded, not onFail.httpStatus", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "optional",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "fail" }) },
+          onFail: { treatAs: "degraded", httpStatus: 500 },
+          onDegraded: { httpStatus: 429 },
+        },
+      ],
+    });
+    expect((await kit.handleReadiness()).status).toBe(429);
+  });
+
+  test("degraded overrides ignore healthy checks and checks for another probe", async () => {
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "healthy",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "ok" }) },
+          onDegraded: { httpStatus: 500 },
+        },
+        {
+          name: "live",
+          type: ["liveness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+          onDegraded: { httpStatus: 501 },
+        },
+        {
+          name: "ready",
+          type: ["readiness"],
+          adapter: { check: async () => ({ status: "degraded" }) },
+        },
+      ],
+      defaults: { onDegraded: { httpStatus: 299 } },
+    });
+    expect((await kit.handleReadiness()).status).toBe(299);
+  });
+
+  test.each([
+    { overallStatus: "ok", expected: 200 },
+    { overallStatus: "fail", expected: 503 },
+  ] as const)(
+    "custom $overallStatus rollup does not use degraded overrides",
+    async ({ overallStatus, expected }) => {
+      const kit = createHealthKit({
+        checks: [
+          {
+            name: "db",
+            type: ["readiness"],
+            adapter: { check: async () => ({ status: "degraded" }) },
+            onDegraded: { httpStatus: 429 },
+          },
+        ],
+        rollup: { computeStatus: () => overallStatus },
+      });
+      expect((await kit.handleReadiness()).status).toBe(expected);
+    },
+  );
+
   test("text output format", async () => {
     const kit = createHealthKit({
       checks: [
