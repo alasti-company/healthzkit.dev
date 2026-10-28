@@ -1,0 +1,28 @@
+package.json
+  s_9bafbcfb86cab4::t_8f51fd484fc050 15
+.github/workflows/ci.yml
+  s_9bafbcfb86cab4::t_bdaec87a7e4b88 20,22-25,33,42,44,48,53-55
+tools/package-smoke.mjs
+  s_9bafbcfb86cab4::t_ca4d629e9bc742 71,75-82
+  s_9bafbcfb86cab4::t_dfbbfc7008abc7 93-99,101,103
+  s_9bafbcfb86cab4::t_72943037aa6baa 23
+  s_9bafbcfb86cab4::t_4c9440ed076587 1-22,24-41,43-70,72-74,83-92,104-108,110-113
+README.md
+  s_9bafbcfb86cab4::t_8c1e8e00e7b1e9 98-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "48671622964011fd5337fac503e1c87f048ebbd9",
+  "prompts": {},
+  "sessions": {
+    "s_9bafbcfb86cab4": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a18095-db79-77e6-8e09-fd9f458d9cd6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
