@@ -67,6 +67,10 @@ app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness(
 
 See each package README for install instructions, API details, and examples.
 
+## Production example
+
+See [`apps/example-node`](./apps/example-node) for a long-lived Node.js + Hono + Postgres application with Kubernetes probes, a shared database pool, safe error output, and bounded graceful shutdown. The existing [`apps/example-hono`](./apps/example-hono) demonstrates Cloudflare Workers instead.
+
 ## Development
 
 Requires [Node.js](https://nodejs.org/) ≥ 22.12 and [pnpm](https://pnpm.io/) (see `packageManager` in `package.json`). Commands use the [Vite+](https://viteplus.dev/) `vp` CLI. Published packages declare `engines.node` ≥ 22.12.
