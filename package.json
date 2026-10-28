@@ -12,6 +12,7 @@
   "scripts": {
     "ready": "vp fmt && vp lint && vp run test && vp run build",
     "test": "vp run -r test",
+    "test:packages": "node tools/package-smoke.mjs",
     "build": "vp run -r build",
     "dev": "vp run -r dev",
     "clean": "vpx rimraf \"**/node_modules\" --glob",

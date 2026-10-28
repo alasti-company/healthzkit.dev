@@ -95,6 +95,26 @@ Build all packages:
 vp run -r build
 ```
 
+Smoke-test the packages users install (build first):
+
+```bash
+vp run -r build
+vp run test:packages
+```
+
+This packs all public packages, installs the tarballs into a temporary consumer outside the
+workspace, imports every JavaScript entrypoint, runs a core readiness probe, and compiles a
+strict NodeNext TypeScript consumer against the published declarations. Peer drivers and
+`@types` packages use the exact versions installed from the workspace lockfile. The temporary
+consumer is always removed. Registry access is required; native install scripts are disabled.
+This checks packaging and declaration resolution, not real database connectivity, native-driver
+loading, or every supported peer version. TypeScript uses `skipLibCheck` to avoid validating
+third-party drivers' declaration internals (including optional Drizzle dialect dependencies);
+consumer code and the core API's negative type assertion remain checked.
+
+CI runs builds, unit tests, and packed-consumer checks on Node.js 22 and 24; formatting and
+linting run once on Node.js 22.
+
 Run the full readiness check (format, lint, test, build):
 
 ```bash
