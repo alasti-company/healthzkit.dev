@@ -12,6 +12,7 @@
   "scripts": {
     "ready": "vp fmt && vp lint && vp run test && vp run build",
     "test": "vp run -r test",
+    "test:integration": "HEALTHZKIT_INTEGRATION=1 vp run --no-cache --filter @healthzkit/postgres --filter @healthzkit/redis test tests/integration.test.ts",
     "build": "vp run -r build",
     "dev": "vp run -r dev",
     "clean": "vpx rimraf \"**/node_modules\" --glob",
