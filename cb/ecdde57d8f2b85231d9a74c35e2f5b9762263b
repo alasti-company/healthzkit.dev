@@ -1,0 +1,29 @@
+apps/docs/guide/scheduling.mdx
+  s_9bafbcfb86cab4::t_121a633532dab6 30-35
+.changeset/timing-validation.md
+  s_9bafbcfb86cab4::t_5c89ab9457c2d0 1-5
+packages/healthzkit/src/healthkit.ts
+  s_9bafbcfb86cab4::t_2f75b299495303 17-23,30-40,47-52
+packages/healthzkit/tests/healthkit.test.ts
+  s_9bafbcfb86cab4::t_258aea3509a508 1,18-79
+packages/healthzkit/README.md
+  s_9bafbcfb86cab4::t_a852018da34219 159-164
+packages/healthzkit/src/types.ts
+  s_9bafbcfb86cab4::t_b79bfde798e6ad 20-21,23,76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "cbecdde57d8f2b85231d9a74c35e2f5b9762263b",
+  "prompts": {},
+  "sessions": {
+    "s_9bafbcfb86cab4": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a18095-db79-77e6-8e09-fd9f458d9cd6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
