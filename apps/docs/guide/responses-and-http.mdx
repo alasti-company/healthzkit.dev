@@ -19,10 +19,10 @@ Response **`status`** (HTTP code) is derived from the rolled-up health status an
 
 - Any check with **`status === "fail"`** and **`onFail.httpStatus`** set → that value is returned (first matching check in config order wins among failed checks with a custom status).
 - Else if rollup is **`fail`**: `defaults.onFail.httpStatus` or **503**.
-- Else if rollup is **`degraded`**: `defaults.onDegraded.httpStatus` or **200**.
+- Else if rollup is **`degraded`**: the first check in config order with **`status === "degraded"`** and **`onDegraded.httpStatus`** set wins. If none matches, use `defaults.onDegraded.httpStatus` or **200**. A degraded override never takes precedence over a failed rollup.
 - Else **200**.
 
-`onFail.treatAs` changes the **check** status used for rollup and the JSON/text body; combine with `onFail.httpStatus` or defaults when you need a specific HTTP code.
+`onFail.treatAs` changes the **check** status before HTTP mapping. A failure remapped to `"degraded"` uses `onDegraded.httpStatus` or degraded defaults, not `onFail.httpStatus`. Custom rollups to `"ok"` or `"fail"` do not use degraded overrides.
 
 ## Output
 

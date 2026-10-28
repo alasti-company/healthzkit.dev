@@ -111,6 +111,12 @@ export class HealthKit {
     }
 
     if (overallStatus === "degraded") {
+      for (const check of checks) {
+        const result = results[check.name];
+        if (result?.status === "degraded" && check.onDegraded?.httpStatus !== undefined) {
+          return check.onDegraded.httpStatus;
+        }
+      }
       return defaults?.onDegraded?.httpStatus ?? DEFAULT_DEGRADED_STATUS;
     }
 
