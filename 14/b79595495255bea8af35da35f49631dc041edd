@@ -1,0 +1,19 @@
+apps/example-node/Dockerfile
+  s_9bafbcfb86cab4::t_07d9fbc7cded7e 16-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "14b79595495255bea8af35da35f49631dc041edd",
+  "prompts": {},
+  "sessions": {
+    "s_9bafbcfb86cab4": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a18095-db79-77e6-8e09-fd9f458d9cd6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
