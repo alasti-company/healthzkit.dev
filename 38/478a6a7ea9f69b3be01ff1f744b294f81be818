@@ -1,0 +1,24 @@
+goal-and-requirements.md
+  s_ab5fcf293b8320::t_10d315b0ddb1f6 10-33
+architecture.md
+  s_ab5fcf293b8320::t_48683130f9b38f 9-32
+packages/healthzkit/SPEC.md
+  s_ab5fcf293b8320::t_76a195044c5cf9 21
+  s_ab5fcf293b8320::t_9bcbf49f9deeff 9-20,22-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "38478a6a7ea9f69b3be01ff1f744b294f81be818",
+  "prompts": {},
+  "sessions": {
+    "s_ab5fcf293b8320": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a19073-c3e9-71f8-97b0-c0e159b7f00a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
