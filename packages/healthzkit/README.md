@@ -126,6 +126,68 @@ if (res) {
 
 `handleRequest` returns `null` when the path is not a probe route, so you can try it first and fall through.
 
+## Structured results and observability
+
+`await kit.checkLiveness()` and `await kit.checkReadiness()` return a typed
+`HealthResponse` (`status`, `timestamp`, `checks`) without HTTP serialization. They
+use the same checks, deadlines, in-flight deduplication, cache, `treatAs`, and rollup
+as the HTTP methods. HTTP status mapping and output filtering happen afterward.
+Structured results and hook payloads retain errors and metadata even when
+`output.exposeError` is false. Treat them as internal diagnostics.
+
+Hooks need no telemetry dependency. For example, log executions and accumulate
+counts/durations in memory for your metrics exporter:
+
+```ts
+const counts = new Map<string, number>();
+const durations = new Map<string, number>();
+const kit = createHealthKit({
+  checks: [
+    { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
+  ],
+  hooks: {
+    onCheckComplete(event) {
+      console.info("health check", event);
+      const key = `${event.name}:${event.status}:${event.source}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+      durations.set(key, (durations.get(key) ?? 0) + event.duration);
+    },
+    onStatusChange(event) {
+      console.info(`${event.name}: ${event.previousStatus} -> ${event.status}`);
+    },
+  },
+});
+const result = await kit.checkLiveness(); // HealthResponse, not an HTTP response
+console.info(result.status);
+```
+
+Both hooks receive the check `name`, configured probe `type` array, effective
+`status` (after `treatAs`), execution `duration` in milliseconds, completion
+`timestamp` (ISO), `result` (`CheckResult`), and `source`:
+
+| Situation                                    | Hook behavior                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| On-demand execution                          | One completion with source `"on-demand"`                                                          |
+| Initial/interval background execution        | One completion with source `"scheduled"`, even without probe traffic                              |
+| Concurrent callers sharing an execution      | No additional events, including across probe types and structured/HTTP callers                    |
+| Scheduling adopts an on-demand execution     | Keeps the original `"on-demand"` source; no additional event                                      |
+| Cached reads, including stale-cache failures | No execution or transition event; use structured probe results to observe staleness               |
+| Execution times out                          | One failure completion at the deadline; no additional event for repeated reads or late settlement |
+
+`onStatusChange` additionally receives `previousStatus`. It tracks **per-check
+execution status**, not aggregate probe status or custom rollup changes. The first
+observation establishes the baseline; unchanged results emit only completion.
+`stop()` resets the baseline and suppresses events from unfinished executions in
+the stopped lifecycle. Restarting does not manufacture an event for reused work.
+
+Callbacks are invoked in completion-then-transition order, receive separate cloned
+payloads, and are not awaited. Synchronous exceptions and rejected promises are
+ignored, so they cannot fail probes or stop scheduling. Keep synchronous callback
+work short; enqueue expensive telemetry. Metadata that cannot be structured-cloned
+is omitted from hook payloads, while the execution event still fires and structured
+results retain the original metadata. Rollup functions always receive internal
+diagnostics, including when HTTP error exposure is disabled.
+
 ## Routes and `basePath`
 
 | Path                 | Behavior                                        |
@@ -154,7 +216,7 @@ Each check is a `CheckConfig`:
 - **`error`**: Optional `Error` or string (included in the serialized check unless `output.exposeError` is `false`).
 - **`metadata`**: Optional object merged into the check result.
 
-Thrown errors from `adapter.check()` are treated as **`fail`** with the error message captured when `exposeError` is true.
+Thrown errors from `adapter.check()` are treated as **`fail`** with the error message retained internally and included in HTTP output when `exposeError` is true.
 
 Official adapters (Postgres, Redis, Kafka, S3, Prisma, Drizzle, and more) live in [`@healthzkit/*` packages](https://healthzkit.dev).
 
@@ -281,7 +343,8 @@ Exported from `healthzkit`:
 **Runtime**
 
 - `createHealthKit(config)` → `HealthKit`
-- `HealthKit`: `start()`, `stop()`, `close(): Promise<void>`, `beginDrain()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`, `handleStartup()`
+- `HealthKit`: `start()`, `stop()`, `close(): Promise<void>`, `beginDrain()`, `checkLiveness()`, `checkReadiness()`, `checkStartup()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`, `handleStartup()`
+
 - `toFetchResponse(res, method?)` → Fetch `Response` (`HEAD` omits the body)
 - `createFetchHandler(kit)` → `(request: Request) => Promise<Response>`
 
@@ -290,6 +353,7 @@ Exported from `healthzkit`:
 - `HealthkitConfig`, `CheckConfig`, `CheckContext`, `HealthAdapter`, `AdapterResult`, `CheckResult`, `HealthResponse`
 - `CheckStatus`, `CheckType`, `RollupConfig`, `OutputConfig`, `DefaultsConfig`
 - `AgnosticRequest`, `AgnosticResponse`
+- `ObservabilityHooks`, `CheckCompleteEvent`, `StatusChangeEvent`
 
 `AgnosticResponse` is `{ status: number; headers: Record<string, string>; body: string }` so you can map it to Express, Fastify, `fetch` `Response`, etc.
 
@@ -321,7 +385,7 @@ Once close begins, `start()` throws `Error("HealthKit is closed")`. `handleLiven
 
 Close calls each distinct adapter object's optional `dispose()` hook once, after pending work settles. Check-only custom adapters remain valid. All cleanup hooks are attempted even if another hook fails. Close rejects with an `AggregateError` whose `errors` array contains cleanup failures in adapter configuration order. Repeated close calls retain that rejection and do not retry cleanup. Check failures are reported through health responses, not added to cleanup errors.
 
-Official adapters dispose only resources they create. Supplied clients, pools, connections, and their agents remain yours to close. Persistent drivers use their `end`, `close`, `quit`, `disconnect`, or `destroy` API as appropriate; checked-out pool connections are released before pool cleanup. AWS SDK v3 clients use `destroy()`. KafkaJS admin connections are disconnected after each check; disposal retries retained disconnect failures and reports any remaining errors. HTTP-based Upstash, AWS SDK v2, and MinIO clients have no client disposal API here; caller-provided HTTP agents remain caller-owned.
+Official adapters dispose only resources they create. Supplied clients, pools, connections, and their agents remain yours to close. Persistent drivers use their `end`, `close`, `quit`, `disconnect`, or `destroy` API as appropriate; checked-out pool connections are released before pool cleanup. AWS SDK v3 clients use `destroy()`. When you pass `config` to an AWS SDK v3 adapter, disposal calls `destroy()` on the constructed client, including its request handler and any agents owned by that handler. Passing `config.requestHandler` (including handler options with custom agents) transfers their shutdown lifecycle to that client. To retain ownership of a shared handler or agent, construct the AWS client yourself and pass `client`; the adapter never destroys supplied clients. KafkaJS checks run serially and disconnect their admin after each check. Later checks retry failed disconnects before creating another admin, returning a failed result while cleanup remains blocked. Disposal retries retained failures and reports any remaining errors. HTTP-based Upstash, AWS SDK v2, and MinIO clients have no client disposal API here; caller-provided HTTP agents remain caller-owned.
 
 For official adapters that expose `dispose()`, direct users can call `await adapter.dispose?.()` for terminal, idempotent disposal that waits for active checks. Later direct checks return a failure without opening resources. Do not reuse a disposed adapter in another kit. Share an adapter across checks in the same kit only when those checks should share its resource lifetime.
 

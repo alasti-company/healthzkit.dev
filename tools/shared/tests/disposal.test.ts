@@ -1,6 +1,6 @@
-import { describe, expect, test, vi } from "vite-plus/test";
+import { describe, expect, expectTypeOf, test, vi } from "vite-plus/test";
 import { withDisposal } from "../src/index.ts";
-import type { AdapterResult } from "healthzkit";
+import type { AdapterResult, HealthAdapter } from "healthzkit";
 
 describe("withDisposal", () => {
   test.each([false, true])(
@@ -28,6 +28,29 @@ describe("withDisposal", () => {
       expect(cleanup).toHaveBeenCalledOnce();
     },
   );
+
+  test("preserves class identity, private state, inherited methods and hidden properties", async () => {
+    class Adapter {
+      #status = "ok" as const;
+      async check(): Promise<{ status: "ok" }> {
+        return { status: this.#status };
+      }
+      close() {
+        return this.#status;
+      }
+    }
+    const original = new Adapter();
+    Object.defineProperty(original, "hidden", { value: 42 });
+    const adapter = withDisposal(original, vi.fn());
+    expectTypeOf(adapter.check).toEqualTypeOf<HealthAdapter["check"]>();
+    expect(adapter).toBe(original);
+    expect(adapter).toBeInstanceOf(Adapter);
+    expect(Object.getOwnPropertyDescriptor(adapter, "hidden")?.value).toBe(42);
+    expect(adapter.close()).toBe("ok");
+    expect((await adapter.check()).status).toBe("ok");
+    await adapter.dispose();
+    expect((await adapter.check()).status).toBe("fail");
+  });
 
   test("retains cleanup rejection and never retries", async () => {
     const error = new Error("cleanup failed");

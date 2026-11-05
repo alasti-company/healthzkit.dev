@@ -51,6 +51,57 @@ describe("terminal close", () => {
     expect(await kit.handleRequest({ path: "/other" })).toBeNull();
   });
 
+  test.each(["http", "structured"] as const)(
+    "preserves accepted scheduled success during close (%s)",
+    async (api) => {
+      vi.useFakeTimers();
+      const work = deferred<AdapterResult>();
+      const check = vi.fn(() => work.promise);
+      const dispose = vi.fn();
+      const kit = kitWith({ check, dispose }, true);
+      kit.start();
+      const response = api === "http" ? kit.handleReadiness() : kit.checkReadiness();
+      const closing = kit.close();
+      await vi.advanceTimersByTimeAsync(1);
+      expect(dispose).not.toHaveBeenCalled();
+      work.resolve({ status: "ok", metadata: { recovered: true } });
+      expect((await response).status).toBe(api === "http" ? 200 : "ok");
+      await closing;
+      expect(dispose).toHaveBeenCalledOnce();
+      await vi.advanceTimersByTimeAsync(100);
+      expect(check).toHaveBeenCalledOnce();
+    },
+  );
+
+  test("rejects every public check API as soon as close begins", async () => {
+    const kit = kitWith({ check: async () => ({ status: "ok" }) });
+    const closing = kit.close();
+    for (const check of [
+      () => kit.checkLiveness(),
+      () => kit.checkReadiness(),
+      () => kit.checkStartup(),
+      () => kit.handleStartup(),
+    ]) {
+      await expect(check()).rejects.toThrow("HealthKit is closed");
+    }
+    await closing;
+  });
+
+  test("waits for accepted structured calls after their response timeout", async () => {
+    vi.useFakeTimers();
+    const work = deferred<AdapterResult>();
+    const dispose = vi.fn();
+    const kit = kitWith({ check: () => work.promise, dispose });
+    const response = kit.checkReadiness();
+    const closing = kit.close();
+    await vi.advanceTimersByTimeAsync(20);
+    expect((await response).status).toBe("fail");
+    expect(dispose).not.toHaveBeenCalled();
+    work.resolve({ status: "ok" });
+    await closing;
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
   test.each([false, true])(
     "waits for underlying work past its deadline (scheduled=%s)",
     async (scheduled) => {

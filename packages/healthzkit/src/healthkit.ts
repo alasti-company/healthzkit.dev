@@ -26,7 +26,7 @@ export class HealthKit {
   private scheduler: Scheduler;
   private started = false;
   private closing: Promise<void> | undefined;
-  private requests = new Set<Promise<AgnosticResponse>>();
+  private requests = new Set<Promise<unknown>>();
 
   private draining = false;
 
@@ -36,6 +36,7 @@ export class HealthKit {
       defaults: config.defaults && { ...config.defaults },
       checks: config.checks.map((check) => ({
         ...check,
+        type: [...check.type],
         schedule: check.schedule && { ...check.schedule },
       })),
     };
@@ -55,7 +56,7 @@ export class HealthKit {
         validateTimer(check.schedule.intervalMs, `Check "${check.name}" schedule.intervalMs`);
       }
     }
-    this.scheduler = new Scheduler();
+    this.scheduler = new Scheduler(this.config.hooks);
   }
 
   start(): void {
@@ -77,6 +78,7 @@ export class HealthKit {
     this.closing = Promise.resolve().then(async () => {
       await Promise.allSettled(this.requests);
       await this.scheduler.settle();
+      this.stop();
       const adapters = new Set(this.config.checks.map((check) => check.adapter));
       const results = await Promise.allSettled(
         [...adapters].map(async (adapter) => adapter.dispose?.()),
@@ -86,7 +88,7 @@ export class HealthKit {
       );
       if (errors.length) throw new AggregateError(errors, "HealthKit adapter cleanup failed");
     });
-    this.stop();
+    this.scheduler.stopTimers();
     return this.closing;
   }
 
@@ -109,6 +111,16 @@ export class HealthKit {
 
   async handleReadiness(): Promise<AgnosticResponse> {
     return this.runForType("readiness");
+  }
+
+  async checkLiveness(): Promise<HealthResponse> {
+    return this.checkForType("liveness");
+  }
+  async checkReadiness(): Promise<HealthResponse> {
+    return this.checkForType("readiness");
+  }
+  async checkStartup(): Promise<HealthResponse> {
+    return this.checkForType("startup");
   }
 
   /** True for the live, ready, and startup routes. Does not run checks. */
@@ -146,12 +158,24 @@ export class HealthKit {
 
   private async runForTypeOpen(type: CheckType): Promise<AgnosticResponse> {
     const checks = this.config.checks.filter((c) => c.type.includes(type));
-    const response = await this.evaluateForType(type);
+    const response = await this.checkForTypeOpen(type);
     if (type === "readiness" && this.draining) {
       response.status = "fail";
       response.checks = {};
     }
-    const { body, contentType } = format(response, this.config.output?.format);
+    const publicResponse =
+      this.config.output?.exposeError === false
+        ? {
+            ...response,
+            checks: Object.fromEntries(
+              Object.entries(response.checks).map(([name, result]) => {
+                const { error: _error, ...publicResult } = result;
+                return [name, publicResult];
+              }),
+            ),
+          }
+        : response;
+    const { body, contentType } = format(publicResponse, this.config.output?.format);
     const httpStatus =
       type === "readiness" && this.draining
         ? DEFAULT_FAIL_STATUS
@@ -160,9 +184,19 @@ export class HealthKit {
     return { status: httpStatus, headers: { "Content-Type": contentType }, body };
   }
 
-  // Keep lifecycle policy on the structured execution path for future public result APIs.
-  private async evaluateForType(type: CheckType): Promise<HealthResponse> {
-    const { output, defaults, rollup } = this.config;
+  private checkForType(type: CheckType): Promise<HealthResponse> {
+    this.assertOpen();
+    const request = this.checkForTypeOpen(type);
+    this.requests.add(request);
+    void request.then(
+      () => this.requests.delete(request),
+      () => this.requests.delete(request),
+    );
+    return request;
+  }
+
+  private async checkForTypeOpen(type: CheckType): Promise<HealthResponse> {
+    const { defaults, rollup } = this.config;
     const drainedResponse = (): HealthResponse => ({
       status: "fail",
       timestamp: new Date().toISOString(),
@@ -171,10 +205,9 @@ export class HealthKit {
     if (type === "readiness" && this.draining) return drainedResponse();
     const checks = this.config.checks.filter((c) => c.type.includes(type));
 
-    const exposeError = output?.exposeError ?? true;
     const defaultTimeout = defaults?.timeout;
 
-    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout, exposeError);
+    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout);
     // A request that began before drain must not return a healthy result afterward.
     if (type === "readiness" && this.draining) return drainedResponse();
     const overallStatus = computeRollupStatus(checkResult, rollup);

@@ -110,3 +110,9 @@ const adapter = dynamoV3Adapter({
 ## Scheduling
 
 For DynamoDB tables that should not be queried on every probe, pair these adapters with a **`schedule`** on the check so readiness reads cached results (see [Scheduling](/guide/scheduling)).
+
+## Resource ownership
+
+AWS SDK v3 adapters destroy clients they construct from `config` on disposal. This also destroys the configured request handler and any agents that handler owns, including custom handlers or agents passed through `config.requestHandler`. If you share a handler or agent, construct the AWS client yourself and pass `client` to keep its lifecycle caller-owned. Supplied clients are never destroyed by the adapter.
+
+Use `await kit.close()` after draining application traffic, or `await adapter.dispose?.()` for direct adapter use. See [Scheduling](/guide/scheduling#shutdown-and-disposal).

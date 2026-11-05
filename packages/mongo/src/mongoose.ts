@@ -37,10 +37,13 @@ export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter 
   ): Promise<MongooseConnection> {
     internalConnectionPromise ??= (async () => {
       const { default: mongoose } = await import("mongoose");
-      internalConnection ??= mongoose.createConnection(connectionString, mongooseOptions);
+      internalConnection = mongoose.createConnection(connectionString, mongooseOptions);
       await internalConnection.asPromise();
       return internalConnection;
-    })().catch((error) => {
+    })().catch(async (error: unknown) => {
+      const failed = internalConnection;
+      internalConnection = null;
+      await failed?.close().catch(() => {});
       internalConnectionPromise = null;
       throw error;
     });
@@ -93,7 +96,10 @@ export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter 
       },
     },
     async () => {
-      await internalConnection?.close();
+      const connection = internalConnection;
+      internalConnection = null;
+      internalConnectionPromise = null;
+      await connection?.close();
     },
   );
 }

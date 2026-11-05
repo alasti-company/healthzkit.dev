@@ -23,18 +23,18 @@ export function buildErrorResult(error: unknown): AdapterResult {
 
 export type { AdapterResult, HealthAdapter };
 
-/** Add terminal, idempotent disposal while retaining checks already in progress. */
+/** Add disposal in place, preserving identity and other members. Requires a writable check method. */
 export function withDisposal<T extends HealthAdapter>(
   adapter: T,
   cleanup: () => Promise<void> | void,
-): T & { dispose(): Promise<void> } {
+): Omit<T, "check" | "dispose"> & { check: HealthAdapter["check"]; dispose(): Promise<void> } {
   const pending = new Set<Promise<AdapterResult>>();
   let closing: Promise<void> | undefined;
-  return {
-    ...adapter,
-    check(context) {
+  const check = adapter.check.bind(adapter);
+  return Object.assign(adapter, {
+    check(context?: Parameters<HealthAdapter["check"]>[0]) {
       if (closing) return Promise.resolve(buildErrorResult(new Error("Adapter is disposed")));
-      const operation = Promise.resolve().then(() => adapter.check(context));
+      const operation = Promise.resolve().then(() => check(context));
       pending.add(operation);
       void operation.then(
         () => pending.delete(operation),
@@ -46,5 +46,5 @@ export function withDisposal<T extends HealthAdapter>(
       closing ??= Promise.allSettled(pending).then(() => cleanup());
       return closing;
     },
-  };
+  });
 }

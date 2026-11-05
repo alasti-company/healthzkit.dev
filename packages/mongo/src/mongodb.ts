@@ -34,6 +34,21 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
   let ownedConnectPromise: Promise<MongoClient> | null = null;
   let injectedConnectPromise: Promise<void> | null = null;
 
+  let resetting: Promise<void> | undefined;
+  function closeOwnedClient(): Promise<void> {
+    if (resetting) return resetting;
+    resetting = (async () => {
+      await ownedConnectPromise?.catch(() => {});
+      const client = internalClient;
+      await client?.close();
+      internalClient = null;
+      ownedConnectPromise = null;
+    })().finally(() => {
+      resetting = undefined;
+    });
+    return resetting;
+  }
+
   async function getOwnedClient(
     connectionString: string,
     mongoOptions?: MongoClientOptions,
@@ -53,6 +68,7 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
   }
 
   async function getClient(): Promise<MongoClient> {
+    if (resetting) await resetting;
     if ("connectionString" in options && options.connectionString) {
       return getOwnedClient(options.connectionString, options.mongoOptions);
     }
@@ -94,23 +110,8 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
         }
       },
 
-      async close(): Promise<void> {
-        if (!internalClient) {
-          return;
-        }
-
-        await internalClient.close();
-        internalClient = null;
-        ownedConnectPromise = null;
-      },
+      close: closeOwnedClient,
     },
-    async () => {
-      if (internalClient) {
-        const client = internalClient;
-        internalClient = null;
-        ownedConnectPromise = null;
-        await client.close();
-      }
-    },
+    closeOwnedClient,
   );
 }

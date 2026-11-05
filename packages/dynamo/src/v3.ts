@@ -10,6 +10,7 @@ export interface DynamoV3AdapterOptionsWithClient extends BaseDynamoOptions<Dyna
 }
 
 export interface DynamoV3AdapterOptionsWithConfig extends BaseDynamoOptions<DynamoDBClient> {
+  /** Disposal destroys the configured handler and its agents. Pass a client to retain ownership. */
   config?: DynamoDBClientConfig;
   client?: never;
 }
@@ -46,14 +47,17 @@ export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter 
 
   return withDisposal(
     {
-      async check(): Promise<AdapterResult> {
+      async check(context): Promise<AdapterResult> {
         try {
+          context?.signal.throwIfAborted();
           const client = await getClient();
           const start = Date.now();
 
           const { ListTablesCommand } = await import("@aws-sdk/client-dynamodb");
 
-          await client.send(new ListTablesCommand({ Limit: 1 }));
+          context?.signal.throwIfAborted();
+          await client.send(new ListTablesCommand({ Limit: 1 }), { abortSignal: context?.signal });
+          context?.signal.throwIfAborted();
           const latencyMs = Date.now() - start;
 
           const metadataResult = options.metadata
@@ -61,10 +65,11 @@ export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter 
             : undefined;
           const metadata =
             metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          context?.signal.throwIfAborted();
 
           return buildResult(latencyMs, metadata);
         } catch (error) {
-          return buildErrorResult(error);
+          return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
         }
       },
     },

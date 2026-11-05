@@ -1,18 +1,18 @@
 ---
 "healthzkit": minor
-"@healthzkit/cockroach": patch
-"@healthzkit/dynamo": patch
-"@healthzkit/elasticsearch": patch
-"@healthzkit/kafka": patch
-"@healthzkit/memcached": patch
-"@healthzkit/mongo": patch
-"@healthzkit/mysql": patch
-"@healthzkit/postgres": patch
-"@healthzkit/rabbitmq": patch
-"@healthzkit/redis": patch
-"@healthzkit/s3": patch
-"@healthzkit/sqlite": patch
-"@healthzkit/valkey": patch
+"@healthzkit/cockroach": minor
+"@healthzkit/dynamo": minor
+"@healthzkit/elasticsearch": minor
+"@healthzkit/kafka": minor
+"@healthzkit/memcached": minor
+"@healthzkit/mongo": minor
+"@healthzkit/mysql": minor
+"@healthzkit/postgres": minor
+"@healthzkit/rabbitmq": minor
+"@healthzkit/redis": minor
+"@healthzkit/s3": minor
+"@healthzkit/sqlite": minor
+"@healthzkit/valkey": minor
 "@healthzkit/shared": minor
 ---
 

@@ -36,6 +36,29 @@ describe("mongooseAdapter disposal", () => {
     expect((await adapter.check()).status).toBe("fail");
   });
 
+  test("replaces a failed initial connection and shares each concurrent attempt", async () => {
+    const { resource, construct, cleanup } = fixture();
+    const failed = {
+      ...resource,
+      asPromise: vi.fn().mockRejectedValue(new Error("offline")),
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+    construct.mockReturnValueOnce(failed);
+    const adapter = mongooseAdapter({ connectionString: "mongodb://localhost/db" });
+    expect((await Promise.all([adapter.check(), adapter.check()])).map((r) => r.status)).toEqual([
+      "fail",
+      "fail",
+    ]);
+    expect(failed.close).toHaveBeenCalledOnce();
+    expect((await Promise.all([adapter.check(), adapter.check()])).map((r) => r.status)).toEqual([
+      "ok",
+      "ok",
+    ]);
+    expect(construct).toHaveBeenCalledTimes(2);
+    await adapter.dispose!();
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
   test("never cleans up a supplied resource", async () => {
     const { resource, cleanup, construct } = fixture();
     const adapter = mongooseAdapter({ connection: resource } as never);

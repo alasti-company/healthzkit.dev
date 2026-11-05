@@ -28,25 +28,38 @@ describe("kafkajsAdapter", () => {
     expect((await adapter.check()).status).toBe("fail");
   });
 
-  test("attempts every retained admin after per-check disconnect failures", async () => {
-    const errors = [new Error("first disconnect"), new Error("second disconnect")];
-    const admins = errors.map((error) =>
-      mockKafka({
-        disconnect: async () => {
-          throw error;
-        },
-      }),
-    );
-    const client = {
-      admin: vi.fn().mockReturnValueOnce(admins[0].admin).mockReturnValueOnce(admins[1].admin),
-    } as unknown as Kafka;
+  test("bounds retained admins while retrying disconnects, including concurrent checks", async () => {
+    const error = new Error("disconnect failed");
+    const { client, adminFn, disconnect } = mockKafka({
+      disconnect: async () => {
+        throw error;
+      },
+    });
+    const adapter = kafkajsAdapter({ client });
+    expect((await adapter.check()).status).toBe("ok");
+    const results = await Promise.all(Array.from({ length: 20 }, () => adapter.check()));
+    expect(results.every((result) => result.status === "fail")).toBe(true);
+    expect(adminFn).toHaveBeenCalledOnce();
+    expect(disconnect).toHaveBeenCalledTimes(21);
+    disconnect.mockResolvedValue(undefined);
+    expect((await adapter.check()).status).toBe("ok");
+    expect(adminFn).toHaveBeenCalledTimes(2);
+    await adapter.dispose!();
+  });
+
+  test("retains disposal failures without retrying terminal cleanup", async () => {
+    const error = new Error("disconnect failed");
+    const { client, disconnect } = mockKafka({
+      disconnect: async () => {
+        throw error;
+      },
+    });
     const adapter = kafkajsAdapter({ client });
     await adapter.check();
-    await adapter.check();
     const closing = adapter.dispose!();
-    await expect(closing).rejects.toMatchObject({ name: "AggregateError", errors });
+    await expect(closing).rejects.toMatchObject({ name: "AggregateError", errors: [error] });
     expect(adapter.dispose!()).toBe(closing);
-    for (const { disconnect } of admins) expect(disconnect).toHaveBeenCalledTimes(2);
+    expect(disconnect).toHaveBeenCalledTimes(2);
   });
 
   test("connects admin, describes cluster, disconnects, and returns ok with latency", async () => {

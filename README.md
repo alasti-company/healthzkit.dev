@@ -90,26 +90,21 @@ vp run -r test
 
 ### Real-service integration tests
 
-Normal test runs skip the opt-in Postgres (`pg`) and Redis (`ioredis`) integration suites. CI runs
-these separately against Postgres 17 and Redis 7 service containers. To run locally with Docker:
+Normal unit runs skip the real-service suites. CI runs them separately with the same
+[Compose configuration](tools/integration/compose.yml) used locally, waits for service health,
+and always removes containers and volumes. See the [integration guide](tools/integration/README.md)
+for driver coverage, versions, environment variables, failure scenarios, and remaining gaps.
 
 ```bash
 vp install
 vp run -r build
-docker compose -f tools/integration/compose.yml up -d --wait
-HEALTHZKIT_POSTGRES_URL=postgres://healthzkit:healthzkit@127.0.0.1:55432/healthzkit \
-HEALTHZKIT_REDIS_URL=redis://127.0.0.1:56379 \
-vp run test:integration
-# Always clean up, including after a failed test:
-docker compose -f tools/integration/compose.yml down -v
+(
+trap 'docker compose -f tools/integration/compose.yml down -v --remove-orphans --timeout 10' EXIT
+docker compose -f tools/integration/compose.yml up -d --wait --wait-timeout 180
+# Set the service URLs from tools/integration/README.md, then:
+vp run --no-cache test:integration
+)
 ```
-
-You can instead point those two environment variables at existing disposable services.
-`test:integration` sets `HEALTHZKIT_INTEGRATION=1`, requires both URLs, and disables task caching
-so a previous result cannot hide a service failure. The suites cover repeated successful probes,
-query/command failures, refused connections, and cleanup of caller-owned pools/clients. They do
-not modify application data. Failed-connection tests use temporarily reserved loopback ports,
-not the configured services. Driver retries are disabled or bounded for predictable failures.
 
 ### Static checks
 

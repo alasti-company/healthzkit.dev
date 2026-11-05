@@ -35,6 +35,57 @@ describe("mongodbAdapter disposal", () => {
     expect((await adapter.check()).status).toBe("fail");
   });
 
+  test("shares close with disposal and waits for the actual teardown", async () => {
+    const { cleanup } = fixture();
+    let finish!: () => void;
+    cleanup.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const adapter = mongodbAdapter({ connectionString: "mongodb://localhost/db" });
+    await adapter.check();
+    const disposal = adapter.dispose!();
+    await vi.waitFor(() => expect(cleanup).toHaveBeenCalledOnce());
+    let closed = false;
+    const reset = adapter.close().then(() => {
+      closed = true;
+    });
+    await Promise.resolve();
+    expect(closed).toBe(false);
+    finish();
+    await Promise.all([reset, disposal]);
+    expect(cleanup).toHaveBeenCalledOnce();
+    expect((await adapter.check()).status).toBe("fail");
+  });
+
+  test("reusable close shares concurrent resets and permits reconnection", async () => {
+    const { cleanup, construct } = fixture();
+    const adapter = mongodbAdapter({ connectionString: "mongodb://localhost/db" });
+    await adapter.check();
+    await Promise.all([adapter.close(), adapter.close()]);
+    expect(cleanup).toHaveBeenCalledOnce();
+    expect((await adapter.check()).status).toBe("ok");
+    expect(construct).toHaveBeenCalledTimes(2);
+    await adapter.dispose!();
+    expect(cleanup).toHaveBeenCalledTimes(2);
+  });
+
+  test("keeps failed reset cleanup retryable", async () => {
+    const { cleanup, construct } = fixture();
+    const error = new Error("close failed");
+    cleanup.mockRejectedValueOnce(error);
+    const adapter = mongodbAdapter({ connectionString: "mongodb://localhost/db" });
+    await adapter.check();
+    await expect(adapter.close()).rejects.toBe(error);
+    await adapter.close();
+    expect(cleanup).toHaveBeenCalledTimes(2);
+    expect(construct).toHaveBeenCalledOnce();
+    expect((await adapter.check()).status).toBe("ok");
+    await adapter.dispose!();
+  });
+
   test("never cleans up a supplied resource", async () => {
     const { resource, cleanup, construct } = fixture();
     const adapter = mongodbAdapter({ client: resource } as never);

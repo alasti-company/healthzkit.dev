@@ -48,3 +48,24 @@ describe("s3V3Adapter disposal", () => {
     expect(cleanup).not.toHaveBeenCalled();
   });
 });
+
+// Use the real SDK to verify ownership through its destroy() implementation.
+test.each([false, true])("configured handler ownership (supplied client=%s)", async (supplied) => {
+  vi.doUnmock("@aws-sdk/client-s3");
+  vi.resetModules();
+  const { S3Client } = await import("@aws-sdk/client-s3");
+  const destroy = vi.fn();
+  const handler = { handle: vi.fn().mockRejectedValue(new Error("offline")), destroy };
+  const config = {
+    region: "us-east-1",
+    credentials: { accessKeyId: "test", secretAccessKey: "test" },
+    maxAttempts: 1,
+    requestHandler: handler,
+  };
+  const client = new S3Client(config);
+  const adapter = s3V3Adapter(supplied ? { client } : { config });
+  expect((await adapter.check()).status).toBe("fail");
+  await adapter.dispose!();
+  expect(destroy).toHaveBeenCalledTimes(supplied ? 0 : 1);
+  if (supplied) client.destroy();
+});
