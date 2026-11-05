@@ -1,0 +1,56 @@
+packages/healthzkit/tests/scheduler.test.ts
+  s_32a8f447fd4f62::t_a4b3ebffe8eeb8 3,141-145,160
+packages/healthzkit/src/index.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 5
+packages/http/src/http.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 47,59-61,79-81
+.changeset/bound-adapter-work.md
+  s_32a8f447fd4f62::t_342982d1165c85 1-6
+packages/healthzkit/src/types.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 11-15,17
+packages/healthzkit/src/executor.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 1-27
+apps/docs/adapter/http.mdx
+  s_32a8f447fd4f62::t_342982d1165c85 117-118
+apps/docs/guide/checks-and-adapters.mdx
+  s_32a8f447fd4f62::t_adbadb7551540e 14
+  s_32a8f447fd4f62::t_342982d1165c85 30-49
+packages/healthzkit/src/timeout.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 3-8,12-16
+packages/healthzkit/README.md
+  s_32a8f447fd4f62::t_342982d1165c85 143,260
+  s_32a8f447fd4f62::t_adbadb7551540e 159-179
+packages/healthzkit/src/scheduler.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 1-2,13,43,54-57,59,68
+packages/healthzkit/tests/on-demand.test.ts
+  s_32a8f447fd4f62::t_342982d1165c85 48-50,69-96,99-108,118-122,144-154
+  s_32a8f447fd4f62::t_a4b3ebffe8eeb8 1-47,51-68,97-98,109-117,123-143,155-167
+apps/docs/guide/scheduling.mdx
+  s_32a8f447fd4f62::t_342982d1165c85 42
+packages/http/tests/http.test.ts
+  s_32a8f447fd4f62::t_342982d1165c85 125-150
+  s_32a8f447fd4f62::t_adbadb7551540e 2,151-194
+  s_32a8f447fd4f62::t_a4b3ebffe8eeb8 195
+packages/healthzkit/src/runner.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 2,8,13,29,56
+packages/http/README.md
+  s_32a8f447fd4f62::t_342982d1165c85 130-131
+packages/healthzkit/tests/runner.test.ts
+  s_32a8f447fd4f62::t_914719b8a34bbf 3,8-9,11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bee1e035d6599286df27e81a8724fb716234ec83",
+  "prompts": {},
+  "sessions": {
+    "s_32a8f447fd4f62": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a944-0cd1-7871-bb20-874f0587db63",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
