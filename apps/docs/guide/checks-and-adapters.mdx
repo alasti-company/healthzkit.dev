@@ -7,15 +7,15 @@ description: Configure Healthzkit checks and adapters—probe types, per-check t
 
 Each check is a `CheckConfig` entry in the `checks` array on the root config:
 
-| Field            | Purpose                                                                                                                                                                                |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`name`**       | Key in the response `checks` object.                                                                                                                                                   |
-| **`type`**       | One or both of `"liveness"` and `"readiness"`. Only checks that include the probe type run for that probe. If none match, the response is still **200** with an empty `checks` object. |
-| **`adapter`**    | Must implement `HealthAdapter`: `check(context?: CheckContext): Promise<AdapterResult>`.                                                                                               |
-| **`timeout`**    | Per-check timeout in milliseconds. Default **5000**, unless overridden by `defaults.timeout`.                                                                                          |
-| **`schedule`**   | Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](/guide/scheduling)).                     |
-| **`onFail`**     | Optional `httpStatus`, `treatAs` (for example map `"fail"` to `"degraded"` for rollup and body while adjusting HTTP rules).                                                            |
-| **`onDegraded`** | Optional `httpStatus` override when this check and the overall rollup are `"degraded"` (see [Responses and HTTP](/guide/responses-and-http)).                                          |
+| Field            | Purpose                                                                                                                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`name`**       | Key in the response `checks` object.                                                                                                                                                                                                                   |
+| **`type`**       | One or more of `"liveness"`, `"readiness"`, and `"startup"`. Only checks that include the probe type run for that probe. With the default rollup, no matching checks returns **200** with empty `checks`; a custom rollup still determines the status. |
+| **`adapter`**    | Must implement `HealthAdapter`: `check(context?: CheckContext): Promise<AdapterResult>`.                                                                                                                                                               |
+| **`timeout`**    | Per-check timeout in milliseconds. Default **5000**, unless overridden by `defaults.timeout`.                                                                                                                                                          |
+| **`schedule`**   | Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](/guide/scheduling)).                                                                                     |
+| **`onFail`**     | Optional `httpStatus`, `treatAs` (for example map `"fail"` to `"degraded"` for rollup and body while adjusting HTTP rules).                                                                                                                            |
+| **`onDegraded`** | Optional `httpStatus` override when this check and the overall rollup are `"degraded"` (see [Responses and HTTP](/guide/responses-and-http)).                                                                                                          |
 
 ## `AdapterResult`
 

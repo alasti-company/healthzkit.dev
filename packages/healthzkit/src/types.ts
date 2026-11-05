@@ -1,5 +1,5 @@
 export type CheckStatus = "ok" | "degraded" | "fail";
-export type CheckType = "liveness" | "readiness";
+export type CheckType = "liveness" | "readiness" | "startup";
 export type OutputFormat = "json" | "text";
 
 export interface AdapterResult {
