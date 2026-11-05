@@ -3,12 +3,29 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
+const severities = ["info", "low", "moderate", "high", "critical"];
+const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
 export function evaluateAudit(report, exceptions, today = new Date().toISOString().slice(0, 10)) {
-  if (!report.advisories || !report.metadata?.vulnerabilities || report.error) {
+  if (
+    !isRecord(report) ||
+    report.error ||
+    !isRecord(report.advisories) ||
+    !isRecord(report.metadata) ||
+    !isRecord(report.metadata.vulnerabilities)
+  ) {
     throw new Error("The registry did not return a complete audit report.");
   }
-  const counts = Object.values(report.metadata.vulnerabilities);
-  if (!counts.length || counts.some((count) => !Number.isSafeInteger(count) || count < 0)) {
+  const vulnerabilities = report.metadata.vulnerabilities;
+  if (
+    Object.keys(vulnerabilities).length !== severities.length ||
+    severities.some(
+      (severity) =>
+        !Object.hasOwn(vulnerabilities, severity) ||
+        !Number.isSafeInteger(vulnerabilities[severity]) ||
+        vulnerabilities[severity] < 0,
+    )
+  ) {
     throw new Error("Audit vulnerability counts are missing or invalid.");
   }
   const failures = [];
@@ -41,6 +58,23 @@ export function evaluateAudit(report, exceptions, today = new Date().toISOString
   return { failures, accepted };
 }
 
+export function evaluateAuditCommand(result, exceptions, today) {
+  if (result.error) throw result.error;
+  if (result.status !== 0 && result.status !== 1) {
+    throw new Error(
+      `Audit command failed: ${result.stderr || result.stdout || `exit ${result.status}`}`,
+    );
+  }
+  try {
+    return evaluateAudit(JSON.parse(result.stdout), exceptions, today);
+  } catch (error) {
+    throw new Error(
+      `Invalid audit report: ${error.message}${result.stderr ? `\nAudit stderr: ${result.stderr}` : ""}`,
+      { cause: error },
+    );
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const result = spawnSync("vp", ["pm", "audit", "--json"], {
@@ -48,14 +82,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       encoding: "utf8",
       maxBuffer: 32 * 1024 * 1024,
     });
-    if (result.error) throw result.error;
-    if (result.status !== 0 && result.status !== 1) {
-      throw new Error(`Audit command failed: ${result.stderr || result.stdout}`);
-    }
     const exceptions = JSON.parse(
       readFileSync(new URL("./security-exceptions.json", import.meta.url)),
     );
-    const { failures, accepted } = evaluateAudit(JSON.parse(result.stdout), exceptions);
+    const { failures, accepted } = evaluateAuditCommand(result, exceptions);
     for (const message of accepted) console.log(`Reviewed exception: ${message}`);
     for (const message of failures) console.error(`Unreviewed vulnerability: ${message}`);
     console.log(
