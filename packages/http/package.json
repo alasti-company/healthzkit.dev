@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/http",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "HTTP/HTTPS endpoint health-check adapter for healthzkit using global fetch.",
   "keywords": [
     "fetch",
