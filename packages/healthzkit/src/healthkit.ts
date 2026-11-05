@@ -51,7 +51,7 @@ export class HealthKit {
         validateTimer(check.schedule.intervalMs, `Check "${check.name}" schedule.intervalMs`);
       }
     }
-    this.scheduler = new Scheduler();
+    this.scheduler = new Scheduler(this.config.hooks);
   }
 
   start(): void {
@@ -73,6 +73,14 @@ export class HealthKit {
     return this.runForType("readiness");
   }
 
+  async checkLiveness(): Promise<HealthResponse> {
+    return this.checkForType("liveness");
+  }
+
+  async checkReadiness(): Promise<HealthResponse> {
+    return this.checkForType("readiness");
+  }
+
   /** True for `{basePath}/live` and `{basePath}/ready`. Does not run checks. */
   matchHealthPath(path: string): boolean {
     const basePath = this.config.basePath ?? DEFAULT_BASE_PATH;
@@ -89,24 +97,40 @@ export class HealthKit {
     return null;
   }
 
-  private async runForType(type: CheckType): Promise<AgnosticResponse> {
+  private async checkForType(type: CheckType): Promise<HealthResponse> {
     const checks = this.config.checks.filter((c) => c.type.includes(type));
-    const { output, defaults, rollup } = this.config;
-
-    const exposeError = output?.exposeError ?? true;
+    const { defaults, rollup } = this.config;
     const defaultTimeout = defaults?.timeout;
 
-    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout, exposeError);
+    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout);
     const overallStatus = computeRollupStatus(checkResult, rollup);
 
-    const response: HealthResponse = {
+    return {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       checks: checkResult,
     };
+  }
 
-    const { body, contentType } = format(response, output?.format);
-    const httpStatus = this.resolveHttpStatus(overallStatus, checks, checkResult);
+  private async runForType(type: CheckType): Promise<AgnosticResponse> {
+    const response = await this.checkForType(type);
+    const checks = this.config.checks.filter((c) => c.type.includes(type));
+    const { output } = this.config;
+    const publicResponse =
+      output?.exposeError === false
+        ? {
+            ...response,
+            checks: Object.fromEntries(
+              Object.entries(response.checks).map(([name, result]) => {
+                const { error: _error, ...publicResult } = result;
+                return [name, publicResult];
+              }),
+            ),
+          }
+        : response;
+
+    const { body, contentType } = format(publicResponse, output?.format);
+    const httpStatus = this.resolveHttpStatus(response.status, checks, response.checks);
 
     return {
       status: httpStatus,

@@ -125,6 +125,68 @@ if (res) {
 
 `handleRequest` returns `null` when the path is not a probe route, so you can try it first and fall through.
 
+## Structured results and observability
+
+`await kit.checkLiveness()` and `await kit.checkReadiness()` return a typed
+`HealthResponse` (`status`, `timestamp`, `checks`) without HTTP serialization. They
+use the same checks, deadlines, in-flight deduplication, cache, `treatAs`, and rollup
+as the HTTP methods. HTTP status mapping and output filtering happen afterward.
+Structured results and hook payloads retain errors and metadata even when
+`output.exposeError` is false. Treat them as internal diagnostics.
+
+Hooks need no telemetry dependency. For example, log executions and accumulate
+counts/durations in memory for your metrics exporter:
+
+```ts
+const counts = new Map<string, number>();
+const durations = new Map<string, number>();
+const kit = createHealthKit({
+  checks: [
+    { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
+  ],
+  hooks: {
+    onCheckComplete(event) {
+      console.info("health check", event);
+      const key = `${event.name}:${event.status}:${event.source}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+      durations.set(key, (durations.get(key) ?? 0) + event.duration);
+    },
+    onStatusChange(event) {
+      console.info(`${event.name}: ${event.previousStatus} -> ${event.status}`);
+    },
+  },
+});
+const result = await kit.checkLiveness(); // HealthResponse, not an HTTP response
+console.info(result.status);
+```
+
+Both hooks receive the check `name`, configured probe `type` array, effective
+`status` (after `treatAs`), execution `duration` in milliseconds, completion
+`timestamp` (ISO), `result` (`CheckResult`), and `source`:
+
+| Situation                                    | Hook behavior                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| On-demand execution                          | One completion with source `"on-demand"`                                                          |
+| Initial/interval background execution        | One completion with source `"scheduled"`, even without probe traffic                              |
+| Concurrent callers sharing an execution      | No additional events, including across probe types and structured/HTTP callers                    |
+| Scheduling adopts an on-demand execution     | Keeps the original `"on-demand"` source; no additional event                                      |
+| Cached reads, including stale-cache failures | No execution or transition event; use structured probe results to observe staleness               |
+| Execution times out                          | One failure completion at the deadline; no additional event for repeated reads or late settlement |
+
+`onStatusChange` additionally receives `previousStatus`. It tracks **per-check
+execution status**, not aggregate probe status or custom rollup changes. The first
+observation establishes the baseline; unchanged results emit only completion.
+`stop()` resets the baseline and suppresses events from unfinished executions in
+the stopped lifecycle. Restarting does not manufacture an event for reused work.
+
+Callbacks are invoked in completion-then-transition order, receive separate cloned
+payloads, and are not awaited. Synchronous exceptions and rejected promises are
+ignored, so they cannot fail probes or stop scheduling. Keep synchronous callback
+work short; enqueue expensive telemetry. Metadata that cannot be structured-cloned
+is omitted from hook payloads, while the execution event still fires and structured
+results retain the original metadata. Rollup functions always receive internal
+diagnostics, including when HTTP error exposure is disabled.
+
 ## Routes and `basePath`
 
 | Path               | Behavior                                        |
@@ -152,7 +214,7 @@ Each check is a `CheckConfig`:
 - **`error`**: Optional `Error` or string (included in the serialized check unless `output.exposeError` is `false`).
 - **`metadata`**: Optional object merged into the check result.
 
-Thrown errors from `adapter.check()` are treated as **`fail`** with the error message captured when `exposeError` is true.
+Thrown errors from `adapter.check()` are treated as **`fail`** with the error message retained internally and included in HTTP output when `exposeError` is true.
 
 Official adapters (Postgres, Redis, Kafka, S3, Prisma, Drizzle, and more) live in [`@healthzkit/*` packages](https://healthzkit.dev).
 
@@ -251,7 +313,7 @@ Exported from `healthzkit`:
 **Runtime**
 
 - `createHealthKit(config)` → `HealthKit`
-- `HealthKit`: `start()`, `stop()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`
+- `HealthKit`: `start()`, `stop()`, `checkLiveness()`, `checkReadiness()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`
 - `toFetchResponse(res, method?)` → Fetch `Response` (`HEAD` omits the body)
 - `createFetchHandler(kit)` → `(request: Request) => Promise<Response>`
 
@@ -260,6 +322,7 @@ Exported from `healthzkit`:
 - `HealthkitConfig`, `CheckConfig`, `CheckContext`, `HealthAdapter`, `AdapterResult`, `CheckResult`, `HealthResponse`
 - `CheckStatus`, `CheckType`, `RollupConfig`, `OutputConfig`, `DefaultsConfig`
 - `AgnosticRequest`, `AgnosticResponse`
+- `ObservabilityHooks`, `CheckCompleteEvent`, `StatusChangeEvent`
 
 `AgnosticResponse` is `{ status: number; headers: Record<string, string>; body: string }` so you can map it to Express, Fastify, `fetch` `Response`, etc.
 
