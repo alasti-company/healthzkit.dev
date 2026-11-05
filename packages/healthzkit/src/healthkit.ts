@@ -25,6 +25,7 @@ function validateTimer(value: number, field: string): void {
 export class HealthKit {
   private scheduler: Scheduler;
   private started = false;
+  private draining = false;
 
   constructor(private config: HealthkitConfig) {
     this.config = {
@@ -66,6 +67,15 @@ export class HealthKit {
     this.started = false;
   }
 
+  /** Permanently fail readiness for this instance. Scheduling and liveness are independent. */
+  beginDrain(): void {
+    this.draining = true;
+  }
+
+  async handleStartup(): Promise<AgnosticResponse> {
+    return this.runForType("startup");
+  }
+
   async handleLiveness(): Promise<AgnosticResponse> {
     return this.runForType("liveness");
   }
@@ -77,48 +87,44 @@ export class HealthKit {
   async checkLiveness(): Promise<HealthResponse> {
     return this.checkForType("liveness");
   }
-
   async checkReadiness(): Promise<HealthResponse> {
     return this.checkForType("readiness");
   }
+  async checkStartup(): Promise<HealthResponse> {
+    return this.checkForType("startup");
+  }
 
-  /** True for `{basePath}/live` and `{basePath}/ready`. Does not run checks. */
+  /** True for the live, ready, and startup routes. Does not run checks. */
   matchHealthPath(path: string): boolean {
     const basePath = this.config.basePath ?? DEFAULT_BASE_PATH;
-    return path === `${basePath}/live` || path === `${basePath}/ready`;
+    return ["live", "ready", "startup"].some((route) => path === `${basePath}/${route}`);
   }
 
   async handleRequest(req: AgnosticRequest): Promise<AgnosticResponse | null> {
     const basePath = this.config.basePath ?? DEFAULT_BASE_PATH;
     const { path } = req;
-
-    if (path === `${basePath}/live`) return this.handleLiveness();
-    if (path === `${basePath}/ready`) return this.handleReadiness();
-
-    return null;
-  }
-
-  private async checkForType(type: CheckType): Promise<HealthResponse> {
-    const checks = this.config.checks.filter((c) => c.type.includes(type));
-    const { defaults, rollup } = this.config;
-    const defaultTimeout = defaults?.timeout;
-
-    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout);
-    const overallStatus = computeRollupStatus(checkResult, rollup);
-
-    return {
-      status: overallStatus,
-      timestamp: new Date().toISOString(),
-      checks: checkResult,
-    };
+    if (!this.matchHealthPath(path)) return null;
+    const method = (req.method ?? "GET").toUpperCase();
+    if (method !== "GET" && method !== "HEAD") {
+      return { status: 405, headers: { Allow: "GET, HEAD" }, body: "" };
+    }
+    const response = await (path === `${basePath}/live`
+      ? this.handleLiveness()
+      : path === `${basePath}/ready`
+        ? this.handleReadiness()
+        : this.handleStartup());
+    return method === "HEAD" ? { ...response, body: "" } : response;
   }
 
   private async runForType(type: CheckType): Promise<AgnosticResponse> {
-    const response = await this.checkForType(type);
     const checks = this.config.checks.filter((c) => c.type.includes(type));
-    const { output } = this.config;
+    const response = await this.checkForType(type);
+    if (type === "readiness" && this.draining) {
+      response.status = "fail";
+      response.checks = {};
+    }
     const publicResponse =
-      output?.exposeError === false
+      this.config.output?.exposeError === false
         ? {
             ...response,
             checks: Object.fromEntries(
@@ -129,14 +135,37 @@ export class HealthKit {
             ),
           }
         : response;
+    const { body, contentType } = format(publicResponse, this.config.output?.format);
+    const httpStatus =
+      type === "readiness" && this.draining
+        ? DEFAULT_FAIL_STATUS
+        : this.resolveHttpStatus(response.status, checks, response.checks);
 
-    const { body, contentType } = format(publicResponse, output?.format);
-    const httpStatus = this.resolveHttpStatus(response.status, checks, response.checks);
+    return { status: httpStatus, headers: { "Content-Type": contentType }, body };
+  }
+
+  // Keep lifecycle policy on the structured execution path for future public result APIs.
+  private async checkForType(type: CheckType): Promise<HealthResponse> {
+    const { defaults, rollup } = this.config;
+    const drainedResponse = (): HealthResponse => ({
+      status: "fail",
+      timestamp: new Date().toISOString(),
+      checks: {},
+    });
+    if (type === "readiness" && this.draining) return drainedResponse();
+    const checks = this.config.checks.filter((c) => c.type.includes(type));
+
+    const defaultTimeout = defaults?.timeout;
+
+    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout);
+    // A request that began before drain must not return a healthy result afterward.
+    if (type === "readiness" && this.draining) return drainedResponse();
+    const overallStatus = computeRollupStatus(checkResult, rollup);
 
     return {
-      status: httpStatus,
-      headers: { "Content-Type": contentType },
-      body,
+      status: overallStatus,
+      timestamp: new Date().toISOString(),
+      checks: checkResult,
     };
   }
 

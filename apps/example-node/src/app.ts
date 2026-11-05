@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createHealthKit, toFetchResponse } from "healthzkit";
+import { createFetchHandler, createHealthKit } from "healthzkit";
 import { pgAdapter } from "@healthzkit/postgres/pg";
 import type { Pool } from "pg";
 
@@ -11,7 +11,7 @@ export function createApplication(pool: Pool) {
     checks: [
       {
         name: "process",
-        type: ["liveness"],
+        type: ["liveness", "startup"],
         adapter: { check: async () => ({ status: "ok" }) },
       },
       {
@@ -23,11 +23,8 @@ export function createApplication(pool: Pool) {
     ],
   });
   const app = new Hono();
-  app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
-  app.get("/healthz/ready", async (c) => {
-    if (draining) return c.json({ status: "fail" }, 503);
-    return toFetchResponse(await kit.handleReadiness());
-  });
+  const healthHandler = createFetchHandler(kit);
+  app.all("/healthz/*", (c) => healthHandler(c.req.raw));
   // Application traffic shares the exact same pool as the readiness adapter.
   app.get("/", async (c) => {
     if (draining) return c.json({ error: "shutting down" }, 503);
@@ -43,6 +40,7 @@ export function createApplication(pool: Pool) {
     start: () => kit.start(),
     beginDrain: () => {
       draining = true;
+      kit.beginDrain();
       kit.stop();
     },
   };

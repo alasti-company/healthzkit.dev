@@ -9,10 +9,16 @@ import type {
 } from "../src/index.ts";
 
 describe("structured probes and execution hooks", () => {
+  test("structured readiness respects drain while startup remains independent", async () => {
+    const kit = createHealthKit({ checks: [] });
+    kit.beginDrain();
+    expect((await kit.checkReadiness()).status).toBe("fail");
+    expect((await kit.checkStartup()).status).toBe("ok");
+  });
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  test.each(["liveness", "readiness"] as const)(
+  test.each(["liveness", "readiness", "startup"] as const)(
     "%s shares HTTP rollup and results",
     async (type) => {
       const check = vi.fn<HealthAdapter["check"]>().mockResolvedValue({
@@ -32,8 +38,16 @@ describe("structured probes and execution hooks", () => {
         ],
         rollup: { computeStatus: (results) => results.db.status },
       });
-      const structured = await (type === "liveness" ? kit.checkLiveness() : kit.checkReadiness());
-      const http = await (type === "liveness" ? kit.handleLiveness() : kit.handleReadiness());
+      const structured = await (type === "liveness"
+        ? kit.checkLiveness()
+        : type === "startup"
+          ? kit.checkStartup()
+          : kit.checkReadiness());
+      const http = await (type === "liveness"
+        ? kit.handleLiveness()
+        : type === "startup"
+          ? kit.handleStartup()
+          : kit.handleReadiness());
       expect(JSON.parse(http.body)).toEqual(structured);
       expect(structured.checks.db).toMatchObject({ status: "degraded", error: "offline" });
       expect(http.status).toBe(429);
