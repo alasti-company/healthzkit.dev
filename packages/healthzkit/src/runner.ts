@@ -1,15 +1,16 @@
 import type { Scheduler } from "./scheduler.ts";
-import { DEFAULT_TIMEOUTMS, withTimeout } from "./timeout.ts";
+import { DEFAULT_TIMEOUTMS } from "./timeout.ts";
 import type { AdapterResult, CheckConfig, CheckResult } from "./types.ts";
 
 async function executeCheck(
   check: CheckConfig,
   timeoutMs: number,
+  scheduler: Pick<Scheduler, "runCheck">,
 ): Promise<{ result: AdapterResult; latency: number }> {
   const start = Date.now();
 
   try {
-    const result = await withTimeout(check.adapter.check(), timeoutMs, check.name);
+    const result = await scheduler.runCheck(check, timeoutMs);
 
     return { result, latency: Date.now() - start };
   } catch (error) {
@@ -25,7 +26,7 @@ async function executeCheck(
 
 export async function runChecks(
   checks: CheckConfig[],
-  scheduler: Pick<Scheduler, "getCache" | "getPending">,
+  scheduler: Pick<Scheduler, "getCache" | "getPending" | "runCheck">,
   defaultTimeout: number = DEFAULT_TIMEOUTMS,
   exposeError: boolean = true,
 ): Promise<Record<string, CheckResult>> {
@@ -52,7 +53,7 @@ export async function runChecks(
         latency = 0;
         cachedAt = cached.cachedAt.toISOString();
       } else {
-        ({ result: adapterResult, latency } = await executeCheck(check, timeoutMs));
+        ({ result: adapterResult, latency } = await executeCheck(check, timeoutMs, scheduler));
       }
 
       const status =

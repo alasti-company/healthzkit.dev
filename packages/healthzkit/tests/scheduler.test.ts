@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test";
 import { createHealthKit } from "../src/healthkit.ts";
-import type { AdapterResult } from "../src/types.ts";
+import type { AdapterResult, CheckContext } from "../src/types.ts";
 import { Scheduler } from "../src/scheduler.ts";
 import type { CheckConfig } from "../src/types.ts";
 
@@ -138,7 +138,11 @@ describe("scheduled timeouts", () => {
   });
 
   test("immediate probes share the initial timeout without launching extra checks", async () => {
-    const check = vi.fn<() => Promise<AdapterResult>>(() => new Promise(() => {}));
+    let signal!: AbortSignal;
+    const check = vi.fn((context?: CheckContext) => {
+      signal = context!.signal;
+      return new Promise<AdapterResult>(() => {});
+    });
     const kit = createHealthKit({
       defaults: { timeout: 25 },
       checks: [
@@ -153,6 +157,7 @@ describe("scheduled timeouts", () => {
         expect(response.status).toBe(503);
         expect(JSON.parse(response.body).checks.db.error).toContain("timed out after 25ms");
       }
+      expect(signal.aborted).toBe(true);
       await vi.advanceTimersByTimeAsync(100);
       expect((await kit.handleReadiness()).status).toBe(503);
       expect(check).toHaveBeenCalledTimes(1);

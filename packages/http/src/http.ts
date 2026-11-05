@@ -44,7 +44,7 @@ export function httpAdapter(options: HttpAdapterOptions): HealthAdapter {
   const timeout = options.timeout ?? 5000;
 
   return {
-    async check(): Promise<AdapterResult> {
+    async check(context): Promise<AdapterResult> {
       const abortController = new AbortController();
       const timer = setTimeout(() => abortController.abort(), timeout);
       let response: Response | undefined;
@@ -56,7 +56,9 @@ export function httpAdapter(options: HttpAdapterOptions): HealthAdapter {
           method: options.method ?? "GET",
           headers: options.headers,
           body: options.body,
-          signal: abortController.signal,
+          signal: context
+            ? AbortSignal.any([abortController.signal, context.signal])
+            : abortController.signal,
           redirect: options.followRedirects === false ? "manual" : "follow",
         });
 
@@ -74,6 +76,9 @@ export function httpAdapter(options: HttpAdapterOptions): HealthAdapter {
           statusCode: response.status,
         });
       } catch (error) {
+        if (context?.signal.aborted) {
+          return buildErrorResult(context.signal.reason);
+        }
         if (error instanceof Error && error.name === "AbortError") {
           return buildErrorResult(new Error(`Request timed out after ${timeout}ms`));
         }

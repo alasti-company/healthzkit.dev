@@ -2,6 +2,7 @@ export { createHealthKit, HealthKit } from "./healthkit.ts";
 export { createFetchHandler, toFetchResponse } from "./http.ts";
 export type {
   HealthAdapter,
+  CheckContext,
   AdapterResult,
   CheckConfig,
   CheckResult,
