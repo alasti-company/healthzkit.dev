@@ -17,7 +17,7 @@ describe("src/types.ts", () => {
   });
 
   test("CheckType is the expected union", () => {
-    expectTypeOf<CheckType>().toEqualTypeOf<"liveness" | "readiness">();
+    expectTypeOf<CheckType>().toEqualTypeOf<"liveness" | "readiness" | "startup">();
   });
 
   test("OutputFormat is the expected union", () => {

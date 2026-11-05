@@ -66,3 +66,15 @@ Official adapters dispose only resources they create. Supplied clients, pools, c
 For official adapters that expose `dispose()`, direct users can call `await adapter.dispose?.()` for terminal, idempotent disposal that waits for active checks. Later direct checks return a failure without opening resources. Do not reuse a disposed adapter in another kit. Share an adapter across checks in the same kit only when those checks should share its resource lifetime.
 
 For custom adapters, implement `dispose(): void | Promise<void>` to release only resources the adapter owns. Make it idempotent if the same adapter might be disposed directly or shared across kits. Do not await `kit.close()` from inside that kit's check or disposal hook, because close waits for those callbacks.
+
+## Draining and restarts
+
+```ts
+// In your application's shutdown handler:
+kit.beginDrain(); // readiness immediately returns 503
+kit.stop(); // stop background intervals and clear cache
+```
+
+`beginDrain()` is idempotent and permanent for this kit instance. It does not stop scheduling, cancel pending checks, or change startup and liveness evaluation. Repeated `start()` and `stop()` calls are safe. `stop()` stops scheduling and clears the cache; probes remain usable on demand. `start()` restarts scheduling after `stop()` without resetting drain state. Create a new kit for a new application lifecycle. Your application owns process signals, HTTP shutdown, and adapter resources.
+
+Startup checks can also be scheduled. Probes await the first scheduled run, then use the same cache freshness and refresh rules as other checks. Startup success is not latched by healthzkit; Kubernetes stops invoking its startup probe after success.
