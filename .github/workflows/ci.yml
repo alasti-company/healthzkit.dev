@@ -19,28 +19,14 @@ jobs:
   integration:
     name: Real-service integration
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: healthzkit
-          POSTGRES_PASSWORD: healthzkit
-          POSTGRES_DB: healthzkit
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -h 127.0.0.1 -U healthzkit -d healthzkit"
-          --health-interval 5s --health-timeout 3s --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s --health-timeout 3s --health-retries 10
+    timeout-minutes: 15
     env:
-      HEALTHZKIT_POSTGRES_URL: postgres://healthzkit:healthzkit@127.0.0.1:5432/healthzkit
-      HEALTHZKIT_REDIS_URL: redis://127.0.0.1:6379
+      HEALTHZKIT_POSTGRES_URL: postgres://healthzkit:healthzkit@127.0.0.1:55432/healthzkit
+      HEALTHZKIT_REDIS_URL: redis://127.0.0.1:56379
+      HEALTHZKIT_RABBITMQ_URL: amqp://healthzkit:healthzkit@127.0.0.1:55672
+      HEALTHZKIT_KAFKA_URL: 127.0.0.1:59092
+      HEALTHZKIT_MYSQL_URL: mysql://healthzkit:healthzkit@127.0.0.1:53306/healthzkit
+      HEALTHZKIT_MONGO_URL: mongodb://127.0.0.1:57017/healthzkit
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -53,8 +39,16 @@ jobs:
         run: vp install --frozen-lockfile
       - name: Build
         run: vp run -r build
+      - name: Start disposable integration services
+        run: docker compose -f tools/integration/compose.yml up -d --wait --wait-timeout 180
       - name: Integration tests
-        run: vp run test:integration
+        run: vp run --no-cache test:integration
+      - name: Service diagnostics
+        if: failure()
+        run: docker compose -f tools/integration/compose.yml logs --no-color
+      - name: Tear down integration services
+        if: always()
+        run: docker compose -f tools/integration/compose.yml down -v --remove-orphans --timeout 10
 
   ci:
     name: CI (Node ${{ matrix.node }})
@@ -103,11 +97,11 @@ jobs:
         run: vp run test:packages
 
   ci-required:
-    # Preserve the existing required-check context while requiring every matrix leg.
+    # Preserve the required-check context and require the matrix plus real-service coverage.
     name: CI
-    needs: ci
+    needs: [ci, integration]
     if: ${{ always() }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Require all Node versions to pass
-        run: test "${{ needs.ci.result }}" = success
+      - name: Require all Node versions and integration tests to pass
+        run: test "${{ needs.ci.result }}" = success && test "${{ needs.integration.result }}" = success
