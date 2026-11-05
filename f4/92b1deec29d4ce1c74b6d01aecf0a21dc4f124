@@ -1,0 +1,11 @@
+tools/security-audit.test.mjs
+  ai_agent 123-144
+tools/security-audit.mjs
+  ai_agent 31-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f492b1deec29d4ce1c74b6d01aecf0a21dc4f124",
+  "prompts": {}
+}
