@@ -1,5 +1,22 @@
 # @healthzkit/s3
 
+## 0.1.0
+
+### Minor Changes
+
+- a145239: Add optional adapter disposal and terminal, idempotent `kit.close()`. Wait for accepted requests and underlying checks before attempting all distinct adapters' cleanup; aggregate cleanup failures without retrying. Preserve reusable scheduling-only `stop()` and check-only adapter compatibility.
+  
+  Dispose adapter-owned clients and pools across persistent drivers and AWS SDK v3 without closing supplied clients. Add a shared lifecycle helper, protect lazy initialization against concurrent checks, and use a private Mongoose connection instead of the application's global singleton. Preserve MongoDB adapter `close()` as a reusable reset and add terminal `dispose()` separately.
+
+### Patch Changes
+
+- 893f788: Propagate check cancellation to AWS SDK v3 requests, AWS SDK v2 per-operation
+  requests, and Elasticsearch cluster health requests without closing shared clients.
+  Preserve cancellation reasons and request settlement before retrying. Document
+  cancellation coverage and driver timeout limits across official adapters.
+- Updated dependencies [a145239]
+  - @healthzkit/shared@0.1.0
+
 ## 0.0.6
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/redis",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Redis health-check adapters for healthzkit (ioredis, node-redis, and Upstash).",
   "keywords": [
     "health-check",

@@ -1,5 +1,16 @@
 # healthzkit
 
+## 0.4.0
+
+### Minor Changes
+
+- 54123ff: Add typed checkLiveness() and checkReadiness() APIs and isolated per-execution completion and status-change hooks. Keep HTTP probes on the same execution path, with diagnostic filtering applied only during serialization.
+- 988e41a: Add startup checks and `/healthz/startup` routing, plus `handleStartup()` for direct use. Add idempotent `beginDrain()` to immediately fail readiness with HTTP 503 while keeping liveness and scheduling independent. Document permanent per-instance drain state and scheduling restart semantics. Direct request routing now supports GET/HEAD and rejects unsupported health-route methods with 405.
+- a145239: Add optional adapter disposal and terminal, idempotent `kit.close()`. Wait for accepted requests and underlying checks before attempting all distinct adapters' cleanup; aggregate cleanup failures without retrying. Preserve reusable scheduling-only `stop()` and check-only adapter compatibility.
+  
+  Dispose adapter-owned clients and pools across persistent drivers and AWS SDK v3 without closing supplied clients. Add a shared lifecycle helper, protect lazy initialization against concurrent checks, and use a private Mongoose connection instead of the application's global singleton. Preserve MongoDB adapter `close()` as a reusable reset and add terminal `dispose()` separately.
+- 6e236d1: Set `Cache-Control: no-store` on health responses. Add `output.exposeMetadata` omission and scalar JSON Pointer allowlists, and `output.detail: "status"` for status-only JSON or text. Apply error and metadata redaction only when formatting HTTP output so internal rollup diagnostics remain available. Preserve existing diagnostic exposure defaults and document safer settings for public endpoints.
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,12 @@
 # @healthzkit/drizzle
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies [a145239]
+  - @healthzkit/shared@0.1.0
+
 ## 0.0.7
 
 ### Patch Changes
