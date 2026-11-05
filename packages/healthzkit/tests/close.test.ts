@@ -48,6 +48,9 @@ describe("terminal close", () => {
     await expect(kit.handleRequest({ path: "/healthz/ready" })).rejects.toThrow(
       "HealthKit is closed",
     );
+    await expect(kit.handleRequest({ path: "/healthz/ready", method: "POST" })).rejects.toThrow(
+      "HealthKit is closed",
+    );
     expect(await kit.handleRequest({ path: "/other" })).toBeNull();
   });
 

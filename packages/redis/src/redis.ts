@@ -40,9 +40,8 @@ export function nodeRedisAdapter(options: NodeRedisAdapterOptions): HealthAdapte
   let ownedInit: ReturnType<typeof resolveClient> | undefined;
   function getClient(): ReturnType<typeof resolveClient> {
     if (options.client) return resolveClient();
-    ownedInit ??= resolveClient().catch((error: unknown) => {
+    ownedInit ??= resolveClient().finally(() => {
       ownedInit = undefined;
-      throw error;
     });
     return ownedInit;
   }

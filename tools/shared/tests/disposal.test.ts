@@ -52,6 +52,27 @@ describe("withDisposal", () => {
     expect((await adapter.check()).status).toBe("fail");
   });
 
+  test("preserves existing disposal with its receiver and attempts both cleanups on failure", async () => {
+    const errors = [new Error("original"), new Error("extra")];
+    const original = {
+      check: async (): Promise<AdapterResult> => ({ status: "ok" }),
+      dispose: vi.fn(function (this: unknown) {
+        expect(this).toBe(original);
+        throw errors[0];
+      }),
+    };
+    const originalDispose = original.dispose;
+    const cleanup = vi.fn(() => {
+      throw errors[1];
+    });
+    const adapter = withDisposal(original, cleanup);
+    const closing = adapter.dispose();
+    await expect(closing).rejects.toMatchObject({ name: "AggregateError", errors });
+    expect(adapter.dispose()).toBe(closing);
+    expect(originalDispose).toHaveBeenCalledOnce();
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
   test("retains cleanup rejection and never retries", async () => {
     const error = new Error("cleanup failed");
     const cleanup = vi.fn(() => {

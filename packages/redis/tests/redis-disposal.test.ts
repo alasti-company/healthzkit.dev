@@ -36,6 +36,30 @@ describe("nodeRedisAdapter disposal", () => {
     expect((await adapter.check()).status).toBe("fail");
   });
 
+  test("rechecks isOpen and shares reconnection after the owned client closes", async () => {
+    const { resource, construct } = fixture();
+    resource.connect.mockImplementation(async () => {
+      resource.isOpen = true;
+    });
+    resource.sendCommand.mockImplementation(async () => {
+      if (!resource.isOpen) throw new Error("client closed");
+      return "PONG";
+    });
+    const adapter = nodeRedisAdapter({ connectionString: "redis://localhost" });
+    expect((await adapter.check()).status).toBe("ok");
+    resource.isOpen = false;
+    expect((await Promise.all([adapter.check(), adapter.check()])).map((r) => r.status)).toEqual([
+      "ok",
+      "ok",
+    ]);
+    expect(resource.connect).toHaveBeenCalledOnce();
+    expect(construct).toHaveBeenCalledOnce();
+    await adapter.dispose!();
+    resource.isOpen = false;
+    expect((await adapter.check()).status).toBe("fail");
+    expect(resource.connect).toHaveBeenCalledOnce();
+  });
+
   test("never cleans up a supplied resource", async () => {
     const { resource, cleanup, construct } = fixture();
     const adapter = nodeRedisAdapter({ client: resource } as never);

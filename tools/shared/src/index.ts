@@ -31,6 +31,8 @@ export function withDisposal<T extends HealthAdapter>(
   const pending = new Set<Promise<AdapterResult>>();
   let closing: Promise<void> | undefined;
   const check = adapter.check.bind(adapter);
+  const cleanupIsOriginal = adapter.dispose === cleanup;
+  const originalDispose = adapter.dispose?.bind(adapter);
   return Object.assign(adapter, {
     check(context?: Parameters<HealthAdapter["check"]>[0]) {
       if (closing) return Promise.resolve(buildErrorResult(new Error("Adapter is disposed")));
@@ -43,7 +45,19 @@ export function withDisposal<T extends HealthAdapter>(
       return operation;
     },
     dispose() {
-      closing ??= Promise.allSettled(pending).then(() => cleanup());
+      closing ??= Promise.allSettled(pending).then(async () => {
+        if (!originalDispose) return cleanup();
+        if (cleanupIsOriginal) return originalDispose();
+        const results = await Promise.allSettled([
+          Promise.resolve().then(() => originalDispose()),
+          Promise.resolve().then(() => cleanup()),
+        ]);
+        const errors = results.flatMap((result) =>
+          result.status === "rejected" ? [result.reason] : [],
+        );
+        if (errors.length === 1) throw errors[0];
+        if (errors.length) throw new AggregateError(errors, "Adapter cleanup failed");
+      });
       return closing;
     },
   });

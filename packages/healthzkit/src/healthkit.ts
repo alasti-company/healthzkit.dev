@@ -133,6 +133,7 @@ export class HealthKit {
     const basePath = this.config.basePath ?? DEFAULT_BASE_PATH;
     const { path } = req;
     if (!this.matchHealthPath(path)) return null;
+    this.assertOpen();
     const method = (req.method ?? "GET").toUpperCase();
     if (method !== "GET" && method !== "HEAD") {
       return { status: 405, headers: { Allow: "GET, HEAD" }, body: "" };
