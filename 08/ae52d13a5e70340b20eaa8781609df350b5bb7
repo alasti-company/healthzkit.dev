@@ -1,0 +1,23 @@
+packages/healthzkit/src/executor.ts
+  s_32a8f447fd4f62::t_b6aeb6ad5a6f42 8-9
+packages/healthzkit/tests/on-demand.test.ts
+  s_32a8f447fd4f62::t_b6aeb6ad5a6f42 182-225
+packages/healthzkit/src/scheduler.ts
+  s_32a8f447fd4f62::t_b6aeb6ad5a6f42 14-17,47-48,57,66-72,75-78,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "08ae52d13a5e70340b20eaa8781609df350b5bb7",
+  "prompts": {},
+  "sessions": {
+    "s_32a8f447fd4f62": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a944-0cd1-7871-bb20-874f0587db63",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
