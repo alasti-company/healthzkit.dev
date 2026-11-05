@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Kafka, Admin } from "kafkajs";
 import type { BaseKafkaOptions, MetadataFn } from "./shared.ts";
 import type { HealthAdapter, AdapterResult } from "./shared.ts";
@@ -19,6 +20,7 @@ export type KafkaJsAdapterOptions =
 
 export function kafkajsAdapter(options: KafkaJsAdapterOptions): HealthAdapter {
   let internalClient: Kafka | null = null;
+  const admins = new Set<Admin>();
 
   async function getClient(): Promise<Kafka> {
     if ("client" in options && options.client) {
@@ -33,32 +35,55 @@ export function kafkajsAdapter(options: KafkaJsAdapterOptions): HealthAdapter {
     return internalClient;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      let admin: Admin | null = null;
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        let admin: Admin | null = null;
 
-      try {
-        const client = await getClient();
-        const start = Date.now();
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        admin = client.admin();
-        await admin.connect();
-        await admin.describeCluster();
-        const latencyMs = Date.now() - start;
+          admin = client.admin();
+          admins.add(admin);
+          await admin.connect();
+          await admin.describeCluster();
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<Kafka>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<Kafka>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      } finally {
-        if (admin) {
-          await admin.disconnect().catch(() => {});
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        } finally {
+          if (admin) {
+            const current = admin;
+            await current.disconnect().then(
+              () => {
+                admins.delete(current);
+              },
+              () => {},
+            );
+          }
         }
-      }
+      },
     },
-  };
+    async () => {
+      // Successful per-check disconnects need no second cleanup. Retry retained failures.
+      const results = await Promise.allSettled(
+        [...admins].map(async (admin) => {
+          await admin.disconnect();
+          admins.delete(admin);
+        }),
+      );
+      const errors = results.flatMap((result) =>
+        result.status === "rejected" ? [result.reason] : [],
+      );
+      if (errors.length) throw new AggregateError(errors, "KafkaJS admin cleanup failed");
+    },
+  );
 }

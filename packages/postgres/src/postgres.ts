@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Sql, TransactionSql } from "postgres";
 import {
   buildErrorResult,
@@ -42,24 +43,30 @@ export function postgresJsAdapter(options: PostgresJsAdapterOptions): HealthAdap
     return options.client as Sql;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const sql = await getSql();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const sql = await getSql();
+          const start = Date.now();
 
-        await sql.unsafe(options.query ?? DEFAULT_QUERY);
-        const latencyMs = Date.now() - start;
+          await sql.unsafe(options.query ?? DEFAULT_QUERY);
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<Sql>)(sql)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<Sql>)(sql)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      await internalSql?.end();
+    },
+  );
 }

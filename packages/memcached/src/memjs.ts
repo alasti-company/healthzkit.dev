@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Client, ClientOptions, ServerOptions } from "memjs";
 import {
   buildErrorResult,
@@ -49,21 +50,26 @@ export function memjsAdapter(options: MemjsAdapterOptions): HealthAdapter {
     return clientPromise;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const key = options.key ?? "healthzkit:healthcheck";
-        if (!key || /\s/.test(key) || key.includes("\0") || Buffer.byteLength(key) > 250) {
-          throw new Error("memjsAdapter: key must be 1–250 bytes without whitespace or NUL");
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const key = options.key ?? "healthzkit:healthcheck";
+          if (!key || /\s/.test(key) || key.includes("\0") || Buffer.byteLength(key) > 250) {
+            throw new Error("memjsAdapter: key must be 1–250 bytes without whitespace or NUL");
+          }
+          const client = await getClient();
+          const start = Date.now();
+          await client.get(key);
+          const latencyMs = Date.now() - start;
+          return buildResult(latencyMs, await options.metadata?.(client));
+        } catch (error) {
+          return buildErrorResult(error);
         }
-        const client = await getClient();
-        const start = Date.now();
-        await client.get(key);
-        const latencyMs = Date.now() - start;
-        return buildResult(latencyMs, await options.metadata?.(client));
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+      },
     },
-  };
+    async () => {
+      (await clientPromise)?.close();
+    },
+  );
 }

@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { AmqpConnectionManager, AmqpConnectionManagerOptions } from "amqp-connection-manager";
 import {
   type BaseRabbitOptions,
@@ -54,27 +55,33 @@ export function amqpConnectionManagerAdapter(
     return internalConnectionPromise;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const connection = await getConnection();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const connection = await getConnection();
+          const start = Date.now();
 
-        if (!connection.isConnected()) {
-          throw new Error("rabbitmq adapter: connection manager has no active connections.");
+          if (!connection.isConnected()) {
+            throw new Error("rabbitmq adapter: connection manager has no active connections.");
+          }
+
+          const latencyMs = Date.now() - start;
+
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<AmqpConnectionManager>)(connection)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
+
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
         }
-
-        const latencyMs = Date.now() - start;
-
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<AmqpConnectionManager>)(connection)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
-
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+      },
     },
-  };
+    async () => {
+      await internalConnection?.close();
+    },
+  );
 }

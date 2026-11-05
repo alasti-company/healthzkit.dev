@@ -61,6 +61,10 @@ export class Scheduler {
     return this.executor.run(check, timeoutMs);
   }
 
+  async settle(): Promise<void> {
+    await this.executor.settle();
+  }
+
   private runAndCache(check: CheckConfig, timeoutMs: number): void {
     // Adopt an existing on-demand operation when scheduling first starts.
     const existing = this.executor.get(check.name);

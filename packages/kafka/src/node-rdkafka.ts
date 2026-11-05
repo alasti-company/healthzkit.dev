@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type {
   Producer as RdProducer,
   KafkaConsumer as RdConsumer,
@@ -72,24 +73,33 @@ export function nodeRdKafkaAdapter(options: NodeRdKafkaAdapterOptions): HealthAd
     return initPromise;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        await fetchMetadata(client);
+          await fetchMetadata(client);
 
-        const latencyMs = Date.now() - start;
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<RdKafkaClient>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const latencyMs = Date.now() - start;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<RdKafkaClient>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      if (internalClient)
+        await new Promise<void>((resolve, reject) => {
+          internalClient!.disconnect((error) => (error ? reject(error) : resolve()));
+        });
+    },
+  );
 }

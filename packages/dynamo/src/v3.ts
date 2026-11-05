@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
 import type { BaseDynamoOptions, MetadataFn } from "./shared.ts";
 import type { HealthAdapter, AdapterResult } from "./shared.ts";
@@ -20,7 +21,17 @@ export type DynamoV3AdapterOptions =
 export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter {
   let internalClient: DynamoDBClient | null = null;
 
-  async function getClient(): Promise<DynamoDBClient> {
+  let ownedInit: ReturnType<typeof resolveClient> | undefined;
+  function getClient(): ReturnType<typeof resolveClient> {
+    if (options.client) return resolveClient();
+    ownedInit ??= resolveClient().catch((error: unknown) => {
+      ownedInit = undefined;
+      throw error;
+    });
+    return ownedInit;
+  }
+
+  async function resolveClient(): Promise<DynamoDBClient> {
     if (!("client" in options) || !options.client) {
       if (!internalClient) {
         const { DynamoDBClient } = await import("@aws-sdk/client-dynamodb");
@@ -33,26 +44,32 @@ export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter 
     return options.client;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        const { ListTablesCommand } = await import("@aws-sdk/client-dynamodb");
+          const { ListTablesCommand } = await import("@aws-sdk/client-dynamodb");
 
-        await client.send(new ListTablesCommand({ Limit: 1 }));
-        const latencyMs = Date.now() - start;
+          await client.send(new ListTablesCommand({ Limit: 1 }));
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<DynamoDBClient>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<DynamoDBClient>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      internalClient?.destroy();
+    },
+  );
 }

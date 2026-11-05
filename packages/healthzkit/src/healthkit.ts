@@ -25,6 +25,8 @@ function validateTimer(value: number, field: string): void {
 export class HealthKit {
   private scheduler: Scheduler;
   private started = false;
+  private closing: Promise<void> | undefined;
+  private requests = new Set<Promise<AgnosticResponse>>();
 
   constructor(private config: HealthkitConfig) {
     this.config = {
@@ -55,6 +57,7 @@ export class HealthKit {
   }
 
   start(): void {
+    this.assertOpen();
     if (this.started) return;
     this.scheduler.start(this.config.checks, this.config.defaults?.timeout);
     this.started = true;
@@ -63,6 +66,30 @@ export class HealthKit {
   stop(): void {
     this.scheduler.stop();
     this.started = false;
+  }
+
+  /** Terminal shutdown: wait for underlying checks, then attempt every adapter's cleanup. */
+  close(): Promise<void> {
+    if (this.closing) return this.closing;
+    // Defer cleanup so the terminal flag is set before any user callback can run.
+    this.closing = Promise.resolve().then(async () => {
+      await Promise.allSettled(this.requests);
+      await this.scheduler.settle();
+      const adapters = new Set(this.config.checks.map((check) => check.adapter));
+      const results = await Promise.allSettled(
+        [...adapters].map(async (adapter) => adapter.dispose?.()),
+      );
+      const errors = results.flatMap((result) =>
+        result.status === "rejected" ? [result.reason] : [],
+      );
+      if (errors.length) throw new AggregateError(errors, "HealthKit adapter cleanup failed");
+    });
+    this.stop();
+    return this.closing;
+  }
+
+  private assertOpen(): void {
+    if (this.closing) throw new Error("HealthKit is closed");
   }
 
   async handleLiveness(): Promise<AgnosticResponse> {
@@ -89,7 +116,18 @@ export class HealthKit {
     return null;
   }
 
-  private async runForType(type: CheckType): Promise<AgnosticResponse> {
+  private runForType(type: CheckType): Promise<AgnosticResponse> {
+    this.assertOpen();
+    const request = this.runForTypeOpen(type);
+    this.requests.add(request);
+    void request.then(
+      () => this.requests.delete(request),
+      () => this.requests.delete(request),
+    );
+    return request;
+  }
+
+  private async runForTypeOpen(type: CheckType): Promise<AgnosticResponse> {
     const checks = this.config.checks.filter((c) => c.type.includes(type));
     const { output, defaults, rollup } = this.config;
 

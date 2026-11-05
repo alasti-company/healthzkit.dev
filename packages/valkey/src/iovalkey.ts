@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Redis, RedisOptions } from "iovalkey";
 import {
   buildErrorResult,
@@ -26,7 +27,17 @@ export type IoValkeyAdapterOptions =
 export function iovalkeyAdapter(options: IoValkeyAdapterOptions): HealthAdapter {
   let internalClient: Redis | null = null;
 
-  async function getClient(): Promise<Redis> {
+  let ownedInit: ReturnType<typeof resolveClient> | undefined;
+  function getClient(): ReturnType<typeof resolveClient> {
+    if (options.client) return resolveClient();
+    ownedInit ??= resolveClient().catch((error: unknown) => {
+      ownedInit = undefined;
+      throw error;
+    });
+    return ownedInit;
+  }
+
+  async function resolveClient(): Promise<Redis> {
     if ("connectionString" in options && options.connectionString) {
       if (!internalClient) {
         const { Redis } = await import("iovalkey");
@@ -47,29 +58,35 @@ export function iovalkeyAdapter(options: IoValkeyAdapterOptions): HealthAdapter 
     throw new Error("iovalkeyAdapter: provide a non-empty connectionString or a client");
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const [command, ...args] = (options.command ?? DEFAULT_COMMAND).trim().split(/\s+/);
-        if (!command) {
-          throw new Error("iovalkeyAdapter: command must not be empty");
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const [command, ...args] = (options.command ?? DEFAULT_COMMAND).trim().split(/\s+/);
+          if (!command) {
+            throw new Error("iovalkeyAdapter: command must not be empty");
+          }
+
+          const client = await getClient();
+          const start = Date.now();
+
+          await client.call(command, ...args);
+          const latencyMs = Date.now() - start;
+
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<Redis>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
+
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
         }
-
-        const client = await getClient();
-        const start = Date.now();
-
-        await client.call(command, ...args);
-        const latencyMs = Date.now() - start;
-
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<Redis>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
-
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+      },
     },
-  };
+    async () => {
+      internalClient?.disconnect();
+    },
+  );
 }

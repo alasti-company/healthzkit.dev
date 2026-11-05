@@ -112,13 +112,11 @@ describe("mongooseAdapter", () => {
     expect(result.metadata).toMatchObject({ replicas: 3, latencyMs: expect.any(Number) });
   });
 
-  test("connects once via connectionString and reuses mongoose", async () => {
+  test("creates one private connection and reuses it", async () => {
     const command = vi.fn().mockResolvedValue({ ok: 1 });
-    const connect = vi.fn().mockResolvedValue(undefined);
-    const mongoose = {
-      connect,
-      db: mockDb(command),
-    };
+    const connection = { asPromise: vi.fn().mockResolvedValue(undefined), db: mockDb(command) };
+    const connect = vi.fn(() => connection);
+    const mongoose = { createConnection: connect };
 
     vi.doMock("mongoose", () => ({ default: mongoose }));
 
@@ -143,15 +141,14 @@ describe("mongooseAdapter", () => {
     }
   });
 
-  test("reuses a single mongoose connect across concurrent checks", async () => {
+  test("reuses a single private connection across concurrent checks", async () => {
     let connectCount = 0;
-    const connect = vi.fn(async () => {
+    const connection = { asPromise: vi.fn().mockResolvedValue(undefined), db: mockDb() };
+    const connect = vi.fn(() => {
       connectCount += 1;
+      return connection;
     });
-    const mongoose = {
-      connect,
-      db: mockDb(),
-    };
+    const mongoose = { createConnection: connect };
 
     vi.doMock("mongoose", () => ({ default: mongoose }));
 

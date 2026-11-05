@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { S3Client, S3ClientConfig, ListBucketsCommandOutput } from "@aws-sdk/client-s3";
 import type { BaseS3Options, MetadataFn } from "./shared.ts";
 import type { HealthAdapter, AdapterResult } from "./shared.ts";
@@ -18,7 +19,17 @@ export type S3V3AdapterOptions = S3V3AdapterOptionsWithClient | S3V3AdapterOptio
 export function s3V3Adapter(options: S3V3AdapterOptions): HealthAdapter {
   let internalClient: S3Client | null = null;
 
-  async function getClient(): Promise<S3Client> {
+  let ownedInit: ReturnType<typeof resolveClient> | undefined;
+  function getClient(): ReturnType<typeof resolveClient> {
+    if (options.client) return resolveClient();
+    ownedInit ??= resolveClient().catch((error: unknown) => {
+      ownedInit = undefined;
+      throw error;
+    });
+    return ownedInit;
+  }
+
+  async function resolveClient(): Promise<S3Client> {
     if ("client" in options && options.client) {
       return options.client;
     }
@@ -31,26 +42,32 @@ export function s3V3Adapter(options: S3V3AdapterOptions): HealthAdapter {
     return internalClient;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        const { ListBucketsCommand } = await import("@aws-sdk/client-s3");
-        const response: ListBucketsCommandOutput = await client.send(new ListBucketsCommand({}));
-        const latencyMs = Date.now() - start;
+          const { ListBucketsCommand } = await import("@aws-sdk/client-s3");
+          const response: ListBucketsCommandOutput = await client.send(new ListBucketsCommand({}));
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<S3Client>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
-        const bucketCount = response.Buckets?.length ?? 0;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<S3Client>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const bucketCount = response.Buckets?.length ?? 0;
 
-        return buildResult(latencyMs, { ...metadata, bucketCount });
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, { ...metadata, bucketCount });
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      internalClient?.destroy();
+    },
+  );
 }

@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Client } from "@elastic/elasticsearch";
 import type { ClientOptions } from "@elastic/elasticsearch/lib/client";
 import {
@@ -51,36 +52,42 @@ export function elasticsearchAdapter(options: ElasticsearchAdapterOptions): Heal
     return internalClientInit;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        const response = await client.cluster.health();
-        const latencyMs = Date.now() - start;
+          const response = await client.cluster.health();
+          const latencyMs = Date.now() - start;
 
-        const esStatus = response.status;
-        const status = esStatus === "red" ? "fail" : esStatus === "yellow" ? "degraded" : "ok";
+          const esStatus = response.status;
+          const status = esStatus === "red" ? "fail" : esStatus === "yellow" ? "degraded" : "ok";
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<Client>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<Client>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return {
-          status,
-          metadata: {
-            latencyMs,
-            clusterStatus: esStatus,
-            clusterName: response.cluster_name,
-            numberOfNodes: response.number_of_data_nodes,
-            ...metadata,
-          },
-        };
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return {
+            status,
+            metadata: {
+              latencyMs,
+              clusterStatus: esStatus,
+              clusterName: response.cluster_name,
+              numberOfNodes: response.number_of_data_nodes,
+              ...metadata,
+            },
+          };
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      await internalClient?.close();
+    },
+  );
 }

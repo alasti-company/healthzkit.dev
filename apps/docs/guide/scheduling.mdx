@@ -24,7 +24,7 @@ const kit = createHealthKit({
 
 kit.start(); // starts background intervals for checks that define schedule
 // ... on shutdown:
-kit.stop();
+await kit.close();
 ```
 
 ## Timing validation
@@ -44,3 +44,25 @@ Scheduled runs use the check's **`timeout`**, then **`defaults.timeout`**, then 
 A cached result becomes a failure when its age reaches **`intervalMs + timeout`**. This allows one interval plus the refresh timeout before a result becomes stale. Failures follow your configured `onFail` behavior. While the initial scheduled check is pending, probes await that same check and share its result or timeout. When scheduling is inactive and there is no cached result, probes run the check on demand with the same timeout.
 
 Timers use `unref` when available so they do not keep the process alive by themselves.
+
+## Shutdown and disposal
+
+```ts
+// First stop accepting traffic and drain your application's requests.
+// Then release resources created by health adapters:
+await kit.close();
+```
+
+`stop()` only stops scheduling and clears cached results. You can restart scheduling or run checks on demand afterward. It does not dispose adapters. `close()` is terminal and immediately stops scheduling; every call returns the same promise, including after a cleanup failure.
+
+Close waits for requests already accepted by the kit and for the underlying scheduled and on-demand adapter operations to settle. A check's response timeout does not end its underlying work. Close does not abort that work early or impose a shutdown deadline, so an adapter that never settles can keep close pending. Drain application traffic separately before closing.
+
+Once close begins, `start()` throws `Error("HealthKit is closed")`. `handleLiveness()`, `handleReadiness()`, and matching `handleRequest()` calls reject with that error. Unmatched paths still return `null`; path matching remains available. Requests accepted before close retain their normal timeout and result handling; a pending scheduled result can report that scheduling was stopped.
+
+Close calls each distinct adapter object's optional `dispose()` hook once, after pending work settles. Check-only custom adapters remain valid. All cleanup hooks are attempted even if another hook fails. Close rejects with an `AggregateError` whose `errors` array contains cleanup failures in adapter configuration order. Repeated close calls retain that rejection and do not retry cleanup. Check failures are reported through health responses, not added to cleanup errors.
+
+Official adapters dispose only resources they create. Supplied clients, pools, connections, and their agents remain yours to close. Persistent drivers use their `end`, `close`, `quit`, `disconnect`, or `destroy` API as appropriate; checked-out pool connections are released before pool cleanup. AWS SDK v3 clients use `destroy()`. KafkaJS admin connections are disconnected after each check; disposal retries retained disconnect failures and reports any remaining errors. HTTP-based Upstash, AWS SDK v2, and MinIO clients have no client disposal API here; caller-provided HTTP agents remain caller-owned.
+
+For official adapters that expose `dispose()`, direct users can call `await adapter.dispose?.()` for terminal, idempotent disposal that waits for active checks. Later direct checks return a failure without opening resources. Do not reuse a disposed adapter in another kit. Share an adapter across checks in the same kit only when those checks should share its resource lifetime.
+
+For custom adapters, implement `dispose(): void | Promise<void>` to release only resources the adapter owns. Make it idempotent if the same adapter might be disposed directly or shared across kits. Do not await `kit.close()` from inside that kit's check or disposal hook, because close waits for those callbacks.

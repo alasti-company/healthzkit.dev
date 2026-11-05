@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type BetterSqlite3Constructor from "better-sqlite3";
 import type { Database as SqliteDatabase } from "better-sqlite3";
 import {
@@ -63,24 +64,30 @@ export function betterSqlite3Adapter(options: BetterSqlite3AdapterOptions): Heal
     throw new Error("betterSqlite3Adapter: provide a non-empty connectionString or a client");
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        client.prepare(options.query ?? DEFAULT_QUERY).get();
-        const latencyMs = Date.now() - start;
+          client.prepare(options.query ?? DEFAULT_QUERY).get();
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<SqliteDatabase>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<SqliteDatabase>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      internalDb?.close();
+    },
+  );
 }

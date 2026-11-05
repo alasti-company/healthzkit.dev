@@ -19,6 +19,36 @@ function mockKafka(
 }
 
 describe("kafkajsAdapter", () => {
+  test("does not disconnect a successfully released admin again on disposal", async () => {
+    const { client, disconnect } = mockKafka();
+    const adapter = kafkajsAdapter({ client });
+    await adapter.check();
+    await adapter.dispose!();
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect((await adapter.check()).status).toBe("fail");
+  });
+
+  test("attempts every retained admin after per-check disconnect failures", async () => {
+    const errors = [new Error("first disconnect"), new Error("second disconnect")];
+    const admins = errors.map((error) =>
+      mockKafka({
+        disconnect: async () => {
+          throw error;
+        },
+      }),
+    );
+    const client = {
+      admin: vi.fn().mockReturnValueOnce(admins[0].admin).mockReturnValueOnce(admins[1].admin),
+    } as unknown as Kafka;
+    const adapter = kafkajsAdapter({ client });
+    await adapter.check();
+    await adapter.check();
+    const closing = adapter.dispose!();
+    await expect(closing).rejects.toMatchObject({ name: "AggregateError", errors });
+    expect(adapter.dispose!()).toBe(closing);
+    for (const { disconnect } of admins) expect(disconnect).toHaveBeenCalledTimes(2);
+  });
+
   test("connects admin, describes cluster, disconnects, and returns ok with latency", async () => {
     const { client, adminFn, connect, describeCluster, disconnect } = mockKafka();
     const adapter = kafkajsAdapter({ client });

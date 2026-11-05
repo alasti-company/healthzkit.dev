@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Connection, ConnectionOptions, Pool, PoolOptions } from "mysql2/promise";
 import { buildErrorResult, buildResult, type BaseMysqlOptions, type MetadataFn } from "./shared.ts";
 import type { HealthAdapter, AdapterResult } from "./shared.ts";
@@ -65,36 +66,42 @@ export function mysql2Adapter(options: Mysql2AdapterOptions): HealthAdapter {
     return client as Connection;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      let connection: Connection | null = null;
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        let connection: Connection | null = null;
 
-      try {
-        connection = await getConnection();
-        const start = Date.now();
+        try {
+          connection = await getConnection();
+          const start = Date.now();
 
-        await connection.query(options.query ?? DEFAULT_QUERY);
-        const latencyMs = Date.now() - start;
+          await connection.query(options.query ?? DEFAULT_QUERY);
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<Connection>)(connection)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<Connection>)(connection)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      } finally {
-        if (
-          connection &&
-          "release" in connection &&
-          typeof (connection as unknown as { release: () => void }).release === "function"
-        ) {
-          (connection as unknown as { release: () => void }).release();
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        } finally {
+          if (
+            connection &&
+            "release" in connection &&
+            typeof (connection as unknown as { release: () => void }).release === "function"
+          ) {
+            (connection as unknown as { release: () => void }).release();
+          }
         }
-      }
+      },
     },
-  };
+    async () => {
+      await internalPool?.end();
+    },
+  );
 }
 
 function parseConnectionString(connectionString: string): ConnectionOptions {
