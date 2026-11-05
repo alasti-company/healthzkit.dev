@@ -1,0 +1,21 @@
+tools/security-audit.mjs
+  s_df95608df0e4b2::t_a01b996924f30c 6-8,10-16,19-28,61-77,88
+tools/security-audit.test.mjs
+  s_df95608df0e4b2::t_a01b996924f30c 3-5,28,36-37,77-83,87,94-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f700f8eee2a93e6959aed57c38e3dceec6c94f19",
+  "prompts": {},
+  "sessions": {
+    "s_df95608df0e4b2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a96f-910c-7c91-894b-558c8b58aa2c",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
