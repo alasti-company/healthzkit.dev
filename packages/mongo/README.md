@@ -146,3 +146,9 @@ vp install
 vp test --filter @healthzkit/mongo
 vp pack --filter @healthzkit/mongo
 ```
+
+## Resource ownership
+
+Connection-string adapters own their MongoDB client or private Mongoose `Connection`. Mongoose metadata receives that private connection; the adapter does not connect or disconnect the global Mongoose instance. Supplied `client` or `connection` objects remain caller-owned.
+
+Use `await kit.close()` for terminal disposal after pending checks finish. Direct adapter users can call `await adapter.dispose?.()`. The MongoDB adapter's existing `close()` method remains available as a reusable reset that allows later reconnection; use `dispose()` for terminal shutdown. See [Scheduling](https://healthzkit.dev/guide/scheduling#shutdown-and-disposal) for full shutdown behavior.

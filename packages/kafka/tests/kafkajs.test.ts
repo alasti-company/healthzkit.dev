@@ -19,6 +19,49 @@ function mockKafka(
 }
 
 describe("kafkajsAdapter", () => {
+  test("does not disconnect a successfully released admin again on disposal", async () => {
+    const { client, disconnect } = mockKafka();
+    const adapter = kafkajsAdapter({ client });
+    await adapter.check();
+    await adapter.dispose!();
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect((await adapter.check()).status).toBe("fail");
+  });
+
+  test("bounds retained admins while retrying disconnects, including concurrent checks", async () => {
+    const error = new Error("disconnect failed");
+    const { client, adminFn, disconnect } = mockKafka({
+      disconnect: async () => {
+        throw error;
+      },
+    });
+    const adapter = kafkajsAdapter({ client });
+    expect((await adapter.check()).status).toBe("ok");
+    const results = await Promise.all(Array.from({ length: 20 }, () => adapter.check()));
+    expect(results.every((result) => result.status === "fail")).toBe(true);
+    expect(adminFn).toHaveBeenCalledOnce();
+    expect(disconnect).toHaveBeenCalledTimes(21);
+    disconnect.mockResolvedValue(undefined);
+    expect((await adapter.check()).status).toBe("ok");
+    expect(adminFn).toHaveBeenCalledTimes(2);
+    await adapter.dispose!();
+  });
+
+  test("retains disposal failures without retrying terminal cleanup", async () => {
+    const error = new Error("disconnect failed");
+    const { client, disconnect } = mockKafka({
+      disconnect: async () => {
+        throw error;
+      },
+    });
+    const adapter = kafkajsAdapter({ client });
+    await adapter.check();
+    const closing = adapter.dispose!();
+    await expect(closing).rejects.toMatchObject({ name: "AggregateError", errors: [error] });
+    expect(adapter.dispose!()).toBe(closing);
+    expect(disconnect).toHaveBeenCalledTimes(2);
+  });
+
   test("connects admin, describes cluster, disconnects, and returns ok with latency", async () => {
     const { client, adminFn, connect, describeCluster, disconnect } = mockKafka();
     const adapter = kafkajsAdapter({ client });

@@ -265,7 +265,7 @@ const kit = createHealthKit({
 
 kit.start(); // starts background intervals for checks that define schedule
 // ... on shutdown:
-kit.stop();
+await kit.close();
 ```
 
 - **`start()`** is idempotent (second call is a no-op).
@@ -378,7 +378,8 @@ Exported from `healthzkit`:
 **Runtime**
 
 - `createHealthKit(config)` → `HealthKit`
-- `HealthKit`: `start()`, `stop()`, `beginDrain()`, `checkLiveness()`, `checkReadiness()`, `checkStartup()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`, `handleStartup()`
+- `HealthKit`: `start()`, `stop()`, `close(): Promise<void>`, `beginDrain()`, `checkLiveness()`, `checkReadiness()`, `checkStartup()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`, `handleStartup()`
+
 - `toFetchResponse(res, method?)` → Fetch `Response` (`HEAD` omits the body)
 - `createFetchHandler(kit)` → `(request: Request) => Promise<Response>`
 
@@ -402,3 +403,25 @@ vp pack
 ```
 
 See the repo root `AGENTS.md` for Vite+ / `vp` conventions.
+
+## Shutdown and disposal
+
+```ts
+// First stop accepting traffic and drain your application's requests.
+// Then release resources created by health adapters:
+await kit.close();
+```
+
+`stop()` only stops scheduling and clears cached results. You can restart scheduling or run checks on demand afterward. It does not dispose adapters. `close()` is terminal and immediately stops scheduling; every call returns the same promise, including after a cleanup failure.
+
+Close waits for requests already accepted by the kit and for the underlying scheduled and on-demand adapter operations to settle. A check's response timeout does not end its underlying work. Close does not abort that work early or impose a shutdown deadline, so an adapter that never settles can keep close pending. Drain application traffic separately before closing.
+
+Once close begins, `start()` throws `Error("HealthKit is closed")`. `handleLiveness()`, `handleReadiness()`, and matching `handleRequest()` calls reject with that error. Unmatched paths still return `null`; path matching remains available. Requests accepted before close retain their normal timeout and result handling; a pending scheduled result can report that scheduling was stopped.
+
+Close calls each distinct adapter object's optional `dispose()` hook once, after pending work settles. Check-only custom adapters remain valid. All cleanup hooks are attempted even if another hook fails. Close rejects with an `AggregateError` whose `errors` array contains cleanup failures in adapter configuration order. Repeated close calls retain that rejection and do not retry cleanup. Check failures are reported through health responses, not added to cleanup errors.
+
+Official adapters dispose only resources they create. Supplied clients, pools, connections, and their agents remain yours to close. Persistent drivers use their `end`, `close`, `quit`, `disconnect`, or `destroy` API as appropriate; checked-out pool connections are released before pool cleanup. AWS SDK v3 clients use `destroy()`. When you pass `config` to an AWS SDK v3 adapter, disposal calls `destroy()` on the constructed client, including its request handler and any agents owned by that handler. Passing `config.requestHandler` (including handler options with custom agents) transfers their shutdown lifecycle to that client. To retain ownership of a shared handler or agent, construct the AWS client yourself and pass `client`; the adapter never destroys supplied clients. KafkaJS checks run serially and disconnect their admin after each check. Later checks retry failed disconnects before creating another admin, returning a failed result while cleanup remains blocked. Disposal retries retained failures and reports any remaining errors. HTTP-based Upstash, AWS SDK v2, and MinIO clients have no client disposal API here; caller-provided HTTP agents remain caller-owned.
+
+For official adapters that expose `dispose()`, direct users can call `await adapter.dispose?.()` for terminal, idempotent disposal that waits for active checks. Later direct checks return a failure without opening resources. Do not reuse a disposed adapter in another kit. Share an adapter across checks in the same kit only when those checks should share its resource lifetime.
+
+For custom adapters, implement `dispose(): void | Promise<void>` to release only resources the adapter owns. Make it idempotent if the same adapter might be disposed directly or shared across kits. Do not await `kit.close()` from inside that kit's check or disposal hook, because close waits for those callbacks.

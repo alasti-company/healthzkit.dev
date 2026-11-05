@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Database } from "sqlite3";
 import { buildErrorResult, buildResult, DEFAULT_QUERY, type BaseSqliteOptions } from "./shared.ts";
 import type { HealthAdapter, AdapterResult, MetadataFn } from "./shared.ts";
@@ -61,30 +62,39 @@ export function sqlite3Adapter(options: Sqlite3AdapterOptions): HealthAdapter {
     throw new Error("sqlite3Adapter: provide a non-empty connectionString or a client");
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        await new Promise<void>((resolve, reject) => {
-          client.get(options.query ?? DEFAULT_QUERY, (err) => {
-            if (err) reject(err);
-            else resolve();
+          await new Promise<void>((resolve, reject) => {
+            client.get(options.query ?? DEFAULT_QUERY, (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
           });
-        });
 
-        const latencyMs = Date.now() - start;
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<Database>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<Database>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      if (internalDb)
+        await new Promise<void>((resolve, reject) => {
+          internalDb!.close((error) => (error ? reject(error) : resolve()));
+        });
+    },
+  );
 }

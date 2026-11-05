@@ -91,7 +91,7 @@ Each check runs **`db.admin().command({ ping: 1 })`** on the resolved connection
 
 ### Connection string
 
-Pass **`connectionString`** (and optional **`mongooseOptions`**). The adapter dynamically imports **`mongoose`**, calls **`mongoose.connect()`** once, and reuses that instance.
+Pass **`connectionString`** (and optional **`mongooseOptions`**). The adapter dynamically imports **`mongoose`**, creates a private **`mongoose.createConnection()`**, and reuses that connection after it connects. Failed initial connections are closed and retried with a fresh connection on the next check.
 
 ```ts
 import { mongooseAdapter } from "@healthzkit/mongo/mongoose";
@@ -126,3 +126,9 @@ adapter: mongodbAdapter({ client: myMongoClient }),
 ```
 
 Combine with **`schedule`** on the check if you want cached readiness results instead of pinging MongoDB on every probe (see [Scheduling](/guide/scheduling)).
+
+## Resource ownership
+
+Connection-string adapters own their MongoDB client or private Mongoose `Connection`. Mongoose metadata receives that private connection; the adapter does not connect or disconnect the global Mongoose instance. Supplied `client` or `connection` objects remain caller-owned.
+
+Use `await kit.close()` for terminal disposal after pending checks finish. Direct adapter users can call `await adapter.dispose?.()`. The MongoDB adapter's existing `close()` method remains available as a reusable reset that allows later reconnection; use `dispose()` for terminal shutdown. See [Scheduling](/guide/scheduling#shutdown-and-disposal) for full shutdown behavior.

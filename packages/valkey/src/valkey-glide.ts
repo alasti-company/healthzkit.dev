@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { GlideClient, GlideClientConfiguration } from "@valkey/valkey-glide";
 import type { BaseValkeyOptions, MetadataFn } from "./shared.ts";
 import type { HealthAdapter, AdapterResult } from "./shared.ts";
@@ -54,14 +55,25 @@ export type GlideValkeyAdapterOptions =
   | GlideValkeyAdapterOptionsWithConnectionString;
 
 export function glideValkeyAdapter(options: GlideValkeyAdapterOptions): HealthAdapter {
-  let internalClient: GlideValkeyClient | null = null;
+  let internalClient: GlideClient | null = null;
 
-  async function getClient(): Promise<GlideValkeyClient> {
+  let ownedInit: ReturnType<typeof resolveClient> | undefined;
+  function getClient(): ReturnType<typeof resolveClient> {
+    if (options.client) return resolveClient();
+    ownedInit ??= resolveClient().catch((error: unknown) => {
+      ownedInit = undefined;
+      throw error;
+    });
+    return ownedInit;
+  }
+
+  async function resolveClient(): Promise<GlideValkeyClient> {
     if ("connectionString" in options && options.connectionString) {
       if (!internalClient) {
+        const config = parseConnectionString(options.connectionString);
         const { GlideClient } = await import("@valkey/valkey-glide");
         internalClient = await GlideClient.createClient({
-          ...parseConnectionString(options.connectionString),
+          ...config,
           ...options.options,
         });
       }
@@ -76,24 +88,30 @@ export function glideValkeyAdapter(options: GlideValkeyAdapterOptions): HealthAd
     throw new Error("glideValkeyAdapter: provide a non-empty connectionString or a client");
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        await client.customCommand((options.command ?? DEFAULT_COMMAND).split(" "));
-        const latencyMs = Date.now() - start;
+          await client.customCommand((options.command ?? DEFAULT_COMMAND).split(" "));
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<GlideValkeyClient>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<GlideValkeyClient>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      internalClient?.close();
+    },
+  );
 }

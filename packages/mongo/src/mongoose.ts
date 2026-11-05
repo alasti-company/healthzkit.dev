@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Connection, ConnectOptions, Mongoose } from "mongoose";
 import {
   type BaseMongoOptions,
@@ -27,6 +28,7 @@ export type MongooseAdapterOptions =
   | MongooseAdapterOptionsWithConnectionString;
 
 export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter {
+  let internalConnection: Connection | null = null;
   let internalConnectionPromise: Promise<MongooseConnection> | null = null;
 
   async function getOwnedConnection(
@@ -35,9 +37,13 @@ export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter 
   ): Promise<MongooseConnection> {
     internalConnectionPromise ??= (async () => {
       const { default: mongoose } = await import("mongoose");
-      await mongoose.connect(connectionString, mongooseOptions);
-      return mongoose;
-    })().catch((error) => {
+      internalConnection = mongoose.createConnection(connectionString, mongooseOptions);
+      await internalConnection.asPromise();
+      return internalConnection;
+    })().catch(async (error: unknown) => {
+      const failed = internalConnection;
+      internalConnection = null;
+      await failed?.close().catch(() => {});
       internalConnectionPromise = null;
       throw error;
     });
@@ -62,29 +68,38 @@ export function mongooseAdapter(options: MongooseAdapterOptions): HealthAdapter 
     return conn;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const conn = await getConnection();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const conn = await getConnection();
+          const start = Date.now();
 
-        const db = "db" in conn ? conn.db : conn.connection.db;
-        if (!db) {
-          throw new Error("mongoose adapter: database unavailable");
+          const db = "db" in conn ? conn.db : conn.connection.db;
+          if (!db) {
+            throw new Error("mongoose adapter: database unavailable");
+          }
+          await db.admin().command({ ping: 1 });
+
+          const latencyMs = Date.now() - start;
+
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<MongooseConnection>)(conn)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
+
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
         }
-        await db.admin().command({ ping: 1 });
-
-        const latencyMs = Date.now() - start;
-
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<MongooseConnection>)(conn)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
-
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+      },
     },
-  };
+    async () => {
+      const connection = internalConnection;
+      internalConnection = null;
+      internalConnectionPromise = null;
+      await connection?.close();
+    },
+  );
 }

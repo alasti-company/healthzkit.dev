@@ -15,6 +15,8 @@ export interface CheckContext {
 
 export interface HealthAdapter {
   check(context?: CheckContext): Promise<AdapterResult>;
+  /** Release adapter-owned resources after pending checks settle. Each kit calls this once; make it idempotent for shared adapters and direct disposal. */
+  dispose?(): Promise<void> | void;
 }
 
 export interface CheckConfig {

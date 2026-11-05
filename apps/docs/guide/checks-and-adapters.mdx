@@ -129,3 +129,7 @@ This monorepo publishes optional packages that return a `HealthAdapter` for comm
 ### HTTP
 
 - [HTTP endpoints](/adapter/http) — `@healthzkit/http`
+
+## Adapter cleanup
+
+`HealthAdapter` can optionally implement `dispose(): void | Promise<void>`. `await kit.close()` calls it once per distinct adapter after pending checks settle. Release only resources your adapter owns, and make cleanup idempotent if it can also be called directly. Check-only adapters remain compatible. See [Shutdown and disposal](/guide/scheduling#shutdown-and-disposal) for terminal-close behavior and cleanup errors.

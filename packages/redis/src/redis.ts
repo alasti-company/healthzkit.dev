@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { RedisClientOptions } from "redis";
 import {
   type BaseRedisOptions,
@@ -34,9 +35,18 @@ export type NodeRedisAdapterOptions =
   | NodeRedisAdapterOptionsWithConnectionString;
 
 export function nodeRedisAdapter(options: NodeRedisAdapterOptions): HealthAdapter {
-  let internalClient: NodeRedisClient | null = null;
+  let internalClient: ReturnType<(typeof import("redis"))["createClient"]> | null = null;
 
-  async function getClient(): Promise<NodeRedisClient> {
+  let ownedInit: ReturnType<typeof resolveClient> | undefined;
+  function getClient(): ReturnType<typeof resolveClient> {
+    if (options.client) return resolveClient();
+    ownedInit ??= resolveClient().finally(() => {
+      ownedInit = undefined;
+    });
+    return ownedInit;
+  }
+
+  async function resolveClient(): Promise<NodeRedisClient> {
     if ("connectionString" in options && options.connectionString) {
       if (!internalClient) {
         const { createClient } = await import("redis");
@@ -45,9 +55,9 @@ export function nodeRedisAdapter(options: NodeRedisAdapterOptions): HealthAdapte
           ...options.redisOptions,
         });
 
-        await client.connect();
         internalClient = client;
       }
+      if (!internalClient.isOpen) await internalClient.connect();
 
       return internalClient;
     }
@@ -61,24 +71,30 @@ export function nodeRedisAdapter(options: NodeRedisAdapterOptions): HealthAdapte
     throw new Error("nodeRedisAdapter: provide a non-empty connectionString or a client");
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        await client.sendCommand((options.command ?? DEFAULT_COMMAND).split(" "));
-        const latencyMs = Date.now() - start;
+          await client.sendCommand((options.command ?? DEFAULT_COMMAND).split(" "));
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<NodeRedisClient>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<NodeRedisClient>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      if (internalClient?.isOpen) await internalClient.quit();
+    },
+  );
 }

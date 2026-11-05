@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { ChannelModel, Options, RecoveringChannelModel, SocketOptions } from "amqplib";
 import {
   type BaseRabbitOptions,
@@ -57,26 +58,32 @@ export function amqplibAdapter(options: AmqplibAdapterOptions): HealthAdapter {
     return connectionPromise;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const model = await getConnection();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const model = await getConnection();
+          const start = Date.now();
 
-        const channel = await model.createChannel();
-        await channel.close();
+          const channel = await model.createChannel();
+          await channel.close();
 
-        const latencyMs = Date.now() - start;
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<AmqplibClient>)(model)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<AmqplibClient>)(model)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      await internalConnection?.close();
+    },
+  );
 }

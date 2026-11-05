@@ -153,3 +153,7 @@ context signal, so give any additional operations their own driver timeouts.
 
 See [cancellation and driver timeout guidance](https://healthzkit.dev/guide/checks-and-adapters#driver-timeouts)
 and [scheduling](https://healthzkit.dev/guide/scheduling).
+
+## Resource ownership
+
+When you pass `config` to an AWS SDK v3 adapter, disposal calls `destroy()` on the constructed client, including its request handler and any agents owned by that handler. Passing `config.requestHandler` (including handler options with custom agents) transfers their shutdown lifecycle to that client. To retain ownership of a shared handler or agent, construct the AWS client yourself and pass `client`; the adapter never destroys supplied clients.

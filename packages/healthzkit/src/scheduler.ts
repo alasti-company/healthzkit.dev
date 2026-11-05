@@ -45,12 +45,16 @@ export class Scheduler {
     }
   }
 
-  stop(): void {
+  stopTimers(): void {
     for (const timer of this.timers.values()) {
       clearInterval(timer);
     }
 
     this.timers.clear();
+  }
+
+  stop(): void {
+    this.stopTimers();
     this.cache.clear();
     this.generation++;
     this.statuses.clear();
@@ -135,6 +139,10 @@ export class Scheduler {
     } catch {
       // Telemetry is best effort.
     }
+  }
+
+  async settle(): Promise<void> {
+    await this.executor.settle();
   }
 
   private runAndCache(check: CheckConfig, timeoutMs: number): void {

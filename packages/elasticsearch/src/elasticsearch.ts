@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Client } from "@elastic/elasticsearch";
 import type { ClientOptions } from "@elastic/elasticsearch/lib/client";
 import {
@@ -51,40 +52,46 @@ export function elasticsearchAdapter(options: ElasticsearchAdapterOptions): Heal
     return internalClientInit;
   }
 
-  return {
-    async check(context): Promise<AdapterResult> {
-      try {
-        context?.signal.throwIfAborted();
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(context): Promise<AdapterResult> {
+        try {
+          context?.signal.throwIfAborted();
+          const client = await getClient();
+          const start = Date.now();
 
-        context?.signal.throwIfAborted();
-        const response = await client.cluster.health({}, { signal: context?.signal });
-        context?.signal.throwIfAborted();
-        const latencyMs = Date.now() - start;
+          context?.signal.throwIfAborted();
+          const response = await client.cluster.health({}, { signal: context?.signal });
+          context?.signal.throwIfAborted();
+          const latencyMs = Date.now() - start;
 
-        const esStatus = response.status;
-        const status = esStatus === "red" ? "fail" : esStatus === "yellow" ? "degraded" : "ok";
+          const esStatus = response.status;
+          const status = esStatus === "red" ? "fail" : esStatus === "yellow" ? "degraded" : "ok";
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<Client>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
-        context?.signal.throwIfAborted();
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<Client>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          context?.signal.throwIfAborted();
 
-        return {
-          status,
-          metadata: {
-            latencyMs,
-            clusterStatus: esStatus,
-            clusterName: response.cluster_name,
-            numberOfNodes: response.number_of_data_nodes,
-            ...metadata,
-          },
-        };
-      } catch (error) {
-        return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
-      }
+          return {
+            status,
+            metadata: {
+              latencyMs,
+              clusterStatus: esStatus,
+              clusterName: response.cluster_name,
+              numberOfNodes: response.number_of_data_nodes,
+              ...metadata,
+            },
+          };
+        } catch (error) {
+          return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
+        }
+      },
     },
-  };
+    async () => {
+      await internalClient?.close();
+    },
+  );
 }

@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type Memcached from "memcached";
 import {
   buildErrorResult,
@@ -57,32 +58,37 @@ export function memcachedAdapter(options: MemcachedAdapterOptions): HealthAdapte
     return clientPromise;
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
-        await new Promise<void>((resolve, reject) => {
-          client.version((error, versions) => {
-            // Some client errors are arrays rather than Error instances.
-            if (Array.isArray(error) ? error.length > 0 : Boolean(error)) {
-              reject(error);
-            } else if (
-              !Array.isArray(versions) ||
-              versions.length === 0 ||
-              versions.some((version) => !version || !version.version)
-            ) {
-              reject(new Error("memcachedAdapter: no version returned by a server"));
-            } else {
-              resolve();
-            }
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
+          await new Promise<void>((resolve, reject) => {
+            client.version((error, versions) => {
+              // Some client errors are arrays rather than Error instances.
+              if (Array.isArray(error) ? error.length > 0 : Boolean(error)) {
+                reject(error);
+              } else if (
+                !Array.isArray(versions) ||
+                versions.length === 0 ||
+                versions.some((version) => !version || !version.version)
+              ) {
+                reject(new Error("memcachedAdapter: no version returned by a server"));
+              } else {
+                resolve();
+              }
+            });
           });
-        });
-        const latencyMs = Date.now() - start;
-        return buildResult(latencyMs, await options.metadata?.(client));
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          const latencyMs = Date.now() - start;
+          return buildResult(latencyMs, await options.metadata?.(client));
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
     },
-  };
+    async () => {
+      (await clientPromise)?.end();
+    },
+  );
 }

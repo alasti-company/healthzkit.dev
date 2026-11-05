@@ -154,3 +154,7 @@ Copyright (C) 2026 Alasti Company
 
 This project is licensed under the MIT License.
 See [LICENSE](./LICENSE) for the full license text.
+
+## Resource cleanup
+
+After draining your application traffic, call `await kit.close()` to stop scheduling, wait for pending health checks, and dispose adapter-owned clients and pools. Close is terminal and idempotent; new health requests reject once it begins. Cleanup attempts every adapter and reports failures with `AggregateError`. Supplied clients remain yours to close. Use `kit.stop()` when you only want to pause scheduling and keep the kit reusable. See [shutdown and disposal](packages/healthzkit/README.md#shutdown-and-disposal) for pending-work and failure behavior.

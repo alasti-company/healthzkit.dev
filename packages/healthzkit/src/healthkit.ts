@@ -25,6 +25,9 @@ function validateTimer(value: number, field: string): void {
 export class HealthKit {
   private scheduler: Scheduler;
   private started = false;
+  private closing: Promise<void> | undefined;
+  private requests = new Set<Promise<unknown>>();
+
   private draining = false;
 
   constructor(private config: HealthkitConfig) {
@@ -63,6 +66,7 @@ export class HealthKit {
   }
 
   start(): void {
+    this.assertOpen();
     if (this.started) return;
     this.scheduler.start(this.config.checks, this.config.defaults?.timeout);
     this.started = true;
@@ -71,6 +75,31 @@ export class HealthKit {
   stop(): void {
     this.scheduler.stop();
     this.started = false;
+  }
+
+  /** Terminal shutdown: wait for underlying checks, then attempt every adapter's cleanup. */
+  close(): Promise<void> {
+    if (this.closing) return this.closing;
+    // Defer cleanup so the terminal flag is set before any user callback can run.
+    this.closing = Promise.resolve().then(async () => {
+      await Promise.allSettled(this.requests);
+      await this.scheduler.settle();
+      this.stop();
+      const adapters = new Set(this.config.checks.map((check) => check.adapter));
+      const results = await Promise.allSettled(
+        [...adapters].map(async (adapter) => adapter.dispose?.()),
+      );
+      const errors = results.flatMap((result) =>
+        result.status === "rejected" ? [result.reason] : [],
+      );
+      if (errors.length) throw new AggregateError(errors, "HealthKit adapter cleanup failed");
+    });
+    this.scheduler.stopTimers();
+    return this.closing;
+  }
+
+  private assertOpen(): void {
+    if (this.closing) throw new Error("HealthKit is closed");
   }
 
   /** Permanently fail readiness for this instance. Scheduling and liveness are independent. */
@@ -110,6 +139,7 @@ export class HealthKit {
     const basePath = this.config.basePath ?? DEFAULT_BASE_PATH;
     const { path } = req;
     if (!this.matchHealthPath(path)) return null;
+    this.assertOpen();
     const method = (req.method ?? "GET").toUpperCase();
     if (method !== "GET" && method !== "HEAD") {
       return { status: 405, headers: { Allow: "GET, HEAD" }, body: "" };
@@ -122,10 +152,21 @@ export class HealthKit {
     return method === "HEAD" ? { ...response, body: "" } : response;
   }
 
-  private async runForType(type: CheckType): Promise<AgnosticResponse> {
+  private runForType(type: CheckType): Promise<AgnosticResponse> {
+    this.assertOpen();
+    const request = this.runForTypeOpen(type);
+    this.requests.add(request);
+    void request.then(
+      () => this.requests.delete(request),
+      () => this.requests.delete(request),
+    );
+    return request;
+  }
+
+  private async runForTypeOpen(type: CheckType): Promise<AgnosticResponse> {
     const output = this.config.output;
     const checks = this.config.checks.filter((c) => c.type.includes(type));
-    const response = await this.checkForType(type);
+    const response = await this.checkForTypeOpen(type);
     if (type === "readiness" && this.draining) {
       response.status = "fail";
       response.checks = {};
@@ -143,8 +184,18 @@ export class HealthKit {
     };
   }
 
-  // Keep lifecycle policy on the structured execution path for future public result APIs.
-  private async checkForType(type: CheckType): Promise<HealthResponse> {
+  private checkForType(type: CheckType): Promise<HealthResponse> {
+    this.assertOpen();
+    const request = this.checkForTypeOpen(type);
+    this.requests.add(request);
+    void request.then(
+      () => this.requests.delete(request),
+      () => this.requests.delete(request),
+    );
+    return request;
+  }
+
+  private async checkForTypeOpen(type: CheckType): Promise<HealthResponse> {
     const { defaults, rollup } = this.config;
     const drainedResponse = (): HealthResponse => ({
       status: "fail",

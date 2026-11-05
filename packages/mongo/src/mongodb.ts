@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { MongoClient, MongoClientOptions } from "mongodb";
 import {
   type BaseMongoOptions,
@@ -33,19 +34,33 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
   let ownedConnectPromise: Promise<MongoClient> | null = null;
   let injectedConnectPromise: Promise<void> | null = null;
 
+  let resetting: Promise<void> | undefined;
+  function closeOwnedClient(): Promise<void> {
+    if (resetting) return resetting;
+    resetting = (async () => {
+      await ownedConnectPromise?.catch(() => {});
+      const client = internalClient;
+      await client?.close();
+      internalClient = null;
+      ownedConnectPromise = null;
+    })().finally(() => {
+      resetting = undefined;
+    });
+    return resetting;
+  }
+
   async function getOwnedClient(
     connectionString: string,
     mongoOptions?: MongoClientOptions,
   ): Promise<MongoClient> {
     ownedConnectPromise ??= (async () => {
       const { MongoClient } = await import("mongodb");
-      const client = new MongoClient(connectionString, mongoOptions);
-      await client.connect();
+      const client = internalClient ?? new MongoClient(connectionString, mongoOptions);
       internalClient = client;
+      await client.connect();
       return client;
     })().catch((error) => {
       ownedConnectPromise = null;
-      internalClient = null;
       throw error;
     });
 
@@ -53,6 +68,7 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
   }
 
   async function getClient(): Promise<MongoClient> {
+    if (resetting) await resetting;
     if ("connectionString" in options && options.connectionString) {
       return getOwnedClient(options.connectionString, options.mongoOptions);
     }
@@ -72,34 +88,30 @@ export function mongodbAdapter(options: MongoDbAdapterOptions): MongoDbAdapter {
     throw new Error("mongoAdapter: provide a non-empty connectionString or a client");
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      try {
-        const client = await getClient();
-        const start = Date.now();
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        try {
+          const client = await getClient();
+          const start = Date.now();
 
-        await client.db("admin").command({ ping: 1 });
-        const latencyMs = Date.now() - start;
+          await client.db("admin").command({ ping: 1 });
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? (options.metadata as MetadataFn<MongoClient>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? (options.metadata as MetadataFn<MongoClient>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        }
+      },
+
+      close: closeOwnedClient,
     },
-
-    async close(): Promise<void> {
-      if (!internalClient) {
-        return;
-      }
-
-      await internalClient.close();
-      internalClient = null;
-      ownedConnectPromise = null;
-    },
-  };
+    closeOwnedClient,
+  );
 }

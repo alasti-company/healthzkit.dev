@@ -1,3 +1,4 @@
+import { withDisposal } from "@healthzkit/shared";
 import type { Pool, PoolClient, ClientBase } from "pg";
 import { buildResult, buildErrorResult, DEFAULT_QUERY } from "./shared.ts";
 import {
@@ -65,29 +66,35 @@ export function cockroachPgAdapter(options: CockroachPgAdapterOptions): HealthAd
     throw new Error("cockroachPgAdapter requires either connectionString or client");
   }
 
-  return {
-    async check(): Promise<AdapterResult> {
-      let release: () => void = () => {};
+  return withDisposal(
+    {
+      async check(): Promise<AdapterResult> {
+        let release: () => void = () => {};
 
-      try {
-        const start = Date.now();
-        const { client, release: releaseClient } = await getClient();
-        release = releaseClient;
+        try {
+          const start = Date.now();
+          const { client, release: releaseClient } = await getClient();
+          release = releaseClient;
 
-        await client.query(options.query ?? DEFAULT_QUERY);
-        const latencyMs = Date.now() - start;
+          await client.query(options.query ?? DEFAULT_QUERY);
+          const latencyMs = Date.now() - start;
 
-        const metadataResult = options.metadata
-          ? await (options.metadata as MetadataFn<ClientBase>)(client)
-          : undefined;
-        const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+          const metadataResult = options.metadata
+            ? await (options.metadata as MetadataFn<ClientBase>)(client)
+            : undefined;
+          const metadata =
+            metadataResult instanceof Promise ? await metadataResult : metadataResult;
 
-        return buildResult(latencyMs, metadata);
-      } catch (error) {
-        return buildErrorResult(error);
-      } finally {
-        release();
-      }
+          return buildResult(latencyMs, metadata);
+        } catch (error) {
+          return buildErrorResult(error);
+        } finally {
+          release();
+        }
+      },
     },
-  };
+    async () => {
+      await internalPool?.end();
+    },
+  );
 }

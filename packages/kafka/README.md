@@ -136,3 +136,5 @@ vp pack --filter @healthzkit/kafka
 ```
 
 See the repo root `AGENTS.md` for Vite+ / `vp` conventions.
+
+KafkaJS checks run serially. If an admin disconnect fails, the next check retries that disconnect before creating another admin; it returns a failed result if cleanup still fails. This bounds retained admin connections to one. Terminal disposal retries the retained disconnect and reports cleanup errors.
