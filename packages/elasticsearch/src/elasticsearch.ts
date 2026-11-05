@@ -54,6 +54,7 @@ export function elasticsearchAdapter(options: ElasticsearchAdapterOptions): Heal
   return {
     async check(context): Promise<AdapterResult> {
       try {
+        context?.signal.throwIfAborted();
         const client = await getClient();
         const start = Date.now();
 
@@ -69,6 +70,7 @@ export function elasticsearchAdapter(options: ElasticsearchAdapterOptions): Heal
           ? (options.metadata as MetadataFn<Client>)(client)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+        context?.signal.throwIfAborted();
 
         return {
           status,

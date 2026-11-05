@@ -34,6 +34,7 @@ export function s3V3Adapter(options: S3V3AdapterOptions): HealthAdapter {
   return {
     async check(context): Promise<AdapterResult> {
       try {
+        context?.signal.throwIfAborted();
         const client = await getClient();
         const start = Date.now();
 
@@ -49,6 +50,7 @@ export function s3V3Adapter(options: S3V3AdapterOptions): HealthAdapter {
           ? (options.metadata as MetadataFn<S3Client>)(client)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+        context?.signal.throwIfAborted();
         const bucketCount = response.Buckets?.length ?? 0;
 
         return buildResult(latencyMs, { ...metadata, bucketCount });

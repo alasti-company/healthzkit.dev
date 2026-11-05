@@ -36,6 +36,7 @@ export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter 
   return {
     async check(context): Promise<AdapterResult> {
       try {
+        context?.signal.throwIfAborted();
         const client = await getClient();
         const start = Date.now();
 
@@ -50,6 +51,7 @@ export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter 
           ? (options.metadata as MetadataFn<DynamoDBClient>)(client)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+        context?.signal.throwIfAborted();
 
         return buildResult(latencyMs, metadata);
       } catch (error) {
