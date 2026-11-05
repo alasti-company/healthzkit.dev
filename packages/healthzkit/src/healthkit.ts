@@ -33,6 +33,12 @@ export class HealthKit {
   constructor(private config: HealthkitConfig) {
     this.config = {
       ...config,
+      output: config.output && {
+        ...config.output,
+        exposeMetadata: Array.isArray(config.output.exposeMetadata)
+          ? [...config.output.exposeMetadata]
+          : config.output.exposeMetadata,
+      },
       defaults: config.defaults && { ...config.defaults },
       checks: config.checks.map((check) => ({
         ...check,
@@ -158,31 +164,24 @@ export class HealthKit {
   }
 
   private async runForTypeOpen(type: CheckType): Promise<AgnosticResponse> {
+    const output = this.config.output;
     const checks = this.config.checks.filter((c) => c.type.includes(type));
     const response = await this.checkForTypeOpen(type);
     if (type === "readiness" && this.draining) {
       response.status = "fail";
       response.checks = {};
     }
-    const publicResponse =
-      this.config.output?.exposeError === false
-        ? {
-            ...response,
-            checks: Object.fromEntries(
-              Object.entries(response.checks).map(([name, result]) => {
-                const { error: _error, ...publicResult } = result;
-                return [name, publicResult];
-              }),
-            ),
-          }
-        : response;
-    const { body, contentType } = format(publicResponse, this.config.output?.format);
+    const { body, contentType } = format(response, output?.format, output);
     const httpStatus =
       type === "readiness" && this.draining
         ? DEFAULT_FAIL_STATUS
         : this.resolveHttpStatus(response.status, checks, response.checks);
 
-    return { status: httpStatus, headers: { "Content-Type": contentType }, body };
+    return {
+      status: httpStatus,
+      headers: { "Content-Type": contentType, "Cache-Control": "no-store" },
+      body,
+    };
   }
 
   private checkForType(type: CheckType): Promise<HealthResponse> {

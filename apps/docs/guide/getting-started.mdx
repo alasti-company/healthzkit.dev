@@ -104,7 +104,7 @@ By default, healthzkit expects:
 | `{basePath}/ready`   | Runs checks whose `type` includes `"readiness"` |
 | `{basePath}/startup` | Runs checks whose `type` includes `"startup"`   |
 
-The default `basePath` is `/healthz`. Set `basePath` in the root config to move all three routes (for example `/api/health` → `/api/health/live` `/api/health/ready`, and `/api/health/startup`).
+The default `basePath` is `/healthz`. Set `basePath` in the root config to move all three routes (for example `/api/health` → `/api/health/live`, `/api/health/ready`, and `/api/health/startup`).
 
 `handleRequest(req)` returns `null` when `req.path` does not match any recognized route, so you can try it first and fall through to the rest of your application.
 

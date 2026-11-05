@@ -27,6 +27,32 @@ function kitWith(adapter: HealthAdapter, scheduled = false) {
 }
 
 describe("terminal close", () => {
+  test("keeps accepted HTTP output filtered while close waits for completion", async () => {
+    const work = deferred<AdapterResult>();
+    const dispose = vi.fn();
+    const kit = createHealthKit({
+      output: { exposeError: false, exposeMetadata: ["/region"] },
+      checks: [
+        { name: "db", type: ["readiness"], adapter: { check: () => work.promise, dispose } },
+      ],
+    });
+    const pending = kit.handleReadiness();
+    const closing = kit.close();
+    expect(dispose).not.toHaveBeenCalled();
+    work.resolve({
+      status: "ok",
+      error: "private-error",
+      metadata: { region: "local", secret: "private-value" },
+    });
+    const response = await pending;
+    expect(response.status).toBe(200);
+    expect(response.headers["Cache-Control"]).toBe("no-store");
+    expect(JSON.parse(response.body).checks.db.metadata).toEqual({ region: "local" });
+    expect(response.body).not.toContain("private-");
+    await closing;
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
   test("is promise-idempotent, deduplicates adapters, and supports check-only adapters", async () => {
     const dispose = vi.fn();
     const adapter = { check: async () => ({ status: "ok" as const }), dispose };
