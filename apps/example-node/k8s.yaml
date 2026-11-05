@@ -44,7 +44,7 @@ spec:
               drop: [ALL]
           startupProbe:
             httpGet:
-              path: /healthz/live
+              path: /healthz/startup
               port: http
             periodSeconds: 2
             failureThreshold: 30

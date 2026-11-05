@@ -38,7 +38,7 @@ Response **`status`** (HTTP code) is derived from the rolled-up health status an
 **Runtime**
 
 - `createHealthKit(config)` → `HealthKit`
-- `HealthKit`: `start()`, `stop()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`
+- `HealthKit`: `start()`, `stop()`, `beginDrain()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`, `handleStartup()`
 - `toFetchResponse(res, method?)` → Fetch `Response` (`HEAD` omits the body)
 - `createFetchHandler(kit)` → `(request: Request) => Promise<Response>` for Deno, Bun, and Workers
 
@@ -49,3 +49,11 @@ Response **`status`** (HTTP code) is derived from the rolled-up health status an
 - `AgnosticRequest`, `AgnosticResponse`
 
 The canonical type definitions and any future additions live in the `healthzkit` package under `packages/healthzkit` in this monorepo.
+
+## Startup and drain responses
+
+Configure `type: ["startup"]` checks for `/healthz/startup`, or call `kit.handleStartup()` directly. Startup uses the same execution, cache, rollup, timeout, and output rules as liveness and readiness. Pending initialization is awaited until completion or timeout. Success is not latched: subsequent probes re-evaluate normally. No matching checks returns 200 with empty `checks`. Startup does not automatically gate readiness; include initialization checks in both types when needed.
+
+`handleRequest()` and `createFetchHandler()` recognize exact `{basePath}/live`, `{basePath}/ready`, and `{basePath}/startup` routes. GET and HEAD run the checks; HEAD omits the body. Other methods on these routes return 405 with `Allow: GET, HEAD` without running checks. Unknown paths return `null` from `handleRequest()` and 404 from the Fetch handler. The Fetch handler strips URL query strings.
+
+`kit.beginDrain()` makes readiness return 503 immediately, with health status `fail` and empty `checks`. This overrides healthy cached checks, custom rollup, and custom HTTP mappings. Pending readiness requests also fail when their checks finish. Startup and liveness remain independent. See [Scheduling](/guide/scheduling#draining-and-restarts) for lifecycle behavior.
