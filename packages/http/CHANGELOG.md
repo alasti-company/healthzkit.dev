@@ -1,5 +1,12 @@
 # @healthzkit/http
 
+## 0.0.8
+
+### Patch Changes
+
+- ae9ed10: Pass an optional CheckContext with a deadline AbortSignal to adapters. Share in-flight work per check across on-demand requests and scheduled runs, retaining protection after a timeout until the underlying operation settles. Forward the context signal to HTTP fetch requests.
+- @healthzkit/shared@0.0.2
+
 ## 0.0.7
 
 ### Patch Changes
