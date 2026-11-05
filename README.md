@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/npm/l/healthzkit.svg)](LICENSE)
 [![docs](https://img.shields.io/badge/docs-healthzkit.dev-4F46E5.svg)](https://healthzkit.dev)
 
-Framework-agnostic **liveness** and **readiness** probes for Node.js. Define checks as small adapters; healthzkit runs them in parallel, rolls up status, maps to HTTP responses, and can schedule checks in the background so probes read cached results instead of hitting dependencies on every request.
+Framework-agnostic **liveness**, **readiness**, and **startup** probes for Node.js. Define checks as small adapters; healthzkit runs them in parallel, rolls up status, maps to HTTP responses, and can schedule checks in the background so probes read cached results instead of hitting dependencies on every request.
 
 This monorepo publishes the core library and optional adapters for common data stores.
 
@@ -21,7 +21,7 @@ const kit = createHealthKit({
   checks: [
     {
       name: "process",
-      type: ["liveness"],
+      type: ["liveness", "startup"],
       adapter: { check: async () => ({ status: "ok" }) },
     },
     {
@@ -38,9 +38,10 @@ kit.start();
 const app = new Hono();
 app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
 app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup()));
 ```
 
-`GET /healthz/live` and `GET /healthz/ready` are the Kubernetes-style probes. Failed readiness returns **503** by default. Full API: [`packages/healthzkit/README.md`](./packages/healthzkit/README.md) · site: [healthzkit.dev](https://healthzkit.dev).
+`GET /healthz/live`, `GET /healthz/ready`, and `GET /healthz/startup` are the Kubernetes-style probes. Failed readiness returns **503** by default. Full API: [`packages/healthzkit/README.md`](./packages/healthzkit/README.md) · site: [healthzkit.dev](https://healthzkit.dev).
 
 ## Packages
 

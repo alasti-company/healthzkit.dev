@@ -38,6 +38,24 @@ describe("production probes", () => {
     expect(end).not.toHaveBeenCalled();
   });
 
+  it("serves startup and delegates health method handling to the kit", async () => {
+    const application = createApplication(mockPool().pool);
+    expect((await application.app.request("/healthz/startup")).status).toBe(200);
+    const head = await application.app.request("/healthz/startup", { method: "HEAD" });
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+    const post = await application.app.request("/healthz/startup", { method: "POST" });
+    expect(post.status).toBe(405);
+    expect(post.headers.get("allow")).toBe("GET, HEAD");
+    application.beginDrain();
+    application.beginDrain();
+    expect(await (await application.app.request("/healthz/ready")).json()).toMatchObject({
+      status: "fail",
+      checks: {},
+    });
+    expect((await application.app.request("/healthz/startup")).status).toBe(200);
+  });
+
   it("fails readiness without failing liveness or exposing driver errors", async () => {
     const application = createApplication(mockPool(true).pool);
     const response = await application.app.request("/healthz/ready");
