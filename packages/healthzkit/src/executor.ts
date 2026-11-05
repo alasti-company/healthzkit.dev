@@ -5,8 +5,8 @@ import type { AdapterResult, CheckConfig } from "./types.ts";
 export class CheckExecutor {
   private inFlight = new Map<string, Promise<AdapterResult>>();
 
-  has(name: string): boolean {
-    return this.inFlight.has(name);
+  get(name: string): Promise<AdapterResult> | undefined {
+    return this.inFlight.get(name);
   }
 
   run(check: CheckConfig, timeoutMs: number): Promise<AdapterResult> {

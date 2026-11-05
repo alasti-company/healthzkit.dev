@@ -11,7 +11,10 @@ export class Scheduler {
   private timers = new Map<string, ReturnType<typeof setInterval>>();
   private cache = new Map<string, CachedResult>();
   private executor = new CheckExecutor();
-  private pending = new Map<string, Promise<CachedResult>>();
+  private pending = new Map<
+    string,
+    { operation: Promise<AdapterResult>; result: Promise<CachedResult> }
+  >();
   private generation = 0;
 
   start(checks: CheckConfig[], defaultTimeout: number = DEFAULT_TIMEOUTMS): void {
@@ -41,8 +44,8 @@ export class Scheduler {
     this.cache.clear();
     this.generation++;
     // Retain stopped scheduled runs so a restart cannot adopt their old result.
-    for (const name of this.pending.keys()) {
-      if (!this.executor.has(name)) this.pending.delete(name);
+    for (const [name, pending] of this.pending) {
+      if (this.executor.get(name) !== pending.operation) this.pending.delete(name);
     }
   }
 
@@ -51,7 +54,7 @@ export class Scheduler {
   }
 
   getPending(name: string): Promise<CachedResult> | undefined {
-    return this.timers.has(name) ? this.pending.get(name) : undefined;
+    return this.timers.has(name) ? this.pending.get(name)?.result : undefined;
   }
 
   runCheck(check: CheckConfig, timeoutMs: number): Promise<AdapterResult> {
@@ -60,16 +63,24 @@ export class Scheduler {
 
   private runAndCache(check: CheckConfig, timeoutMs: number): void {
     // Adopt an existing on-demand operation when scheduling first starts.
-    if (this.executor.has(check.name) && this.pending.has(check.name)) return;
-    this.pending.set(check.name, this.executeAndCache(check, timeoutMs));
+    const existing = this.executor.get(check.name);
+    if (existing && this.pending.get(check.name)?.operation === existing) return;
+    const operation = this.runCheck(check, timeoutMs);
+    this.pending.set(check.name, {
+      operation,
+      result: this.executeAndCache(check, operation),
+    });
   }
 
-  private async executeAndCache(check: CheckConfig, timeoutMs: number): Promise<CachedResult> {
+  private async executeAndCache(
+    check: CheckConfig,
+    operation: Promise<AdapterResult>,
+  ): Promise<CachedResult> {
     const generation = this.generation;
 
     let result: AdapterResult;
     try {
-      result = await this.runCheck(check, timeoutMs);
+      result = await operation;
     } catch (error) {
       result = {
         status: "fail",
