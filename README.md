@@ -98,11 +98,12 @@ for driver coverage, versions, environment variables, failure scenarios, and rem
 ```bash
 vp install
 vp run -r build
+(
+trap 'docker compose -f tools/integration/compose.yml down -v --remove-orphans --timeout 10' EXIT
 docker compose -f tools/integration/compose.yml up -d --wait --wait-timeout 180
 # Set the service URLs from tools/integration/README.md, then:
 vp run --no-cache test:integration
-# Always clean up, including after a failed test:
-docker compose -f tools/integration/compose.yml down -v --remove-orphans --timeout 10
+)
 ```
 
 ### Static checks
