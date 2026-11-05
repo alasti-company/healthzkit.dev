@@ -25,7 +25,7 @@ Each `adapter.check()` resolves to:
 - **`error`**: Optional `Error` or string (included in the serialized check unless `output.exposeError` is `false`).
 - **`metadata`**: Optional object merged into the check result.
 
-Thrown errors from `adapter.check()` are treated as **`fail`**, with the error message captured when `exposeError` is true.
+Thrown errors from `adapter.check()` are treated as **`fail`**, with the error message captured internally and exposed in full HTTP output when `output.exposeError` is true; status-only output omits errors.
 
 ## Deadlines and cancellation
 
