@@ -4,6 +4,7 @@ import type {
   AdapterResult,
   CheckCompleteEvent,
   CheckStatus,
+  CheckType,
   HealthAdapter,
 } from "../src/index.ts";
 
@@ -69,6 +70,36 @@ describe("structured probes and execution hooks", () => {
       });
     },
   );
+
+  test("clock adjustments do not distort hook durations or mutated routing types", async () => {
+    const type: CheckType[] = ["readiness"];
+    let resolve!: (result: AdapterResult) => void;
+    const onCheckComplete = vi.fn(async (_event: CheckCompleteEvent) => 42);
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "db",
+          type,
+          onFail: { httpStatus: 502 },
+          adapter: {
+            check: () =>
+              new Promise((done) => {
+                resolve = done;
+              }),
+          },
+        },
+      ],
+      hooks: { onCheckComplete },
+    });
+    const pending = kit.handleReadiness();
+    await vi.advanceTimersByTimeAsync(20);
+    type.length = 0;
+    vi.setSystemTime(Date.now() - 60_000);
+    resolve({ status: "fail" });
+    expect((await pending).status).toBe(502);
+    expect(onCheckComplete.mock.calls[0][0].duration).toBe(20);
+    expect(onCheckComplete.mock.calls[0][0].type).toEqual(["readiness"]);
+  });
 
   test("concurrent structured and HTTP callers produce one completion with execution duration", async () => {
     let resolve!: (result: AdapterResult) => void;

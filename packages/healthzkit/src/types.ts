@@ -70,9 +70,9 @@ export interface StatusChangeEvent extends CheckCompleteEvent {
 }
 
 export interface ObservabilityHooks {
-  onCheckComplete?: (event: CheckCompleteEvent) => void | Promise<void>;
+  onCheckComplete?: (event: CheckCompleteEvent) => unknown;
   /** Per-check effective status changes; the initial observation is not a change. */
-  onStatusChange?: (event: StatusChangeEvent) => void | Promise<void>;
+  onStatusChange?: (event: StatusChangeEvent) => unknown;
 }
 
 export interface RollupConfig {

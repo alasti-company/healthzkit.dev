@@ -32,6 +32,7 @@ export class HealthKit {
       defaults: config.defaults && { ...config.defaults },
       checks: config.checks.map((check) => ({
         ...check,
+        type: [...check.type],
         schedule: check.schedule && { ...check.schedule },
       })),
     };

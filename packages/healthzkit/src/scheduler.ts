@@ -76,14 +76,14 @@ export class Scheduler {
     const operation = this.executor.run(check, timeoutMs);
     if (!this.observed.has(operation)) {
       this.observed.add(operation);
-      const start = Date.now();
+      const start = performance.now();
       const generation = this.generation;
       const complete = (result: AdapterResult) => {
         // An operation from a stopped lifecycle must not update the new lifecycle.
         if (generation !== this.generation) return;
         const status =
           result.status === "fail" && check.onFail?.treatAs ? check.onFail.treatAs : result.status;
-        const duration = Date.now() - start;
+        const duration = performance.now() - start;
         const error = result.error instanceof Error ? result.error.message : result.error;
         const event: CheckCompleteEvent = {
           name: check.name,
@@ -117,7 +117,7 @@ export class Scheduler {
   }
 
   private notify<T extends CheckCompleteEvent>(
-    hook: ((event: T) => void | Promise<void>) | undefined,
+    hook: ((event: T) => unknown) | undefined,
     event: T,
   ): void {
     if (!hook) return;
