@@ -79,6 +79,14 @@ jobs:
       - name: Build
         run: vp run -r build
 
+      - name: Security audit policy tests
+        if: matrix.node == '22'
+        run: vp run test:security
+
+      - name: Dependency security audit
+        if: matrix.node == '22'
+        run: vp run audit:security
+
       # Static checks only need to run once; build/test/consumer checks run on both LTS lines.
       - name: Format
         if: matrix.node == '22'

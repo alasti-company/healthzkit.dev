@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "healthzkit": "workspace:*",
-    "hono": "^4.13.7"
+    "hono": "^4.13.16"
   },
   "devDependencies": {
     "wrangler": "catalog:"
