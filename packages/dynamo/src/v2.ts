@@ -36,28 +36,41 @@ export function dynamoV2Adapter(options: DynamoV2AdapterOptions): HealthAdapter 
   }
 
   return {
-    async check(): Promise<AdapterResult> {
+    async check(context): Promise<AdapterResult> {
       try {
+        context?.signal.throwIfAborted();
         const client = await getClient();
         const start = Date.now();
 
+        context?.signal.throwIfAborted();
+        let request: AWS.Request<AWS.DynamoDB.ListTablesOutput, AWS.AWSError> | undefined;
+        const abort = () => {
+          request?.abort();
+        };
         await new Promise<void>((resolve, reject) => {
-          client.listTables({ Limit: 1 }, (error) => {
+          request = client.listTables({ Limit: 1 }, (error) => {
             if (error) reject(error);
             else resolve();
           });
+          context?.signal.addEventListener("abort", abort, { once: true });
+          // A custom client may abort the signal while creating the request.
+          if (context?.signal.aborted) abort();
+        }).finally(() => {
+          context?.signal.removeEventListener("abort", abort);
         });
 
+        context?.signal.throwIfAborted();
         const latencyMs = Date.now() - start;
 
         const metadataResult = options.metadata
           ? (options.metadata as MetadataFn<DynamoDB>)(client)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+        context?.signal.throwIfAborted();
 
         return buildResult(latencyMs, metadata);
       } catch (error) {
-        return buildErrorResult(error);
+        return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
       }
     },
   };

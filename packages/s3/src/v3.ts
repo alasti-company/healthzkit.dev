@@ -32,24 +32,30 @@ export function s3V3Adapter(options: S3V3AdapterOptions): HealthAdapter {
   }
 
   return {
-    async check(): Promise<AdapterResult> {
+    async check(context): Promise<AdapterResult> {
       try {
+        context?.signal.throwIfAborted();
         const client = await getClient();
         const start = Date.now();
 
         const { ListBucketsCommand } = await import("@aws-sdk/client-s3");
-        const response: ListBucketsCommandOutput = await client.send(new ListBucketsCommand({}));
+        context?.signal.throwIfAborted();
+        const response: ListBucketsCommandOutput = await client.send(new ListBucketsCommand({}), {
+          abortSignal: context?.signal,
+        });
+        context?.signal.throwIfAborted();
         const latencyMs = Date.now() - start;
 
         const metadataResult = options.metadata
           ? (options.metadata as MetadataFn<S3Client>)(client)
           : undefined;
         const metadata = metadataResult instanceof Promise ? await metadataResult : metadataResult;
+        context?.signal.throwIfAborted();
         const bucketCount = response.Buckets?.length ?? 0;
 
         return buildResult(latencyMs, { ...metadata, bucketCount });
       } catch (error) {
-        return buildErrorResult(error);
+        return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
       }
     },
   };
