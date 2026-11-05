@@ -139,6 +139,46 @@ describe("on-demand in-flight work", () => {
     expect(check).toHaveBeenCalledTimes(3);
   });
 
+  test("starting scheduling adopts and caches an existing on-demand operation", async () => {
+    let resolve!: (result: AdapterResult) => void;
+    const check = vi.fn<HealthAdapter["check"]>(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    const kit = createHealthKit({
+      checks: [
+        {
+          name: "db",
+          type: ["readiness"],
+          timeout: 25,
+          schedule: { intervalMs: 1000 },
+          adapter: { check },
+        },
+      ],
+    });
+    try {
+      const onDemand = kit.handleReadiness();
+      await vi.advanceTimersByTimeAsync(0);
+      kit.start();
+      const scheduled = kit.handleReadiness();
+      resolve({ status: "ok", metadata: { adopted: true } });
+      expect((await onDemand).status).toBe(200);
+      expect((await scheduled).status).toBe(200);
+      const cached = await kit.handleReadiness();
+      expect(JSON.parse(cached.body).checks.db).toMatchObject({
+        status: "ok",
+        cachedAt: expect.any(String),
+        latency: 0,
+        metadata: { adopted: true },
+      });
+      expect(check).toHaveBeenCalledOnce();
+    } finally {
+      kit.stop();
+    }
+  });
+
   test("starting and stopping scheduling cannot duplicate an on-demand operation", async () => {
     const check = vi.fn<HealthAdapter["check"]>(() => new Promise(() => {}));
     const kit = createHealthKit({

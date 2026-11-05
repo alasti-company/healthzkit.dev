@@ -128,4 +128,4 @@ vp pack
 
 See the repo root `AGENTS.md` for Vite+ / `vp` conventions.
 
-The adapter combines the optional check context signal with its own request timeout. When Healthzkit's check deadline expires first, it aborts `fetch` and any pending response-body read. Direct calls to `adapter.check()` still use the adapter's own timeout.
+The adapter combines the check context signal with the request timeout from `httpAdapter({ timeout })`. The check-level `timeout` (inherited from `defaults.timeout` when omitted) sets Healthzkit's deadline. If that deadline expires first, Healthzkit aborts `fetch` and any pending response-body read. Direct calls to `adapter.check()` without a context use only the adapter's request timeout.

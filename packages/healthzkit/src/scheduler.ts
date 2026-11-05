@@ -40,7 +40,10 @@ export class Scheduler {
     this.timers.clear();
     this.cache.clear();
     this.generation++;
-    this.pending.clear();
+    // Retain stopped scheduled runs so a restart cannot adopt their old result.
+    for (const name of this.pending.keys()) {
+      if (!this.executor.has(name)) this.pending.delete(name);
+    }
   }
 
   getCache(name: string): CachedResult | undefined {
@@ -56,7 +59,8 @@ export class Scheduler {
   }
 
   private runAndCache(check: CheckConfig, timeoutMs: number): void {
-    if (this.executor.has(check.name)) return;
+    // Adopt an existing on-demand operation when scheduling first starts.
+    if (this.executor.has(check.name) && this.pending.has(check.name)) return;
     this.pending.set(check.name, this.executeAndCache(check, timeoutMs));
   }
 
