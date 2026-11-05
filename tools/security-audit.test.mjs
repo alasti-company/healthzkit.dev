@@ -120,3 +120,25 @@ test("accepts valid audit output with status 0 or 1 and rejects command failures
     /spawn failed/,
   );
 });
+
+test("rejects malformed or impossible exception dates instead of accepting them indefinitely", () => {
+  for (const reviewBy of [
+    "9999-99-99",
+    "2027-02-29",
+    "2027-04-31",
+    "2027-2-01",
+    "2027-02-01T00:00:00Z",
+    "",
+    null,
+    20270201,
+  ]) {
+    assert.throws(
+      () => evaluateAudit(report(), [{ ...exception, reviewBy }], today),
+      /Invalid exception review date/,
+    );
+  }
+  assert.equal(
+    evaluateAudit(report(), [{ ...exception, reviewBy: "2028-02-29" }], today).failures.length,
+    0,
+  );
+});

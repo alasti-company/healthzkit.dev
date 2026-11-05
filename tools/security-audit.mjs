@@ -28,6 +28,17 @@ export function evaluateAudit(report, exceptions, today = new Date().toISOString
   ) {
     throw new Error("Audit vulnerability counts are missing or invalid.");
   }
+  for (const entry of exceptions) {
+    const date = new Date(`${entry.reviewBy}T00:00:00Z`);
+    if (
+      typeof entry.reviewBy !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(entry.reviewBy) ||
+      !Number.isFinite(date.getTime()) ||
+      date.toISOString().slice(0, 10) !== entry.reviewBy
+    ) {
+      throw new Error(`Invalid exception review date: ${entry.reviewBy}`);
+    }
+  }
   const failures = [];
   const accepted = [];
   for (const advisory of Object.values(report.advisories)) {
