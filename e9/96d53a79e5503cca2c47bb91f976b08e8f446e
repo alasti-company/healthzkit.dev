@@ -1,0 +1,19 @@
+.changeset/redis-peer-types.md
+  s_df95608df0e4b2::t_3317e6b5e5bc26 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e996d53a79e5503cca2c47bb91f976b08e8f446e",
+  "prompts": {},
+  "sessions": {
+    "s_df95608df0e4b2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a96f-910c-7c91-894b-558c8b58aa2c",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
