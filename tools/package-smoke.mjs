@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -74,6 +74,9 @@ assert.equal(toFetchResponse(await kit.handleReadiness()).status, 200);
       `\nimport { createHealthKit, type HealthAdapter } from 'healthzkit';
 import { pgAdapter } from '@healthzkit/postgres/pg';
 import { httpAdapter } from '@healthzkit/http/http';
+import { nodeRedisAdapter } from '@healthzkit/redis/redis';
+import { createClient } from 'redis';
+nodeRedisAdapter({ client: createClient() });
 const postgres: HealthAdapter = pgAdapter({ connectionString: 'postgres://localhost/smoke' });
 const http: HealthAdapter = httpAdapter({ url: 'https://example.com' });
 void postgres;
@@ -104,9 +107,60 @@ void invalid;
   );
   run(process.execPath, ["runtime.mjs"], temporary);
   run(process.execPath, ["node_modules/typescript/bin/tsc", "-p", "tsconfig.json"], temporary);
+  // Verify the advertised minimum Redis peer using packed declarations, without
+  // skipLibCheck hiding references to types only available in newer drivers.
+  const redisLegacy = join(temporary, "redis-legacy");
+  await mkdir(redisLegacy);
+  await writeFile(
+    join(redisLegacy, "package.json"),
+    JSON.stringify({
+      private: true,
+      type: "module",
+      dependencies: {
+        healthzkit: dependencies.healthzkit,
+        "@healthzkit/shared": dependencies["@healthzkit/shared"],
+        "@healthzkit/redis": dependencies["@healthzkit/redis"],
+        redis: "4.0.0",
+        "@types/node": dependencies["@types/node"],
+        typescript: dependencies.typescript,
+      },
+    }),
+  );
+  run(
+    "npm",
+    ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--legacy-peer-deps"],
+    redisLegacy,
+  );
+  await writeFile(
+    join(redisLegacy, "consumer.mts"),
+    `
+import { nodeRedisAdapter } from '@healthzkit/redis/redis';
+import { createClient } from 'redis';
+nodeRedisAdapter({ client: createClient(), metadata: async (client) => ({ pong: await client.sendCommand(['PING']) }) });
+nodeRedisAdapter({ connectionString: 'redis://localhost', redisOptions: { socket: { port: 6379 } } });
+// @ts-expect-error A client must provide the required command method.
+nodeRedisAdapter({ client: { isOpen: true, connect: async () => {} } });
+`,
+  );
+  await writeFile(
+    join(redisLegacy, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: {
+        strict: true,
+        noEmit: true,
+        module: "NodeNext",
+        moduleResolution: "NodeNext",
+        target: "ES2022",
+        skipLibCheck: false,
+        types: ["node"],
+      },
+      files: ["consumer.mts"],
+    }),
+  );
+  run(process.execPath, ["node_modules/typescript/bin/tsc", "-p", "tsconfig.json"], redisLegacy);
   assert.ok(entrypoints.length > 0);
   console.log(
-    `Packed consumer smoke passed: ${directories.length} packages, ${entrypoints.length} entrypoints (runtime + strict TypeScript).`,
+    `Packed consumer smoke passed: ${directories.length} packages, ${entrypoints.length} entrypoints (runtime + strict TypeScript), plus minimum Redis 4 peer declarations.`,
   );
 } finally {
   await rm(temporary, { recursive: true, force: true });

@@ -1,4 +1,4 @@
-import type { RedisClientOptions, RedisClientType, RespVersions } from "redis";
+import type { RedisClientOptions } from "redis";
 import {
   type BaseRedisOptions,
   type HealthAdapter,
@@ -9,10 +9,13 @@ import {
   buildErrorResult,
 } from "./shared.ts";
 
-type NodeRedisClient = Pick<
-  RedisClientType<any, any, any, RespVersions>,
-  "sendCommand" | "isOpen" | "connect"
->;
+// Keep the public client contract compatible with Redis 4, 5 and 6. Their
+// RedisClientType generics and exported RESP types differ between major versions.
+interface NodeRedisClient {
+  readonly isOpen: boolean;
+  connect(): Promise<unknown>;
+  sendCommand(args: string[]): Promise<unknown>;
+}
 
 export interface NodeRedisAdapterOptionsWithClient extends BaseRedisOptions<NodeRedisClient> {
   client: NodeRedisClient;

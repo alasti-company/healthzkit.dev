@@ -51,13 +51,13 @@
     "@healthzkit/shared": "workspace:*"
   },
   "devDependencies": {
-    "@types/mysql": "^2.15.27",
+    "@types/mysql": "^2.15.28",
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
     "bumpp": "catalog:",
     "healthzkit": "workspace:*",
     "mysql": "^2.18.1",
-    "mysql2": "^3.24.3",
+    "mysql2": "^3.24.6",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   },

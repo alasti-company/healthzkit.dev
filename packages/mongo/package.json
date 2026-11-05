@@ -56,8 +56,8 @@
     "@typescript/native-preview": "catalog:",
     "bumpp": "catalog:",
     "healthzkit": "workspace:*",
-    "mongodb": "^7.6.0",
-    "mongoose": "^9.9.5",
+    "mongodb": "^7.8.0",
+    "mongoose": "^9.11.4",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   },

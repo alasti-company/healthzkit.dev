@@ -1,0 +1,66 @@
+[
+  {
+    "advisory": "GHSA-j965-2qgj-vjmq",
+    "package": "aws-sdk",
+    "version": "2.1693.0",
+    "paths": ["packages__dynamo>aws-sdk", "packages__s3>aws-sdk"],
+    "reviewBy": "2027-02-01",
+    "reason": "Latest AWS SDK v2 is end of support and has no patch. Retained only to test the optional v2 compatibility adapter with trusted test configuration. Prefer v3 for consumers; remove when v2 support is retired."
+  },
+  {
+    "advisory": "GHSA-c2qf-rxjj-qqgw",
+    "package": "semver",
+    "version": "4.3.2",
+    "paths": ["packages__postgres>pg>semver"],
+    "reviewBy": "2027-02-01",
+    "reason": "pg-legacy deliberately pins pg 8.0.0 to test the minimum supported driver and separate module identity. Its semver input is the local Node version, not network input. Remove when minimum pg support advances."
+  },
+  {
+    "advisory": "GHSA-w5hq-g745-h8pq",
+    "package": "uuid",
+    "version": "8.0.0",
+    "paths": ["packages__dynamo>aws-sdk>uuid", "packages__s3>aws-sdk>uuid"],
+    "reviewBy": "2027-02-01",
+    "reason": "AWS SDK v2 uses uuid.v4(), while this advisory affects v3/v5/v6 with a supplied buffer. Retained only under the SDK v2 compatibility test dependency; remove with v2 support."
+  },
+  {
+    "advisory": "GHSA-vcc3-ghjq-m6fr",
+    "package": "decode-uri-component",
+    "version": "0.2.2",
+    "paths": ["packages__minio>minio>query-string>decode-uri-component"],
+    "reviewBy": "2027-02-01",
+    "reason": "Latest MinIO 8.0.7 requires CommonJS query-string 7 and decode-uri-component 0.2.2; the patched decoder is ESM and cannot be safely substituted across the declared support range. This installation is for adapter tests with mocked clients. Consumers must assess their MinIO version and untrusted query input. Remove when MinIO publishes a compatible fix."
+  },
+  {
+    "advisory": "GHSA-528h-pc64-c93x",
+    "package": "stream-json",
+    "version": "1.9.1",
+    "paths": ["packages__minio>minio>stream-json"],
+    "reviewBy": "2027-02-01",
+    "reason": "Latest MinIO 8.0.7 requires stream-json 1.x and its jsonl/Parser.js API; patched 3.x switches to ESM and different exports. This installation is for adapter tests with mocked clients; the health check calls listBuckets, not notification streaming. Consumers must assess their own MinIO installation. Remove when MinIO publishes a compatible fix."
+  },
+  {
+    "advisory": "GHSA-hqr4-qq8f-hg3x",
+    "package": "stream-json",
+    "version": "1.9.1",
+    "paths": ["packages__minio>minio>stream-json"],
+    "reviewBy": "2027-02-01",
+    "reason": "Latest MinIO 8.0.7 requires stream-json 1.x and its jsonl/Parser.js API; patched 3.x switches to ESM and different exports. This installation is for adapter tests with mocked clients; the health check calls listBuckets, not notification streaming. Consumers must assess their own MinIO installation. Remove when MinIO publishes a compatible fix."
+  },
+  {
+    "advisory": "GHSA-mjw6-4jj6-33hc",
+    "package": "stream-json",
+    "version": "1.9.1",
+    "paths": ["packages__minio>minio>stream-json"],
+    "reviewBy": "2027-02-01",
+    "reason": "Latest MinIO 8.0.7 requires stream-json 1.x and its jsonl/Parser.js API; patched 3.x switches to ESM and different exports. This installation is for adapter tests with mocked clients; the health check calls listBuckets, not notification streaming. Consumers must assess their own MinIO installation. Remove when MinIO publishes a compatible fix."
+  },
+  {
+    "advisory": "GHSA-qr28-fpjm-wq7f",
+    "package": "decode-uri-component",
+    "version": "0.2.2",
+    "paths": ["packages__minio>minio>query-string>decode-uri-component"],
+    "reviewBy": "2027-02-01",
+    "reason": "Latest MinIO 8.0.7 requires CommonJS query-string 7 and decode-uri-component 0.2.2; the patched decoder is ESM and cannot be safely substituted across the declared support range. This installation is for adapter tests with mocked clients. Consumers must assess their MinIO version and untrusted query input. Remove when MinIO publishes a compatible fix."
+  }
+]
