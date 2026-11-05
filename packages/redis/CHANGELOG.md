@@ -1,5 +1,11 @@
 # @healthzkit/redis
 
+## 0.0.8
+
+### Patch Changes
+
+- 54939a6: Keep node-redis adapter declarations compatible with Redis 4, 5, and 6 by describing the required client methods without version-specific RedisClientType generics or RESP exports.
+
 ## 0.0.7
 
 ### Patch Changes
