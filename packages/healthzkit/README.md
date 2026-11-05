@@ -21,7 +21,7 @@ const kit = createHealthKit({
   checks: [
     {
       name: "process",
-      type: ["liveness"],
+      type: ["liveness", "startup"],
       adapter: { check: async () => ({ status: "ok" }) },
     },
     {
@@ -38,6 +38,7 @@ kit.start();
 const app = new Hono();
 app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
 app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup()));
 
 export default app;
 ```
@@ -140,7 +141,7 @@ Default `basePath` is `/healthz`. Override with `basePath` in config (e.g. `/api
 Each check is a `CheckConfig`:
 
 - **`name`** — Key in the response `checks` object. Must be unique across all checks, including different probe types; duplicate names throw during construction. Check names and the checks list are captured at construction, so later changes to the original configuration do not change them.
-- **`type`** — One or more of `"liveness"`, `"readiness"`, and `"startup"`. Only checks that include the probe type run for that probe. If none match, the response is still **200** with an empty `checks` object.
+- **`type`** — One or more of `"liveness"`, `"readiness"`, and `"startup"`. Only checks that include the probe type run for that probe. With the default rollup, no matching checks returns **200** with empty `checks`; a custom rollup still determines the status.
 - **`adapter`** — Must implement `HealthAdapter`: `check(context?: CheckContext): Promise<AdapterResult>`.
 - **`timeout`** — Per-check timeout in ms. Default is **5000**, unless overridden by `defaults.timeout`.
 - **`schedule`** — Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](#scheduling)).

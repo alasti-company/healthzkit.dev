@@ -21,7 +21,7 @@ const kit = createHealthKit({
   checks: [
     {
       name: "process",
-      type: ["liveness"],
+      type: ["liveness", "startup"],
       adapter: { check: async () => ({ status: "ok" }) },
     },
     {
@@ -38,6 +38,7 @@ kit.start();
 const app = new Hono();
 app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
 app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup()));
 ```
 
 `GET /healthz/live`, `GET /healthz/ready`, and `GET /healthz/startup` are the Kubernetes-style probes. Failed readiness returns **503** by default. Full API: [`packages/healthzkit/README.md`](./packages/healthzkit/README.md) · site: [healthzkit.dev](https://healthzkit.dev).
