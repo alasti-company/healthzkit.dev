@@ -1,0 +1,30 @@
+apps/docs/guide/checks-and-adapters.mdx
+  s_32a8f447fd4f62::t_424aecdd96a703 49
+packages/healthzkit/tests/on-demand.test.ts
+  s_32a8f447fd4f62::t_424aecdd96a703 142-181
+apps/docs/adapter/http.mdx
+  s_32a8f447fd4f62::t_424aecdd96a703 118
+packages/http/README.md
+  s_32a8f447fd4f62::t_424aecdd96a703 131
+packages/healthzkit/README.md
+  s_32a8f447fd4f62::t_424aecdd96a703 178
+packages/healthzkit/src/scheduler.ts
+  s_32a8f447fd4f62::t_424aecdd96a703 62-63
+  s_32a8f447fd4f62::t_68d4a179c6eeea 43-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4c6cfab4ad46312b76f7a367d71d3e44fcd1997e",
+  "prompts": {},
+  "sessions": {
+    "s_32a8f447fd4f62": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a944-0cd1-7871-bb20-874f0587db63",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
