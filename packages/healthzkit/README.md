@@ -152,7 +152,7 @@ Each check is a `CheckConfig`:
 - **`error`**: Optional `Error` or string (included in the serialized check unless `output.exposeError` is `false`).
 - **`metadata`**: Optional object merged into the check result.
 
-Thrown errors from `adapter.check()` are treated as **`fail`** with the error message captured when `exposeError` is true.
+Thrown errors from `adapter.check()` are treated as **`fail`** with the error message captured internally and exposed in HTTP output when `exposeError` is true.
 
 Official adapters (Postgres, Redis, Kafka, S3, Prisma, Drizzle, and more) live in [`@healthzkit/*` packages](https://healthzkit.dev).
 
@@ -240,9 +240,44 @@ Note: `onFail.treatAs` changes the **check** status before HTTP mapping. A failu
 `output` on the root config:
 
 - **`format`**: `"json"` (default) or `"text"`.
-  - JSON: `Content-Type: application/json`, body is `JSON.stringify` of `HealthResponse`.
+  - JSON: `Content-Type: application/json`, full output serializes `HealthResponse` after applying exposure controls.
   - Text: `Content-Type: text/plain`, human-readable lines (`status:`, then each check with latency and optional error).
 - **`exposeError`**: Default **true**. If **false**, the `error` field is omitted from each check in the payload.
+- **`exposeMetadata`**: Default **true**, preserving all adapter metadata in JSON. Set **false** to omit metadata, or pass a readonly array of JSON Pointer paths such as `["/region", "/service/version"]` to include only those scalar leaves. An empty array omits metadata. Text output never includes metadata.
+- **`detail`**: `"full"` (default) or `"status"`. Status-only JSON is exactly `{"status":"ok"}` (or `"degraded"` / `"fail"`); text is exactly `status: ok`. It omits timestamps, check names, latency, cache details, errors, and metadata, regardless of other exposure settings.
+
+Every health response includes `Cache-Control: no-store`, for successful and failing checks. Fetch helpers preserve this header, including on HEAD responses with no body. Your framework integration should forward all response headers.
+
+### Public endpoints
+
+Use status-only output for endpoints exposed outside your trusted network:
+
+```ts
+import { createHealthKit } from "healthzkit";
+
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "process",
+      type: ["liveness"],
+      adapter: { check: async () => ({ status: "ok" }) },
+    },
+  ],
+  output: {
+    detail: "status",
+    exposeError: false,
+    exposeMetadata: false,
+  },
+});
+```
+
+If you need per-check status and timing, use `detail: "full"` with `exposeError: false` and `exposeMetadata: false`. Check names remain visible in full output. To expose selected metadata, use `exposeMetadata: ["/region", "/service/version"]` and review those values for sensitive content.
+
+Allowlists use exact JSON Pointer paths, with `~1` for `/` and `~0` for `~` in a key. Only own data properties of plain objects are traversed, and only strings, booleans, null, and finite numbers are copied. Selecting `/service` does not include an object or its children; select `/service/version` explicitly. Arrays (including their elements), accessors, class instances, inherited properties, and non-JSON values are excluded. Invalid or missing paths and paths containing `__proto__`, `prototype`, `constructor`, or `toJSON` segments are ignored. There are no wildcards. This prevents a newly added nested secret or custom serializer from being included through an allowed parent.
+
+These controls filter only serialized HTTP output in both formats. Check execution, scheduler caches, internal structured diagnostics, custom rollup inputs, and HTTP status selection retain full diagnostics. Observability integrations should use internal results before output filtering. `HealthResponse` continues to describe the full internal response; status-only JSON has only its `status` field.
+
+The error-exposure default remains **true** for compatibility; metadata remains exposed by default too. No breaking default change or version migration is required. Opt in to safer public settings when upgrading. Previously, `exposeError: false` also removed errors before custom rollup evaluation; rollups now always receive the captured error so output settings cannot alter health evaluation.
 
 ## Types (public API)
 

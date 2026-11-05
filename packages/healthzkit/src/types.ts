@@ -69,6 +69,14 @@ export interface OutputConfig {
    * Default: true
    */
   exposeError?: boolean;
+  /**
+   * Include all metadata (default: true), omit it (false), or allowlist scalar
+   * leaves by JSON Pointer, e.g. ["/region", "/service/version"].
+   * Allowlists exclude objects, arrays, accessors, and non-JSON values.
+   */
+  exposeMetadata?: boolean | readonly string[];
+  /** Full diagnostics (default) or only the overall status, without check names. */
+  detail?: "full" | "status";
 }
 
 export interface DefaultsConfig {

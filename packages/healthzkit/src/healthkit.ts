@@ -93,10 +93,9 @@ export class HealthKit {
     const checks = this.config.checks.filter((c) => c.type.includes(type));
     const { output, defaults, rollup } = this.config;
 
-    const exposeError = output?.exposeError ?? true;
     const defaultTimeout = defaults?.timeout;
 
-    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout, exposeError);
+    const checkResult = await runChecks(checks, this.scheduler, defaultTimeout);
     const overallStatus = computeRollupStatus(checkResult, rollup);
 
     const response: HealthResponse = {
@@ -105,12 +104,12 @@ export class HealthKit {
       checks: checkResult,
     };
 
-    const { body, contentType } = format(response, output?.format);
+    const { body, contentType } = format(response, output?.format, output);
     const httpStatus = this.resolveHttpStatus(overallStatus, checks, checkResult);
 
     return {
       status: httpStatus,
-      headers: { "Content-Type": contentType },
+      headers: { "Content-Type": contentType, "Cache-Control": "no-store" },
       body,
     };
   }
