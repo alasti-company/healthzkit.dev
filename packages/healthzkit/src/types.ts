@@ -51,6 +51,30 @@ export interface HealthResponse {
   checks: Record<string, CheckResult>;
 }
 
+/** One event per underlying execution, never per cache read or waiting caller. */
+export interface CheckCompleteEvent {
+  name: string;
+  type: CheckType[];
+  source: "scheduled" | "on-demand";
+  status: CheckStatus;
+  /** Execution duration in milliseconds, including the deadline on timeout. */
+  duration: number;
+  /** ISO timestamp at completion (or timeout). */
+  timestamp: string;
+  /** Internal diagnostics, independent of public output filtering. Non-cloneable metadata is omitted. */
+  result: CheckResult;
+}
+
+export interface StatusChangeEvent extends CheckCompleteEvent {
+  previousStatus: CheckStatus;
+}
+
+export interface ObservabilityHooks {
+  onCheckComplete?: (event: CheckCompleteEvent) => unknown;
+  /** Per-check effective status changes; the initial observation is not a change. */
+  onStatusChange?: (event: StatusChangeEvent) => unknown;
+}
+
 export interface RollupConfig {
   /**
    * Custom function to determine top-level status from all check results.
@@ -65,7 +89,7 @@ export interface RollupConfig {
 export interface OutputConfig {
   format?: OutputFormat;
   /**
-   * Expose error messages in the response.
+   * Expose error messages in the HTTP response. Structured results and hooks retain them.
    * Default: true
    */
   exposeError?: boolean;
@@ -84,6 +108,8 @@ export interface DefaultsConfig {
 
 export interface HealthkitConfig {
   checks: CheckConfig[];
+  /** Fire-and-forget callbacks; thrown errors and rejected promises are ignored. */
+  hooks?: ObservabilityHooks;
   basePath?: string; // default: "/healthz"
   rollup?: RollupConfig;
   output?: OutputConfig;
