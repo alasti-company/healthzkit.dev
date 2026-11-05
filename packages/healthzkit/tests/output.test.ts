@@ -19,6 +19,36 @@ function kitFor(result: AdapterResult, output?: OutputConfig) {
 }
 
 describe("public output boundary", () => {
+  test("caller output mutations cannot expose diagnostics during pending checks", async () => {
+    let resolve!: (value: AdapterResult) => void;
+    const operation = new Promise<AdapterResult>((done) => {
+      resolve = done;
+    });
+    const paths = ["/region"];
+    const output: OutputConfig = { exposeMetadata: paths, exposeError: false };
+    const kit = createHealthKit({
+      output,
+      checks: [
+        {
+          name: "db",
+          type: ["readiness"],
+          adapter: {
+            check: () => operation,
+          },
+        },
+      ],
+    });
+    const pending = kit.handleReadiness();
+    await Promise.resolve();
+    paths.push("/secret");
+    output.exposeMetadata = true;
+    output.exposeError = true;
+    resolve({ status: "ok", error: "secret", metadata: { region: "local", secret: "hidden" } });
+    const response = await pending;
+    expect(JSON.parse(response.body).checks.db).toMatchObject({ metadata: { region: "local" } });
+    expect(response.body).not.toContain("secret");
+    expect(response.body).not.toContain("hidden");
+  });
   test.each(["json", "text"] as const)(
     "throwing metadata proxies fail closed in %s",
     async (format) => {

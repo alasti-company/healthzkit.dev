@@ -44,9 +44,55 @@ const adapter: HealthAdapter = {
 };
 ```
 
-A deadline bounds the health response; it does not forcibly cancel driver work. Adapters must use the signal with an API that supports cancellation. The HTTP adapter forwards it to `fetch`; database adapters may need driver-specific cancellation or client timeouts.
+A deadline bounds the health response; it does not forcibly cancel driver work. Adapters must use the signal with an API that supports cancellation. The HTTP adapter forwards it to `fetch`, AWS SDK v3 S3 and DynamoDB pass it as `abortSignal`, AWS SDK v2 aborts the individual request, and Elasticsearch passes it as a request `signal`. These paths leave shared clients open.
 
 Within one kit, concurrent requests for the same check share one operation, including liveness and readiness requests. If it times out, later requests fail immediately until the underlying operation settles. A late result cannot turn that timeout into a success. After settlement, checks without an active scheduled cache start a fresh operation on the next request. Scheduled checks keep serving the cached result until a later interval refreshes it. Other checks and other kit instances run independently. Stopping or restarting scheduling does not release pending adapter work.
+
+## Driver timeouts
+
+Configure driver timeouts as well as the Healthzkit deadline. Include connection
+establishment, pool acquisition, commands, and retries in your budget. A connection
+timeout alone does not bound a query on an established connection. Prefer driver
+budgets shorter than the check deadline so the driver can settle and release any
+borrowed resources before the health response expires.
+
+The following audit covers the operations used by the official adapters. “No” means
+the adapter does not forward the context signal, even if a newer driver offers
+other cancellation APIs. Configure these options on your injected client, or via
+the adapter's driver configuration where exposed. Verify names and units against
+your installed driver version.
+
+| Adapter / driver                               | Context cancellation                                | Driver timeout guidance                                                                                                                                                                                                                  |
+| ---------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP / fetch                                   | Yes; combines the context signal with its own timer | Adapter `timeout` bounds the request; the response body is released after the check.                                                                                                                                                     |
+| S3 and DynamoDB / AWS v3                       | Yes; `send` receives `abortSignal`                  | Set `requestHandler` connection and request/socket timeouts, plus `maxAttempts`. Credentials providers and custom handlers need their own bounds.                                                                                        |
+| S3 and DynamoDB / AWS v2                       | Yes; aborts only the per-check `Request`            | Set `httpOptions.connectTimeout`, `httpOptions.timeout`, and `maxRetries`.                                                                                                                                                               |
+| Elasticsearch                                  | Yes; `cluster.health` request `signal`              | Set client `requestTimeout` and `maxRetries`.                                                                                                                                                                                            |
+| Postgres and CockroachDB / pg                  | No                                                  | Use `connectionTimeoutMillis`, `query_timeout`, and server `statement_timeout`. A client query timeout may leave server work running; use a server limit too. Borrowed clients are released when work settles.                           |
+| Postgres / postgres.js                         | No                                                  | Use `connect_timeout` (seconds) and a server `statement_timeout`; `idle_timeout` is not a query deadline.                                                                                                                                |
+| MySQL / mysql and mysql2                       | No                                                  | Use `connectTimeout`; configure finite pool queue/acquisition behavior and driver-supported query timeouts or server execution limits. Pools can wait indefinitely for a connection. Borrowed connections are released after settlement. |
+| MongoDB and Mongoose                           | No                                                  | Use `serverSelectionTimeoutMS`, `connectTimeoutMS`, `socketTimeoutMS`, and `waitQueueTimeoutMS`. Mongoose buffering may also need `bufferTimeoutMS` or disabling. No client/connection is closed to cancel a ping.                       |
+| Redis / node-redis                             | No                                                  | Set `socket.connectTimeout`, finite reconnect behavior, and consider `disableOfflineQueue`. Connection timeout does not bound a pending command; use a driver-version-supported command deadline or a dedicated health client.           |
+| Redis / ioredis and Valkey / iovalkey          | No                                                  | Set `connectTimeout`, `commandTimeout`, `maxRetriesPerRequest`, and finite retry/offline queue behavior.                                                                                                                                 |
+| Redis / Upstash                                | No                                                  | Inject a client configured with its `signal`/timeout and retry policy where supported. The adapter's URL/token shortcut does not configure these limits.                                                                                 |
+| Valkey / GLIDE                                 | No                                                  | Use `requestTimeout` and the driver's connection timeout settings.                                                                                                                                                                       |
+| Memcached / memcached                          | No                                                  | Set `timeout` (milliseconds), `retries`, and `retry`; account for all servers and attempts.                                                                                                                                              |
+| Memcached / memjs                              | No                                                  | Set `timeout` and `conntimeout` (seconds), `retries`, and retry delay.                                                                                                                                                                   |
+| MinIO                                          | No                                                  | Inject a client with a bounded HTTP transport using `transport`/`transportAgent` as supported; ensure request timeouts actually abort the request. An agent's idle timeout alone is not a full request deadline.                         |
+| Kafka / KafkaJS                                | No                                                  | Set `connectionTimeout`, `authenticationTimeout`, `requestTimeout`, finite retries, and keep request timeout enforcement enabled. The adapter disconnects its per-check admin after settlement.                                          |
+| Kafka / node-rdkafka                           | No                                                  | Configure finite connection/socket and metadata timeouts using your librdkafka version. The adapter's `getMetadata` call uses driver defaults; it does not interrupt a shared producer/consumer.                                         |
+| RabbitMQ / amqplib and amqp-connection-manager | No                                                  | Configure connection/socket timeout and heartbeat settings. These do not guarantee a deadline for `createChannel`/`close`; use dedicated health connections when you need stronger isolation.                                            |
+| SQLite / better-sqlite3 and sqlite3            | No                                                  | Set busy timeout (`timeout` / `busyTimeout`). It bounds lock waiting, not arbitrary query execution. Synchronous work blocks the event loop, so the Healthzkit timer cannot interrupt it.                                                |
+| SQLite / libsql                                | No                                                  | Configure remote transport timeouts where supported and a busy timeout for local lock waits. The adapter does not interrupt the client.                                                                                                  |
+| Prisma                                         | No                                                  | Configure provider/driver connection and pool acquisition timeouts plus server query limits. Transaction timeouts do not automatically bound this adapter's standalone query.                                                            |
+| Drizzle                                        | Follows selected adapter                            | Configure the underlying pg, postgres.js, MySQL, or SQLite client as above.                                                                                                                                                              |
+
+Metadata hooks receive the client but do not receive `CheckContext`. Give their
+additional operations driver timeouts too. Canceling a supported health operation
+does not cancel unrelated work or forcibly close a caller-owned client. If a driver
+ignores cancellation or never settles, the check continues returning its timeout
+without launching more underlying work. Use [scheduling](/guide/scheduling) to
+control normal check frequency; it does not replace driver timeouts.
 
 ## Official adapters
 
