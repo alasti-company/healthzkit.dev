@@ -127,3 +127,5 @@ vp pack
 ```
 
 See the repo root `AGENTS.md` for Vite+ / `vp` conventions.
+
+The adapter combines the optional check context signal with its own request timeout. When Healthzkit's check deadline expires first, it aborts `fetch` and any pending response-body read. Direct calls to `adapter.check()` still use the adapter's own timeout.

@@ -140,7 +140,7 @@ Each check is a `CheckConfig`:
 
 - **`name`** — Key in the response `checks` object. Must be unique across all checks, including different probe types; duplicate names throw during construction. Check names and the checks list are captured at construction, so later changes to the original configuration do not change them.
 - **`type`** — One or both of `"liveness"` and `"readiness"`. Only checks that include the probe type run for that probe. If none match, the response is still **200** with an empty `checks` object.
-- **`adapter`** — Must implement `HealthAdapter`: `check(): Promise<AdapterResult>`.
+- **`adapter`** — Must implement `HealthAdapter`: `check(context?: CheckContext): Promise<AdapterResult>`.
 - **`timeout`** — Per-check timeout in ms. Default is **5000**, unless overridden by `defaults.timeout`.
 - **`schedule`** — Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](#scheduling)).
 - **`onFail`** — Optional `httpStatus`, `treatAs` (e.g. map `"fail"` to `"degraded"` for rollup and body while adjusting HTTP status rules).
@@ -155,6 +155,27 @@ Each check is a `CheckConfig`:
 Thrown errors from `adapter.check()` are treated as **`fail`** with the error message captured when `exposeError` is true.
 
 Official adapters (Postgres, Redis, Kafka, S3, Prisma, Drizzle, and more) live in [`@healthzkit/*` packages](https://healthzkit.dev).
+
+## Deadlines and cancellation
+
+Healthzkit calls `check(context?: CheckContext)`, where `context.signal` is an `AbortSignal` that aborts when the check deadline expires. Existing zero-argument adapters continue to work. You can pass the signal to an API that supports cancellation:
+
+```ts
+import type { HealthAdapter } from "healthzkit";
+
+const adapter: HealthAdapter = {
+  async check(context) {
+    const response = await fetch("https://api.example/health", {
+      signal: context?.signal,
+    });
+    return { status: response.ok ? "ok" : "fail" };
+  },
+};
+```
+
+A deadline bounds the health response; it does not forcibly cancel driver work. Adapters must use the signal with an API that supports cancellation. The HTTP adapter forwards it to `fetch`; database adapters may need driver-specific cancellation or client timeouts.
+
+Within one kit, concurrent requests for the same check share one operation, including liveness and readiness requests. If it times out, later requests fail immediately until the underlying operation settles. A late result cannot turn that timeout into a success. After settlement, the next on-demand request starts a fresh operation. Other checks and other kit instances run independently. Stopping or restarting scheduling does not release pending adapter work.
 
 ## Timing configuration
 
@@ -236,7 +257,7 @@ Exported from `healthzkit`:
 
 **Types**
 
-- `HealthkitConfig`, `CheckConfig`, `HealthAdapter`, `AdapterResult`, `CheckResult`, `HealthResponse`
+- `HealthkitConfig`, `CheckConfig`, `CheckContext`, `HealthAdapter`, `AdapterResult`, `CheckResult`, `HealthResponse`
 - `CheckStatus`, `CheckType`, `RollupConfig`, `OutputConfig`, `DefaultsConfig`
 - `AgnosticRequest`, `AgnosticResponse`
 

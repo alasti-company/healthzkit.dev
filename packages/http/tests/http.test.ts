@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { createHealthKit } from "healthzkit";
 import { afterEach, describe, expect, test, vi } from "vite-plus/test";
 import { httpAdapter } from "../src/http.ts";
 
@@ -119,6 +120,77 @@ describe("httpAdapter", () => {
 
     expect(result.status).toBe("fail");
     expect((result.error as Error).message).toBe("Request timed out after 10ms");
+  });
+
+  test.each([false, true])(
+    "honors the context signal (already aborted: %s)",
+    async (alreadyAborted) => {
+      const controller = new AbortController();
+      const reason = new Error("Check deadline expired");
+      const fetch = stubFetch(
+        (_url, init) =>
+          new Promise((_resolve, reject) => {
+            if (init?.signal?.aborted) reject(init.signal.reason);
+            else
+              init?.signal?.addEventListener("abort", () => reject(init.signal!.reason), {
+                once: true,
+              });
+          }),
+      );
+      if (alreadyAborted) controller.abort(reason);
+      const pending = httpAdapter({ url: "https://api.example/health", timeout: 5000 }).check({
+        signal: controller.signal,
+      });
+      if (!alreadyAborted) controller.abort(reason);
+      const result = await pending;
+      expect(result.status).toBe("fail");
+      expect(result.error).toBe(reason);
+      expect(fetch.mock.calls[0][1]?.signal?.aborted).toBe(true);
+    },
+  );
+
+  test.each(["fetch", "body read"])("the kit deadline closes a pending %s", async (phase) => {
+    let closed = false;
+    let received = false;
+    const server = createServer((_req, res) => {
+      received = true;
+      res.on("close", () => {
+        closed = true;
+      });
+      if (phase === "body read") {
+        res.writeHead(200);
+        res.write("incomplete body");
+      }
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const address = server.address();
+      if (!address || typeof address === "string") throw new Error("Missing server port");
+      const kit = createHealthKit({
+        checks: [
+          {
+            name: "api",
+            type: ["readiness"],
+            timeout: 100,
+            adapter: httpAdapter({
+              url: `http://127.0.0.1:${address.port}`,
+              timeout: 5000,
+              metadata: async (response) => ({ body: await response.text() }),
+            }),
+          },
+        ],
+      });
+      const response = await kit.handleReadiness();
+      expect(response.status).toBe(503);
+      expect(JSON.parse(response.body).checks.api.error).toBe('Check "api" timed out after 100ms');
+      expect(received).toBe(true);
+      await vi.waitFor(() => expect(closed).toBe(true), { timeout: 1000, interval: 10 });
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      );
+    }
   });
 
   test("uses redirect manual when followRedirects is false", async () => {

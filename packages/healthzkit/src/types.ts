@@ -8,8 +8,13 @@ export interface AdapterResult {
   metadata?: Record<string, unknown>;
 }
 
+export interface CheckContext {
+  /** Aborted when the check deadline expires. Cancellation is cooperative. */
+  signal: AbortSignal;
+}
+
 export interface HealthAdapter {
-  check(): Promise<AdapterResult>;
+  check(context?: CheckContext): Promise<AdapterResult>;
 }
 
 export interface CheckConfig {

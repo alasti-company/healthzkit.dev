@@ -1,4 +1,5 @@
-import { DEFAULT_TIMEOUTMS, withTimeout } from "./timeout.ts";
+import { CheckExecutor } from "./executor.ts";
+import { DEFAULT_TIMEOUTMS } from "./timeout.ts";
 import type { AdapterResult, CheckConfig } from "./types.ts";
 
 export interface CachedResult {
@@ -9,7 +10,7 @@ export interface CachedResult {
 export class Scheduler {
   private timers = new Map<string, ReturnType<typeof setInterval>>();
   private cache = new Map<string, CachedResult>();
-  private inFlight = new Map<string, symbol>();
+  private executor = new CheckExecutor();
   private pending = new Map<string, Promise<CachedResult>>();
   private generation = 0;
 
@@ -39,9 +40,7 @@ export class Scheduler {
     this.timers.clear();
     this.cache.clear();
     this.generation++;
-    for (const name of this.pending.keys()) {
-      if (!this.inFlight.has(name)) this.pending.delete(name);
-    }
+    this.pending.clear();
   }
 
   getCache(name: string): CachedResult | undefined {
@@ -52,29 +51,21 @@ export class Scheduler {
     return this.timers.has(name) ? this.pending.get(name) : undefined;
   }
 
+  runCheck(check: CheckConfig, timeoutMs: number): Promise<AdapterResult> {
+    return this.executor.run(check, timeoutMs);
+  }
+
   private runAndCache(check: CheckConfig, timeoutMs: number): void {
-    if (this.inFlight.has(check.name)) return;
+    if (this.executor.has(check.name)) return;
     this.pending.set(check.name, this.executeAndCache(check, timeoutMs));
   }
 
   private async executeAndCache(check: CheckConfig, timeoutMs: number): Promise<CachedResult> {
-    const run = Symbol();
     const generation = this.generation;
-    this.inFlight.set(check.name, run);
-    const release = () => {
-      if (this.inFlight.get(check.name) === run) {
-        this.inFlight.delete(check.name);
-        if (!this.timers.has(check.name)) this.pending.delete(check.name);
-      }
-    };
 
     let result: AdapterResult;
     try {
-      // Keep the check in flight until the adapter settles, even after a timeout.
-      const pending = Promise.resolve()
-        .then(() => check.adapter.check())
-        .finally(release);
-      result = await withTimeout(pending, timeoutMs, check.name);
+      result = await this.runCheck(check, timeoutMs);
     } catch (error) {
       result = {
         status: "fail",

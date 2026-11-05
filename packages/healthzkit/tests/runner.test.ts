@@ -1,12 +1,14 @@
 import { describe, expect, test } from "vite-plus/test";
 import { runChecks } from "../src/runner.ts";
-import type { Scheduler } from "../src/scheduler.ts";
+import { Scheduler } from "../src/scheduler.ts";
 import type { CheckConfig } from "../src/types.ts";
 
 function schedulerWithCache(
   entries: Record<string, { result: import("../src/types.ts").AdapterResult; cachedAt: Date }>,
-): Pick<Scheduler, "getCache" | "getPending"> {
+): Pick<Scheduler, "getCache" | "getPending" | "runCheck"> {
+  const scheduler = new Scheduler();
   return {
+    runCheck: (check, timeoutMs) => scheduler.runCheck(check, timeoutMs),
     getCache: (name: string) => entries[name],
     getPending: () => undefined,
   };
