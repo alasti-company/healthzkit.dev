@@ -1,6 +1,6 @@
 # healthzkit
 
-Framework-agnostic **liveness** and **readiness** probes for Node.js. Define checks as small adapters; **healthzkit** runs them in parallel, rolls up overall status, maps that to HTTP status and a JSON or plain-text body, and optionally **schedules** checks in the background so probes can read cached results instead of hitting dependencies on every request.
+Framework-agnostic **liveness**, **readiness**, and **startup** probes for Node.js. Define checks as small adapters; **healthzkit** runs them in parallel, rolls up overall status, maps that to HTTP status and a JSON or plain-text body, and optionally **schedules** checks in the background so probes can read cached results instead of hitting dependencies on every request.
 
 Docs: [healthzkit.dev](https://healthzkit.dev)
 
@@ -21,7 +21,7 @@ const kit = createHealthKit({
   checks: [
     {
       name: "process",
-      type: ["liveness"],
+      type: ["liveness", "startup"],
       adapter: { check: async () => ({ status: "ok" }) },
     },
     {
@@ -38,11 +38,12 @@ kit.start();
 const app = new Hono();
 app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
 app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup()));
 
 export default app;
 ```
 
-Point Kubernetes (or any orchestrator) at `GET /healthz/live` and `GET /healthz/ready`. A failed readiness check returns **503** by default so the instance is taken out of rotation.
+Point Kubernetes (or any orchestrator) at `GET /healthz/live`, `GET /healthz/ready`, and `GET /healthz/startup`. A failed readiness check returns **503** by default so the instance is taken out of rotation.
 
 ## Fetch, Next.js, Bun, Workers
 
@@ -127,10 +128,11 @@ if (res) {
 
 ## Routes and `basePath`
 
-| Path               | Behavior                                        |
-| ------------------ | ----------------------------------------------- |
-| `{basePath}/live`  | Runs checks whose `type` includes `"liveness"`  |
-| `{basePath}/ready` | Runs checks whose `type` includes `"readiness"` |
+| Path                 | Behavior                                        |
+| -------------------- | ----------------------------------------------- |
+| `{basePath}/live`    | Runs checks whose `type` includes `"liveness"`  |
+| `{basePath}/ready`   | Runs checks whose `type` includes `"readiness"` |
+| `{basePath}/startup` | Runs checks whose `type` includes `"startup"`   |
 
 Default `basePath` is `/healthz`. Override with `basePath` in config (e.g. `/api/health` → `/api/health/live`).
 
@@ -139,7 +141,7 @@ Default `basePath` is `/healthz`. Override with `basePath` in config (e.g. `/api
 Each check is a `CheckConfig`:
 
 - **`name`** — Key in the response `checks` object. Must be unique across all checks, including different probe types; duplicate names throw during construction. Check names and the checks list are captured at construction, so later changes to the original configuration do not change them.
-- **`type`** — One or both of `"liveness"` and `"readiness"`. Only checks that include the probe type run for that probe. If none match, the response is still **200** with an empty `checks` object.
+- **`type`** — One or more of `"liveness"`, `"readiness"`, and `"startup"`. Only checks that include the probe type run for that probe. With the default rollup, no matching checks returns **200** with empty `checks`; a custom rollup still determines the status.
 - **`adapter`** — Must implement `HealthAdapter`: `check(context?: CheckContext): Promise<AdapterResult>`.
 - **`timeout`** — Per-check timeout in ms. Default is **5000**, unless overridden by `defaults.timeout`.
 - **`schedule`** — Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](#scheduling)).
@@ -214,6 +216,34 @@ A cached result becomes a failure when its age reaches **`intervalMs + timeout`*
 
 Timers use `unref` when available so they do not keep the process alive by themselves.
 
+## Startup and draining
+
+```ts
+let initialized = false;
+const kit = createHealthKit({
+  checks: [
+    {
+      name: "initialization",
+      type: ["startup"],
+      adapter: { check: async () => ({ status: initialized ? "ok" : "fail" }) },
+    },
+  ],
+});
+// Set initialized from your application initialization code.
+// Serve kit.handleStartup() directly or mount createFetchHandler(kit).
+// During your application's shutdown handler:
+kit.beginDrain();
+kit.stop();
+```
+
+Set `initialized` to `true` when initialization finishes. Startup checks use the same timeout, cache, rollup, and HTTP rules as other checks. Pending startup work is awaited until it settles or times out. Success is not latched: later probes re-evaluate on demand or read the scheduled cache. Kubernetes stops invoking its startup probe after success. With no startup checks, startup returns 200 with empty checks. Startup does not automatically gate readiness; include a check in both types if needed.
+
+`beginDrain()` permanently puts this instance into draining state. Every new readiness request immediately returns **503**, with health status `fail` and empty `checks`, even if cached checks are healthy or custom rollup/HTTP settings would return success. Pending readiness requests also fail when their checks finish. Draining does not cancel pending work, stop scheduling, or change startup/liveness evaluation. Liveness can still fail independently. Both JSON and text output keep their configured format.
+
+Repeated `beginDrain()`, `start()`, and `stop()` calls are safe. `stop()` only stops scheduling and clears its cache; on-demand checks remain usable. `start()` can restart scheduling after `stop()`, but neither resets drain state. Create a new kit for a new application lifecycle. No signal handlers or resource cleanup are installed: your application owns shutdown and adapter resources.
+
+`handleRequest()` recognizes exact live, ready, and startup paths, accepts GET (also when method is omitted) and HEAD, and returns 405 with `Allow: GET, HEAD` for other methods on recognized paths. HEAD runs the same checks but omits the response body. Unknown paths return `null`. `createFetchHandler()` also strips URL query strings and returns 404 for unknown paths.
+
 ## Rollup status
 
 Overall `HealthResponse.status` is computed from all check results for that probe:
@@ -286,7 +316,7 @@ Exported from `healthzkit`:
 **Runtime**
 
 - `createHealthKit(config)` → `HealthKit`
-- `HealthKit`: `start()`, `stop()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`
+- `HealthKit`: `start()`, `stop()`, `beginDrain()`, `handleRequest(req)`, `handleLiveness()`, `handleReadiness()`, `handleStartup()`
 - `toFetchResponse(res, method?)` → Fetch `Response` (`HEAD` omits the body)
 - `createFetchHandler(kit)` → `(request: Request) => Promise<Response>`
 

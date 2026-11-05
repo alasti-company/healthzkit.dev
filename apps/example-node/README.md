@@ -16,6 +16,7 @@ DATABASE_URL=postgres://postgres:example@localhost:5432/postgres vp run --filter
 `PORT` defaults to `3000`. In another terminal:
 
 ```bash
+curl -i localhost:3000/healthz/startup
 curl -i localhost:3000/healthz/live
 curl -i localhost:3000/healthz/ready
 curl -i localhost:3000/
@@ -27,10 +28,11 @@ Send SIGTERM or Ctrl-C to the **Node process** to exercise shutdown. The app own
 
 ## Lifecycle and safe output
 
+- `/healthz/startup` runs the process check to confirm the app can serve requests. Replace or extend it with your initialization check when needed. Kubernetes waits for this route before running liveness/readiness.
 - `/healthz/live` checks only the process. A database outage must not restart every replica.
 - `/healthz/ready` uses a 5s scheduled database check; it is not an instantaneous outage detector. The initial request shares the first refresh. Stale cached results follow healthzkit's documented interval-plus-timeout rule.
 - `output.exposeError: false` prevents driver errors from reaching probe clients. Application errors are generic too; do not add metadata containing credentials, SQL, or internal hosts. Keep health endpoints internal via your network policy/ingress configuration.
-- On SIGTERM/SIGINT, readiness becomes 503 immediately, new business requests get 503, and scheduling stops. Liveness stays 200 while draining.
+- On SIGTERM/SIGINT, `kit.beginDrain()` makes readiness return the kit's standard fail response with HTTP 503 immediately, new business requests get 503, and scheduling stops. Liveness stays 200 while draining.
 - The server stays open for 5s to allow endpoint changes to propagate, then stops accepting connections and waits for active requests. Only then does the application call `pool.end()`.
 - Repeated signals share one shutdown. A hard 25s deadline exits with failure if HTTP or pool cleanup stalls. Tune the propagation delay and deadline for your load balancer; Kubernetes grace must remain longer than the deadline.
 
@@ -52,7 +54,7 @@ kubectl rollout status deployment/healthzkit-example
 kubectl port-forward service/healthzkit-example 3000:80
 ```
 
-The manifest intentionally does not deploy Postgres or commit credentials. Supply your managed database and TLS settings. `localhost` in a pod/container is not your development machine. Startup/liveness use the process-only route; readiness uses the dependency route. There is no `preStop` sleep: the application owns the drain delay, inside Kubernetes' 30s grace budget. Add your own namespace, network policy, secret management, and disruption policy before deployment.
+The manifest intentionally does not deploy Postgres or commit credentials. Supply your managed database and TLS settings. `localhost` in a pod/container is not your development machine. Startup uses `/healthz/startup` and liveness uses `/healthz/live`, both process-only; readiness uses the dependency route. There is no `preStop` sleep: the application owns the drain delay, inside Kubernetes' 30s grace budget. Add your own namespace, network policy, secret management, and disruption policy before deployment.
 
 ## Validate
 

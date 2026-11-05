@@ -26,7 +26,7 @@ const kit = createHealthKit({
   checks: [
     {
       name: "process",
-      type: ["liveness"],
+      type: ["liveness", "startup"],
       adapter: { check: async () => ({ status: "ok" }) },
     },
     {
@@ -45,6 +45,7 @@ const kit = createHealthKit({
 const app = new Hono();
 app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
 app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
+app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup()));
 
 export default app;
 ```
@@ -80,7 +81,7 @@ const kit = createHealthKit({
 const handler = createFetchHandler(kit);
 ```
 
-`createFetchHandler` answers `{basePath}/live` and `{basePath}/ready` (default `/healthz`) on GET and HEAD. Other methods on those routes return 405. Unknown paths return 404.
+`createFetchHandler` answers `{basePath}/live`, `{basePath}/ready`, and `{basePath}/startup` (default `/healthz`) on GET and HEAD. Other methods on those routes return 405. Unknown paths return 404.
 
 ## `handleRequest`
 
@@ -97,14 +98,15 @@ if (res) {
 
 By default, healthzkit expects:
 
-| Path               | Behavior                                        |
-| ------------------ | ----------------------------------------------- |
-| `{basePath}/live`  | Runs checks whose `type` includes `"liveness"`  |
-| `{basePath}/ready` | Runs checks whose `type` includes `"readiness"` |
+| Path                 | Behavior                                        |
+| -------------------- | ----------------------------------------------- |
+| `{basePath}/live`    | Runs checks whose `type` includes `"liveness"`  |
+| `{basePath}/ready`   | Runs checks whose `type` includes `"readiness"` |
+| `{basePath}/startup` | Runs checks whose `type` includes `"startup"`   |
 
-The default `basePath` is `/healthz`. Set `basePath` in the root config to move both routes (for example `/api/health` → `/api/health/live` and `/api/health/ready`).
+The default `basePath` is `/healthz`. Set `basePath` in the root config to move all three routes (for example `/api/health` → `/api/health/live` `/api/health/ready`, and `/api/health/startup`).
 
-`handleRequest(req)` returns `null` when `req.path` does not match either route, so you can try it first and fall through to the rest of your application.
+`handleRequest(req)` returns `null` when `req.path` does not match any recognized route, so you can try it first and fall through to the rest of your application.
 
 ## `AgnosticResponse`
 

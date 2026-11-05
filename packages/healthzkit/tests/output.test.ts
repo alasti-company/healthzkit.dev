@@ -8,7 +8,7 @@ function kitFor(result: AdapterResult, output?: OutputConfig) {
     checks: [
       {
         name: "private-db",
-        type: ["liveness", "readiness"],
+        type: ["liveness", "readiness", "startup"],
         adapter: {
           check: async () => result,
         },
@@ -19,6 +19,35 @@ function kitFor(result: AdapterResult, output?: OutputConfig) {
 }
 
 describe("public output boundary", () => {
+  test.each(["json", "text"] as const)(
+    "throwing metadata proxies fail closed in %s",
+    async (format) => {
+      const metadata = new Proxy(
+        {},
+        {
+          getPrototypeOf() {
+            throw new Error("proxy-secret");
+          },
+        },
+      );
+      const res = await kitFor(
+        { status: "ok", metadata },
+        { format, exposeMetadata: ["/region"] },
+      ).handleReadiness();
+      expect(res.status).toBe(200);
+      expect(res.body).not.toContain("proxy-secret");
+      if (format === "json")
+        expect(JSON.parse(res.body).checks["private-db"].metadata).toBeUndefined();
+    },
+  );
+  test("draining responses retain no-store and status-only filtering", async () => {
+    const kit = kitFor({ status: "ok" }, { detail: "status" });
+    kit.beginDrain();
+    const res = await kit.handleReadiness();
+    expect(res.status).toBe(503);
+    expect(res.headers["Cache-Control"]).toBe("no-store");
+    expect(JSON.parse(res.body)).toEqual({ status: "fail" });
+  });
   test("preserves diagnostic defaults for compatibility", async () => {
     const res = await kitFor({
       status: "fail",
@@ -169,7 +198,7 @@ describe("public output boundary", () => {
     "no-store survives direct, Fetch, and HEAD responses for %s",
     async (status) => {
       const kit = kitFor({ status });
-      for (const path of ["live", "ready"]) {
+      for (const path of ["live", "ready", "startup"]) {
         const direct = await kit.handleRequest({ path: `/healthz/${path}` });
         expect(direct?.headers["Cache-Control"]).toBe("no-store");
         for (const method of ["GET", "HEAD"]) {

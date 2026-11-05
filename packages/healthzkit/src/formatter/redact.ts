@@ -48,6 +48,15 @@ function allowMetadata(metadata: Record<string, unknown>, paths: readonly string
   return Object.keys(selected).length ? selected : undefined;
 }
 
+function safeAllowMetadata(metadata: Record<string, unknown>, paths: readonly string[]) {
+  try {
+    return allowMetadata(metadata, paths);
+  } catch {
+    // Uninspectable metadata (including throwing Proxy traps) must fail closed.
+    return undefined;
+  }
+}
+
 /** Output projection only: runner results, scheduler cache, and rollups retain diagnostics. */
 export function redactResponse(response: HealthResponse, output: OutputConfig): HealthResponse {
   return {
@@ -59,7 +68,7 @@ export function redactResponse(response: HealthResponse, output: OutputConfig): 
           output.exposeMetadata === false
             ? undefined
             : Array.isArray(output.exposeMetadata)
-              ? metadata && allowMetadata(metadata, output.exposeMetadata)
+              ? metadata && safeAllowMetadata(metadata, output.exposeMetadata)
               : metadata;
         return [
           name,
