@@ -34,18 +34,29 @@ export function s3V2Adapter(options: S3V2AdapterOptions): HealthAdapter {
   }
 
   return {
-    async check(): Promise<AdapterResult> {
+    async check(context): Promise<AdapterResult> {
       try {
         const client = await getClient();
         const start = Date.now();
 
+        context?.signal.throwIfAborted();
+        let request: AWS.Request<AWS.S3.ListBucketsOutput, AWS.AWSError> | undefined;
+        const abort = () => {
+          request?.abort();
+        };
         const response = await new Promise<AWS.S3.ListBucketsOutput>((resolve, reject) => {
-          client.listBuckets((error, data) => {
+          request = client.listBuckets((error, data) => {
             if (error) reject(error);
             else resolve(data);
           });
+          context?.signal.addEventListener("abort", abort, { once: true });
+          // A custom client may abort the signal while creating the request.
+          if (context?.signal.aborted) abort();
+        }).finally(() => {
+          context?.signal.removeEventListener("abort", abort);
         });
 
+        context?.signal.throwIfAborted();
         const latencyMs = Date.now() - start;
 
         const metadataResult = options.metadata
@@ -56,7 +67,7 @@ export function s3V2Adapter(options: S3V2AdapterOptions): HealthAdapter {
 
         return buildResult(latencyMs, { ...metadata, bucketCount });
       } catch (error) {
-        return buildErrorResult(error);
+        return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
       }
     },
   };

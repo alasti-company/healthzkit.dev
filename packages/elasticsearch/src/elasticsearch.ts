@@ -52,12 +52,14 @@ export function elasticsearchAdapter(options: ElasticsearchAdapterOptions): Heal
   }
 
   return {
-    async check(): Promise<AdapterResult> {
+    async check(context): Promise<AdapterResult> {
       try {
         const client = await getClient();
         const start = Date.now();
 
-        const response = await client.cluster.health();
+        context?.signal.throwIfAborted();
+        const response = await client.cluster.health({}, { signal: context?.signal });
+        context?.signal.throwIfAborted();
         const latencyMs = Date.now() - start;
 
         const esStatus = response.status;
@@ -79,7 +81,7 @@ export function elasticsearchAdapter(options: ElasticsearchAdapterOptions): Heal
           },
         };
       } catch (error) {
-        return buildErrorResult(error);
+        return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
       }
     },
   };

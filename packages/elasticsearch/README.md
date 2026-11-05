@@ -120,3 +120,19 @@ vp pack
 ```
 
 See the repo root `AGENTS.md` for Vite+ / `vp` conventions.
+
+## Cancellation and timeouts
+
+The adapter consumes `CheckContext.signal` when Healthzkit reaches a check deadline.
+It passes the signal to `cluster.health` request options. Cancellation leaves the
+shared client open. Configure the client's `requestTimeout` and `maxRetries` as
+additional bounds on requests.
+
+Calling `check()` without context still works. Cancellation is cooperative: a
+custom transport or metadata hook can keep work pending. Healthzkit retains
+in-flight deduplication until that work settles; it does not start overlapping
+retries to recover from a timeout. Metadata hooks receive the client, not the
+context signal, so give any additional operations their own driver timeouts.
+
+See [cancellation and driver timeout guidance](https://healthzkit.dev/guide/checks-and-adapters#driver-timeouts)
+and [scheduling](https://healthzkit.dev/guide/scheduling).

@@ -34,14 +34,16 @@ export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter 
   }
 
   return {
-    async check(): Promise<AdapterResult> {
+    async check(context): Promise<AdapterResult> {
       try {
         const client = await getClient();
         const start = Date.now();
 
         const { ListTablesCommand } = await import("@aws-sdk/client-dynamodb");
 
-        await client.send(new ListTablesCommand({ Limit: 1 }));
+        context?.signal.throwIfAborted();
+        await client.send(new ListTablesCommand({ Limit: 1 }), { abortSignal: context?.signal });
+        context?.signal.throwIfAborted();
         const latencyMs = Date.now() - start;
 
         const metadataResult = options.metadata
@@ -51,7 +53,7 @@ export function dynamoV3Adapter(options: DynamoV3AdapterOptions): HealthAdapter 
 
         return buildResult(latencyMs, metadata);
       } catch (error) {
-        return buildErrorResult(error);
+        return buildErrorResult(context?.signal.aborted ? context.signal.reason : error);
       }
     },
   };

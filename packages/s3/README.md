@@ -134,3 +134,22 @@ vp pack --filter @healthzkit/s3
 ```
 
 See the repo root `AGENTS.md` for Vite+ / `vp` conventions.
+
+## Cancellation and timeouts
+
+The adapter consumes `CheckContext.signal` when Healthzkit reaches a check deadline.
+AWS SDK v3 receives it as `send(command, { abortSignal })`. AWS SDK v2 aborts
+only the returned request and removes the abort listener when that request settles.
+Neither path destroys the client, so you can keep sharing it with your application.
+For additional bounds, configure SDK v3's `requestHandler` connection/request
+(or socket) timeouts and `maxAttempts`, or SDK v2's `httpOptions.connectTimeout`,
+`httpOptions.timeout`, and `maxRetries`.
+
+Calling `check()` without context still works. Cancellation is cooperative: a
+custom transport or metadata hook can keep work pending. Healthzkit retains
+in-flight deduplication until that work settles; it does not start overlapping
+retries to recover from a timeout. Metadata hooks receive the client, not the
+context signal, so give any additional operations their own driver timeouts.
+
+See [cancellation and driver timeout guidance](https://healthzkit.dev/guide/checks-and-adapters#driver-timeouts)
+and [scheduling](https://healthzkit.dev/guide/scheduling).
