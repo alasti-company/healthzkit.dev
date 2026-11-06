@@ -18,6 +18,7 @@
     "dev": "vp run -r dev",
     "clean": "vpx rimraf \"**/node_modules\" --glob",
     "prepare": "vp config",
+    "version-packages": "vpx changeset version && vp fmt",
     "publish": "vp run -r build && vpx changeset publish",
     "audit:security": "node tools/security-audit.mjs",
     "test:security": "vp test --run tools/security-audit.test.mjs"

@@ -46,6 +46,7 @@ jobs:
       - name: Create Release PR or Publish
         uses: changesets/action@v2
         with:
+          version-script: vp run --no-cache version-packages
           publish-script: vp run publish
           pr-title: "chore: release packages"
           commit-message: "chore: release packages"
