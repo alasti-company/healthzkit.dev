@@ -53,6 +53,7 @@
           "index",
           "guide/introduction",
           "guide/getting-started",
+          "guide/integrate-healthzkit",
           "guide/checks-and-adapters",
           "guide/scheduling",
           "guide/frameworks",

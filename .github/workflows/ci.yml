@@ -96,6 +96,9 @@ jobs:
       - name: Packed consumer smoke
         run: vp run test:packages
 
+      - name: Documentation recipe
+        run: vp run test:docs
+
   ci-required:
     # Preserve the required-check context and require the matrix plus real-service coverage.
     name: CI

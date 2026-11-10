@@ -29,3 +29,13 @@ release. Add a tool name to select part of the graph. For example, run
 - [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
 
 <!--VITE PLUS END-->
+
+## Healthzkit conventions
+
+- `packages/healthzkit` owns the runner, scheduling, HTTP mapping, output filtering, and public types. `packages/*` contains optional driver adapters; `tools/shared` contains adapter helpers.
+- `apps/docs` is the Mintlify docs source. Read its `AGENTS.md` before changing documentation. `apps/example-node` demonstrates long-lived Node deployment; `apps/example-hono` targets Workers.
+- Keep adapter factory names, package export subpaths, and peer dependencies consistent with each package's manifest and README. Preserve public API compatibility and add a changeset for publishable changes.
+- Adapters must release borrowed connections. Supplied clients remain application-owned; dispose only adapter-owned resources. Cancellation is cooperative: a health deadline does not guarantee driver cancellation.
+- Keep external dependencies in readiness examples. Demonstrate real checks, finite driver limits, output filtering, and bounded shutdown for production integrations.
+- After code changes, run `vp check` and `vp test`. Build with `vp run -r build` before `vp run test:packages` for exports/declaration changes or `vp run test:docs` for the canonical integration recipe. Real-service tests and prerequisites are documented in `tools/integration/README.md`.
+- Mintlify generates the docs indexes. Keep agent guidance in normal navigable pages with descriptions; do not add custom `llms.txt` or `llms-full.txt` overrides.

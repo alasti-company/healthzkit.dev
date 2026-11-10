@@ -13,6 +13,7 @@
     "ready": "vp fmt && vp lint && vp run test && vp run build",
     "test": "vp run -r test",
     "test:packages": "node tools/package-smoke.mjs",
+    "test:docs": "node tools/check-docs.mjs",
     "test:integration": "node tools/integration/run.mjs",
     "build": "vp run -r build",
     "dev": "vp run -r dev",

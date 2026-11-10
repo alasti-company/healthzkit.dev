@@ -1,0 +1,88 @@
+---
+title: Integrate healthzkit
+description: Add production health checks to an existing application with exact imports, shared clients, bounded checks, scheduling, and graceful shutdown.
+---
+
+Use this recipe when adding healthzkit to an existing application, including with a coding agent. Identify your runtime, HTTP framework, and database driver before choosing an adapter. Healthzkit requires Node.js 22.12+ and uses ESM.
+
+## Hono with an existing Postgres pool
+
+Install the runtime packages:
+
+```bash
+npm install healthzkit @healthzkit/postgres pg hono
+npm install --save-dev @types/pg
+```
+
+Save this as `health.ts`. Pass your application's existing `pg.Pool` to `createProbes`, then mount `probes.app` with `app.route("/", probes.app)` in your Hono application. Call `probes.kit.start()` once during long-lived process startup to enable the scheduled database check.
+
+```ts health.ts
+import { Hono } from "hono";
+import { createFetchHandler, createHealthKit } from "healthzkit";
+import { pgAdapter } from "@healthzkit/postgres/pg";
+import type { Pool } from "pg";
+
+export function createProbes(pool: Pool) {
+  const kit = createHealthKit({
+    output: { exposeError: false, exposeMetadata: false },
+    defaults: { timeout: 2_000 },
+    checks: [
+      {
+        name: "process",
+        type: ["liveness", "startup"],
+        adapter: { check: async () => ({ status: "ok" }) },
+      },
+      {
+        name: "database",
+        type: ["readiness"],
+        adapter: pgAdapter({ client: pool }),
+        schedule: { intervalMs: 5_000 },
+      },
+    ],
+  });
+  const app = new Hono();
+  const handler = createFetchHandler(kit);
+  app.all("/healthz/*", (c) => handler(c.req.raw));
+  return { app, kit };
+}
+```
+
+This checks Postgres with a real query. A database outage fails readiness without failing liveness. The startup check here confirms that the process can serve requests; if your application has asynchronous initialization, replace it with a check of that initialization state.
+
+Use your existing pool for application queries too. Configure finite driver limits when creating it: for `pg`, consider `connectionTimeoutMillis: 1_000`, `query_timeout: 1_500`, and `statement_timeout: 1_500`. Handle pool errors in your application without logging credentials. A healthzkit deadline does not necessarily cancel the underlying query; see [driver timeouts](/guide/checks-and-adapters#driver-timeouts).
+
+## Choose the adapter for your driver
+
+Install the adapter and its peer driver. Follow the linked page for client options and required peer versions; import from the documented subpath.
+
+| Existing client  | Adapter package        | Import path               | Factory          |
+| ---------------- | ---------------------- | ------------------------- | ---------------- |
+| `pg.Pool`        | `@healthzkit/postgres` | `@healthzkit/postgres/pg` | `pgAdapter`      |
+| Drizzle database | `@healthzkit/drizzle`  | `@healthzkit/drizzle`     | `drizzleAdapter` |
+| `PrismaClient`   | `@healthzkit/prisma`   | `@healthzkit/prisma`      | `prismaAdapter`  |
+
+See [Postgres](/adapter/postgres), [Drizzle](/adapter/drizzle), and [Prisma](/adapter/prisma) for complete examples. Other supported drivers have their own pages in the Adapters navigation. Reuse the existing client rather than creating a new pool on every health request.
+
+## Select probes and execution mode
+
+- Point Kubernetes liveness at `/healthz/live`, readiness at `/healthz/ready`, and startup at `/healthz/startup`.
+- Put external dependencies in readiness. Keep liveness focused on whether restarting this process would help.
+- Add at least one real readiness check. With the default rollup, a probe with no matching checks succeeds.
+- In a long-lived Node process, call `kit.start()` once. Scheduled checks serve cached results; failure detection includes the refresh interval. See [Scheduling](/guide/scheduling).
+- In Workers and serverless handlers, run checks on demand without `kit.start()` or background timers. Choose drivers supported by that runtime; this Node `pg.Pool` recipe is for long-lived Node applications. See [Framework guides](/guide/frameworks) for route wiring.
+- HTTP output hides errors and metadata in this example. Internal results and hooks retain diagnostics. See [Responses and HTTP](/guide/responses-and-http).
+
+## Shut down in order
+
+On `SIGTERM` or `SIGINT`, call `kit.beginDrain()` to make readiness fail while keeping liveness available. Give your load balancer time to remove the instance, then stop accepting requests and wait for active HTTP handlers to finish. Call `await kit.close()` to stop scheduling, wait for pending checks, and dispose adapter-owned resources. Finally, close the application's shared pool with `await pool.end()`.
+
+Use an application-level shutdown deadline shorter than the Kubernetes termination grace period: a driver that ignores cancellation can keep pending checks alive. `kit.close()` is terminal and idempotent. `kit.stop()` stops scheduling and clears cached results without disposing adapters; probes remain usable on demand, and `kit.start()` can restart scheduling. Supplied clients remain yours to close, and cleanup errors must be handled.
+
+The [runnable Node example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node) includes server bootstrap, pool configuration, signal handling, and Kubernetes configuration.
+
+## Verify the integration
+
+1. With the database available, confirm readiness returns 200 and queries the same pool as application traffic.
+2. Make the database unavailable. After the scheduled refresh and check deadline, readiness should return 503 while liveness remains 200.
+3. Confirm public responses contain no database errors or metadata. HEAD requests should have no body; unsupported methods should return 405.
+4. Begin draining and confirm readiness returns 503 immediately. Confirm the server drains before the shared pool closes.

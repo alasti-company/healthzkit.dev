@@ -70,6 +70,8 @@ See each package README for install instructions, API details, and examples.
 
 ## Production example
 
+For an integration recipe you can follow with a coding agent, see [Integrate healthzkit](https://healthzkit.dev/guide/integrate-healthzkit). Agents can discover Markdown documentation through [llms.txt](https://healthzkit.dev/llms.txt), or read the [full documentation export](https://healthzkit.dev/llms-full.txt).
+
 See [`apps/example-node`](./apps/example-node) for a long-lived Node.js + Hono + Postgres application with Kubernetes probes, a shared database pool, safe error output, and bounded graceful shutdown. The existing [`apps/example-hono`](./apps/example-hono) demonstrates Cloudflare Workers instead.
 
 ## Development
