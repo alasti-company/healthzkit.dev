@@ -1,0 +1,58 @@
+packages/node/package.json
+  s_9288c95072406e::t_82db9398e0ac4c 34-35
+  s_9288c95072406e::t_1fddfbb5b51902 1-33,36-62
+pnpm-lock.yaml
+  ai_agent 527-551
+apps/docs/adapter/node.mdx
+  s_9288c95072406e::t_1fddfbb5b51902 1-83
+tools/package-smoke.mjs
+  s_9288c95072406e::t_4a098c50dcdef3 66-67,70-72
+  s_9288c95072406e::t_1fddfbb5b51902 61-65,68-69,73-74,89-97,132-141
+packages/node/vite.config.ts
+  ai_agent 12
+  s_9288c95072406e::t_e8c9a2a2af2e03 1-11,13-26
+packages/node/tsconfig.json
+  s_9288c95072406e::t_e8c9a2a2af2e03 1-20
+packages/node/src/shared.ts
+  s_9288c95072406e::t_68d5a8b156e96e 1-5,9-10
+  s_9288c95072406e::t_1fddfbb5b51902 6-8
+packages/node/README.md
+  s_9288c95072406e::t_1fddfbb5b51902 1-80
+packages/node/src/disk.ts
+  s_9288c95072406e::t_1fddfbb5b51902 33-38,43,48-49,52-53
+  s_9288c95072406e::t_68d5a8b156e96e 1-32,39-42,44-47,50-51,54-64
+packages/node/src/event-loop.ts
+  s_9288c95072406e::t_68d5a8b156e96e 1-19,23-64
+  s_9288c95072406e::t_1fddfbb5b51902 20-22
+README.md
+  s_9288c95072406e::t_e865351648781c 68
+  s_9288c95072406e::t_1fddfbb5b51902 9
+apps/docs/docs.json
+  s_9288c95072406e::t_1fddfbb5b51902 96-98
+packages/node/src/index.ts
+  s_9288c95072406e::t_68d5a8b156e96e 1-6
+packages/node/tests/adapters.test.ts
+  s_9288c95072406e::t_1fddfbb5b51902 1-6,10-22,24-28,30-50,52-155
+  s_9288c95072406e::t_a71d9777a20dec 51
+  s_9288c95072406e::t_0ea441d2c81b5f 7-9,23,29
+packages/node/src/memory.ts
+  s_9288c95072406e::t_68d5a8b156e96e 1-30
+.changeset/tidy-node-resources.md
+  s_9288c95072406e::t_1fddfbb5b51902 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9aead750a87e1ebcad7e4335283c487de05be6f5",
+  "prompts": {},
+  "sessions": {
+    "s_9288c95072406e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c40e-f3b7-7f61-ad02-987df8ce3708",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
