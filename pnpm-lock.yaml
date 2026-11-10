@@ -580,6 +580,31 @@ importers:
         specifier: 'catalog:'
         version: 1.4.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@typescript/native-preview@7.0.0-dev.20260707.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(typescript@5.9.3)(yaml@2.9.1)
 
+  packages/node:
+    dependencies:
+      '@healthzkit/shared':
+        specifier: workspace:*
+        version: link:../../tools/shared
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.2
+      '@typescript/native-preview':
+        specifier: 'catalog:'
+        version: 7.0.0-dev.20260707.2
+      bumpp:
+        specifier: 'catalog:'
+        version: 12.3.0
+      healthzkit:
+        specifier: workspace:*
+        version: link:../healthzkit
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite-plus:
+        specifier: 'catalog:'
+        version: 1.4.0(@types/node@24.19.2)(@typescript/native-preview@7.0.0-dev.20260707.2)(@vitest/ui@5.0.5)(jiti@2.7.0)(typescript@5.9.3)
+
   packages/postgres:
     dependencies:
       '@healthzkit/shared':
