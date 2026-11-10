@@ -1,0 +1,25 @@
+apps/docs/adapter/sqs.mdx
+  s_cd545021073331::t_9a34cc529659cf 83
+packages/sqs/tests/v3.test.ts
+  s_cd545021073331::t_9a34cc529659cf 71-78
+packages/sqs/src/v3.ts
+  s_cd545021073331::t_9a34cc529659cf 48-51
+packages/sqs/README.md
+  s_cd545021073331::t_9a34cc529659cf 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ace6a479d88753f53af38035dcd0bd658813ecab",
+  "prompts": {},
+  "sessions": {
+    "s_cd545021073331": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c404-e60c-7b32-96ea-1726aadd4e33",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
