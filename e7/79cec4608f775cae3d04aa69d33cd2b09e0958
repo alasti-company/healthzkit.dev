@@ -1,0 +1,38 @@
+pnpm-lock.yaml
+  ai_agent 157,200-228,259,278,287,318,346,367,392,423,460,488,519,553,590,618,652,680,686,717,754,785,806,898-941,2151-2154,2458-2461,2555-2557,2807-2810,2933-2940,2984-2987,3040-3042,3497-3500,3511-3519,3574-3579,4244-4353,5022,5024,5026-5028,5030,5032,5034,5036,5038,5040,5233-5241,5276,5280-5281,5288,5292-5293,5300-5330,5333,5340,5348,5351,5358,5366-5384,5391,5414,5422,5440-5463,5467-5490,5574-5575,5665-5669,5751,5754,5758,5760,5830-5831,5944-5961,6012-6013,6059-6060,6321,6344,6346,6369,6371,6394,6405,6427,6429,6451,6453,6475,6590-6591,6610-6611,6663,6665-6669,6678-6691,7000,7005-7007,7012-7013,7015-7016,7061,7066-7068,7073-7074,7076-7077,7122,7127-7129,7134-7135,7137-7138,7183,7185-7198,7200-7203,7207,7210,7221,7226,7231,7234,7245,7248-7250
+packages/azure-service-bus/tests/sdk.test.ts
+  s_98a4bbe556c84b::t_6dabd6e1bfc4e7 31
+  s_98a4bbe556c84b::t_d3e275338dc18b 34
+  s_98a4bbe556c84b::t_876a437a755cdd 25-27
+packages/azure-service-bus/tsconfig.json
+  s_98a4bbe556c84b::t_59bba61ce5c11e 1-20
+packages/azure-service-bus/src/index.ts
+  s_98a4bbe556c84b::t_e4d249662849a6 1-2
+packages/azure-service-bus/src/azure-service-bus.ts
+  s_98a4bbe556c84b::t_e4d249662849a6 1-107
+packages/azure-service-bus/package.json
+  s_98a4bbe556c84b::t_e4d249662849a6 8-10,49,55
+  s_98a4bbe556c84b::t_59bba61ce5c11e 1-7,11-48,50-54,56-68
+packages/azure-service-bus/vite.config.ts
+  s_98a4bbe556c84b::t_59bba61ce5c11e 1-26
+packages/azure-service-bus/tests/azure-service-bus.test.ts
+  s_98a4bbe556c84b::t_e4d249662849a6 1-45,47-156
+.changeset/quiet-azure-queues.md
+  ai_agent 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e779cec4608f775cae3d04aa69d33cd2b09e0958",
+  "prompts": {},
+  "sessions": {
+    "s_98a4bbe556c84b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c40e-f347-7231-b50b-9adeb396c977",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
