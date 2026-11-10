@@ -8,13 +8,14 @@ Check a configured Amazon SQS queue with AWS SDK v3 `GetQueueAttributes`. The ad
 ## Install and use
 
 ```bash
-npm install healthzkit @healthzkit/sqs @aws-sdk/client-sqs
+npm install healthzkit @healthzkit/sqs @aws-sdk/client-sqs @smithy/node-http-handler
 ```
 
-`@aws-sdk/client-sqs` >= 3 is an optional peer; install it when using this adapter. Node.js >= 22.12 and ESM are required.
+`@aws-sdk/client-sqs` >= 3 is an optional peer; install it when using this adapter. Node.js >= 22.12 and ESM are required. The example installs `@smithy/node-http-handler` to configure finite transport timeouts explicitly.
 
 ```ts
 import { createHealthKit } from "healthzkit";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { sqsV3Adapter } from "@healthzkit/sqs/v3";
 
 const kit = createHealthKit({
@@ -30,7 +31,7 @@ const kit = createHealthKit({
         config: {
           region: "us-east-1",
           maxAttempts: 1,
-          requestHandler: { connectionTimeout: 500, requestTimeout: 1_500 },
+          requestHandler: new NodeHttpHandler({ connectionTimeout: 500, requestTimeout: 1_500 }),
         },
         // Optional: choose a limit appropriate for your workload.
         backlogThresholds: { visible: 1_000 },
