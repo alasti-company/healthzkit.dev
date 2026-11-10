@@ -30,6 +30,12 @@ export type AzureServiceBusAdapterOptions = BaseOptions &
 
 /** Read queue runtime properties through the management API; never send or receive messages. */
 export function azureServiceBusAdapter(options: AzureServiceBusAdapterOptions): HealthAdapter {
+  if (
+    options.client !== undefined &&
+    (options.connectionString !== undefined || options.clientOptions !== undefined)
+  ) {
+    throw new TypeError("client is exclusive with connectionString and clientOptions");
+  }
   const operationTimeoutMs = options.operationTimeoutMs ?? 2_000;
   if (
     !Number.isInteger(operationTimeoutMs) ||

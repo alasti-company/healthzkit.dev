@@ -53,7 +53,7 @@ Both `@healthzkit/azure-service-bus` and `@healthzkit/azure-service-bus/azure-se
 | `maxActiveMessageCount`     | Optional non-negative safe integer; counts above this limit return `degraded`.                                                                   |
 | `maxDeadLetterMessageCount` | Optional non-negative safe integer; counts above this limit return `degraded`.                                                                   |
 
-Each check calls `getQueueRuntimeProperties(queueName, { abortSignal })`. Successful results contain `latencyMs`, `activeMessageCount`, `deadLetterMessageCount`, `totalMessageCount`, and `scheduledMessageCount` in metadata. Counts are service snapshots, not a delivery guarantee. No thresholds apply by default; equality stays `ok`. SDK, authorization, missing-queue, and cancellation errors return `fail` with the caught error. Filter errors and metadata in public responses as shown above. A `degraded` result returns HTTP 200 by default; configure the check's `onDegraded` if needed.
+Each check calls `getQueueRuntimeProperties(queueName, { abortSignal })`. Successful results contain `latencyMs`, `activeMessageCount`, `deadLetterMessageCount`, `totalMessageCount`, and `scheduledMessageCount` in metadata. Counts are service snapshots, not a delivery guarantee. No thresholds apply by default; equality stays `ok`. SDK, authorization, missing-queue, and cancellation errors return `fail` with the caught error. Filter errors and metadata in public responses as shown above. An overall `degraded` rollup returns HTTP 200 by default; a failed check can instead make the overall result fail. Configure the check's `onDegraded` if needed.
 
 ## Supplied clients and identity
 

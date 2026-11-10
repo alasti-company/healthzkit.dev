@@ -1,6 +1,6 @@
 import type { ServiceBusAdministrationClient } from "@azure/service-bus";
 import { afterEach, expect, test, vi } from "vite-plus/test";
-import { azureServiceBusAdapter } from "../src/index.ts";
+import { azureServiceBusAdapter, type AzureServiceBusAdapterOptions } from "../src/index.ts";
 
 const properties = {
   activeMessageCount: 10,
@@ -154,3 +154,17 @@ test.each([-1, Infinity, NaN, 1.5])("rejects invalid threshold %s", (value) => {
 test("rejects empty queue names", () => {
   expect(() => azureServiceBusAdapter({ ...mockClient(), queueName: " " })).toThrow(TypeError);
 });
+
+test.each([{ connectionString: "secret" }, { clientOptions: {} }])(
+  "rejects conflicting supplied-client configuration: %j",
+  (conflict) => {
+    const { client, getQueueRuntimeProperties } = mockClient();
+    const options = {
+      client,
+      queueName: "orders",
+      ...conflict,
+    } as unknown as AzureServiceBusAdapterOptions;
+    expect(() => azureServiceBusAdapter(options)).toThrow(TypeError);
+    expect(getQueueRuntimeProperties).not.toHaveBeenCalled();
+  },
+);
