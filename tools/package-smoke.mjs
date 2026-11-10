@@ -84,6 +84,16 @@ sqsV3Adapter({ queueUrl: 'queue', client: new SQSClient({}), config: {} });
 sqsV3Adapter({ queueUrl: 'queue', backlogThresholds: { visible: '0' } });
 import { nodeRedisAdapter } from '@healthzkit/redis/redis';
 import { createClient } from 'redis';
+import { azureServiceBusAdapter } from '@healthzkit/azure-service-bus';
+import { ServiceBusAdministrationClient } from '@azure/service-bus';
+const administrationClient = new ServiceBusAdministrationClient('Endpoint=sb://example.servicebus.windows.net/;SharedAccessKeyName=manage;SharedAccessKey=a2V5');
+const serviceBus: HealthAdapter = azureServiceBusAdapter({ client: administrationClient, queueName: 'orders' });
+void serviceBus;
+azureServiceBusAdapter({ connectionString: 'connection', queueName: 'orders', clientOptions: { retryOptions: { maxRetries: 0 } } });
+// @ts-expect-error Client and connection string are exclusive.
+azureServiceBusAdapter({ client: administrationClient, connectionString: 'connection', queueName: 'orders' });
+// @ts-expect-error Queue names must be strings.
+azureServiceBusAdapter({ client: administrationClient, queueName: 123 });
 import { Queue } from 'bullmq';
 import { bullmqAdapter } from '@healthzkit/bullmq/bullmq';
 const typedQueue = new Queue<{ email: string }, void, 'send'>('mail', { connection: {}, skipMetasUpdate: true });
