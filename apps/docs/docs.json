@@ -66,7 +66,7 @@
         "pages": [
           {
             "group": "Queues",
-            "pages": ["adapter/rabbitmq", "adapter/kafka"]
+            "pages": ["adapter/rabbitmq", "adapter/kafka", "adapter/bullmq"]
           },
           {
             "group": "Databases",

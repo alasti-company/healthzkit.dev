@@ -8,6 +8,8 @@ allowBuilds:
   # gypfile: false; forcing the build runs node-gyp for nothing and fails on CI.
   better-sqlite3: false
   esbuild: true
+  # BullMQ can use msgpackr's JavaScript fallback; no optional native build needed.
+  msgpackr-extract: false
   node-rdkafka: true
   protobufjs: true
   sharp: true
