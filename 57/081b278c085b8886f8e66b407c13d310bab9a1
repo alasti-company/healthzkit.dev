@@ -1,0 +1,21 @@
+apps/docs/adapter/sqs.mdx
+  s_cd545021073331::t_2c767d85992ce9 11,14,18,34
+packages/sqs/README.md
+  s_cd545021073331::t_2c767d85992ce9 8,11,15,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "57081b278c085b8886f8e66b407c13d310bab9a1",
+  "prompts": {},
+  "sessions": {
+    "s_cd545021073331": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c404-e60c-7b32-96ea-1726aadd4e33",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
