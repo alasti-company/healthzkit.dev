@@ -77,6 +77,16 @@ describe("disk", () => {
     vi.mocked(statfs).mockResolvedValue({ ...stats, bavail: 9n });
     expect((await adapter.check()).status).toBe("fail");
   });
+  it("passes an exact percentage boundary without rounding below the threshold", async () => {
+    vi.mocked(statfs).mockResolvedValue({ ...stats, bavail: 29n });
+    const adapter = diskAdapter({ path: ".", minAvailablePercent: 29 });
+    expect(await adapter.check()).toMatchObject({
+      status: "ok",
+      metadata: { availablePercent: 29 },
+    });
+    vi.mocked(statfs).mockResolvedValue({ ...stats, bavail: 28n });
+    expect((await adapter.check()).status).toBe("fail");
+  });
   it("preserves large byte counts and fails unknown capacity", async () => {
     vi.mocked(statfs).mockResolvedValue({ ...stats, bsize: 2n ** 54n });
     expect(
@@ -144,6 +154,8 @@ describe("event loop", () => {
     for (const options of [
       { maxDelayMs: 0 },
       { maxDelayMs: Infinity },
+      { maxDelayMs: 10, resolutionMs: 10 },
+      { maxDelayMs: 9, resolutionMs: 10 },
       { maxDelayMs: 10, resolutionMs: 0 },
       { maxDelayMs: 10, windowMs: 10 },
       { maxDelayMs: 10, windowMs: 2 ** 32 },

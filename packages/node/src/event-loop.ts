@@ -21,6 +21,9 @@ export function eventLoopAdapter(options: EventLoopAdapterOptions): HealthAdapte
       "windowMs must be at least twice resolutionMs and both must fit Node timers",
     );
   }
+  if (maxDelayMs <= resolutionMs) {
+    throw new RangeError("maxDelayMs must be greater than resolutionMs");
+  }
   const histogram = monitorEventLoopDelay({ resolution: resolutionMs });
   let started = performance.now();
   let snapshot: AdapterResult = {

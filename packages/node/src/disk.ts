@@ -40,7 +40,7 @@ export function diskAdapter(options: DiskAdapterOptions): HealthAdapter {
         }
         const availableBytes = stats.bavail * stats.bsize;
         const totalBytes = stats.blocks * stats.bsize;
-        const availablePercent = (Number(stats.bavail) / Number(stats.blocks)) * 100;
+        const availablePercent = (Number(stats.bavail) * 100) / Number(stats.blocks);
         return {
           status:
             (minAvailableBytes === undefined || availableBytes >= BigInt(minAvailableBytes)) &&

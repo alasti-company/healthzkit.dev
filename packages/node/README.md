@@ -57,12 +57,12 @@ These budgets are illustrative. Measure representative load and choose headroom 
 
 `eventLoopAdapter({ maxDelayMs, resolutionMs?, windowMs? })`, also exported from `@healthzkit/node/event-loop`.
 
-- `maxDelayMs` is required, finite and positive. Equality passes. Delay is the maximum **sampled timer delay** in the last completed window, converted from Node's nanoseconds to milliseconds. It includes the sampling resolution baseline: set your threshold above `resolutionMs`.
+- `maxDelayMs` is required, finite and positive. Equality passes. Delay is the maximum **sampled timer delay** in the last completed window, converted from Node's nanoseconds to milliseconds. It includes the sampling resolution baseline: `maxDelayMs` must be greater than `resolutionMs`.
 - `resolutionMs` defaults to 10; `windowMs` defaults to 1000. Both must be positive integers no greater than 2,147,483,647; the window must be at least twice the resolution.
 - Monitoring starts at factory construction. Before the first completed window, checks immediately return `fail` with `warmingUp: true`; there is no per-check sleep. Empty windows also fail, without a `delayMs` value.
 - An unreferenced interval snapshots and resets the histogram in fixed windows. Repeated checks return copies of the latest completed window. A window callback can run late under load; `observedWindowMs` reports its actual elapsed duration. Sampling is approximate, not a bound on every request or a guarantee to detect every stall. A bad window remains visible until the next window completes. This measures the calling thread's event loop.
 - Metadata: `warmingUp`, `sampleCount`, `delayMs` (when sampled), `maxDelayMs`, `resolutionMs`, `windowMs`, `observedWindowMs` (after warm-up).
-- Call `await kit.close()` or `await adapter.dispose()` to disable the owned histogram and clear its timer. Disposal is terminal and idempotent. Neither monitor nor interval keeps the process alive. `kit.stop()` only stops core scheduling; it does not dispose the monitor.
+- Call `await kit.close()` or `await adapter.dispose()` to disable the owned histogram and clear its timer. Disposal is terminal and idempotent. Create a separate adapter for each kit that closes independently; closing one kit disposes a shared adapter for every kit using it. Neither monitor nor interval keeps the process alive. `kit.stop()` only stops core scheduling; it does not dispose the monitor.
 
 ## Disk capacity
 
