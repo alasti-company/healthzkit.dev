@@ -76,7 +76,7 @@ See [Postgres](/adapter/postgres), [Drizzle](/adapter/drizzle), and [Prisma](/ad
 
 On `SIGTERM` or `SIGINT`, call `kit.beginDrain()` to make readiness fail while keeping liveness available. Give your load balancer time to remove the instance, then stop accepting requests and wait for active HTTP handlers to finish. Call `await kit.close()` to stop scheduling, wait for pending checks, and dispose adapter-owned resources. Finally, close the application's shared pool with `await pool.end()`.
 
-Use an application-level shutdown deadline shorter than the Kubernetes termination grace period: a driver that ignores cancellation can keep pending checks alive. `kit.close()` is terminal and idempotent; `kit.stop()` only pauses scheduling. Supplied clients remain yours to close, and cleanup errors must be handled.
+Use an application-level shutdown deadline shorter than the Kubernetes termination grace period: a driver that ignores cancellation can keep pending checks alive. `kit.close()` is terminal and idempotent. `kit.stop()` stops scheduling and clears cached results without disposing adapters; probes remain usable on demand, and `kit.start()` can restart scheduling. Supplied clients remain yours to close, and cleanup errors must be handled.
 
 The [runnable Node example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node) includes server bootstrap, pool configuration, signal handling, and Kubernetes configuration.
 
