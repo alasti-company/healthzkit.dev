@@ -47,6 +47,7 @@ be reachable from the host running tests. Compose's external listener is fixed t
 | -------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | Postgres 17 Alpine                     | `pg` 8                                   | Repeated probes, SQL error, pool reuse/release, refused connection                                                      |
 | Redis 7 Alpine                         | `ioredis` 5                              | Repeated probes, command error, caller reuse, refused connection                                                        |
+| Redis 7 Alpine                         | BullMQ 5                                 | Repeated empty-queue count reads, kit shutdown ownership, closed Queue, refused connection; no probe jobs               |
 | RabbitMQ 4.1 Alpine                    | `amqplib` 2, `amqp-connection-manager` 5 | Repeated channel/connection probes, closed-connection operation, refused handshake, disconnected manager, owner cleanup |
 | Apache Kafka 3.9.1 (single-node KRaft) | `kafkajs` 2                              | Repeated cluster probes, invalid-topic broker error through metadata, caller admin reuse, refused connection            |
 | MySQL 8.4                              | `mysql2` 3 promise pool                  | Repeated probes with a one-connection pool, SQL error and recovery, refused connection, owner cleanup                   |
@@ -86,3 +87,5 @@ queries do not write application data. Do not point the suites at production.
 CI captures Compose logs on failure and tears down with `if: always()`, including
 after startup/test failures. For local diagnosis use
 `docker compose -f tools/integration/compose.yml logs --no-color` before teardown.
+
+The BullMQ suite uses `HEALTHZKIT_REDIS_URL` (host and port only; local disposable Redis without authentication or TLS). It creates no jobs or workers and skips queue metadata updates. It verifies queue access, not worker health or backlog processing. Backlog threshold boundaries are covered by unit tests.

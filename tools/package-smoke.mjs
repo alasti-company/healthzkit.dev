@@ -74,6 +74,14 @@ assert.equal(toFetchResponse(await kit.handleReadiness()).status, 200);
       `\nimport { createHealthKit, type HealthAdapter } from 'healthzkit';
 import { pgAdapter } from '@healthzkit/postgres/pg';
 import { httpAdapter } from '@healthzkit/http/http';
+import { sqsV3Adapter } from '@healthzkit/sqs/v3';
+import { SQSClient } from '@aws-sdk/client-sqs';
+const sqs: HealthAdapter = sqsV3Adapter({ queueUrl: 'https://sqs.us-east-1.amazonaws.com/123/jobs', client: new SQSClient({}), backlogThresholds: { visible: 0 } });
+void sqs;
+// @ts-expect-error Supply client or config, never both.
+sqsV3Adapter({ queueUrl: 'queue', client: new SQSClient({}), config: {} });
+// @ts-expect-error Thresholds must be numeric.
+sqsV3Adapter({ queueUrl: 'queue', backlogThresholds: { visible: '0' } });
 import { nodeRedisAdapter } from '@healthzkit/redis/redis';
 import { createClient } from 'redis';
 import { azureServiceBusAdapter } from '@healthzkit/azure-service-bus';
@@ -86,6 +94,15 @@ azureServiceBusAdapter({ connectionString: 'connection', queueName: 'orders', cl
 azureServiceBusAdapter({ client: administrationClient, connectionString: 'connection', queueName: 'orders' });
 // @ts-expect-error Queue names must be strings.
 azureServiceBusAdapter({ client: administrationClient, queueName: 123 });
+import { Queue } from 'bullmq';
+import { bullmqAdapter } from '@healthzkit/bullmq/bullmq';
+const typedQueue = new Queue<{ email: string }, void, 'send'>('mail', { connection: {}, skipMetasUpdate: true });
+const bullmq: HealthAdapter = bullmqAdapter({ queue: typedQueue, thresholds: { waiting: 10, paused: 0 } });
+void bullmq;
+// @ts-expect-error Backlog thresholds must be numbers.
+bullmqAdapter({ queue: typedQueue, thresholds: { waiting: '10' } });
+// @ts-expect-error Queue must expose the count operation.
+bullmqAdapter({ queue: {} });
 nodeRedisAdapter({ client: createClient() });
 const postgres: HealthAdapter = pgAdapter({ connectionString: 'postgres://localhost/smoke' });
 const http: HealthAdapter = httpAdapter({ url: 'https://example.com' });
@@ -168,9 +185,61 @@ nodeRedisAdapter({ client: { isOpen: true, connect: async () => {} } });
     }),
   );
   run(process.execPath, ["node_modules/typescript/bin/tsc", "-p", "tsconfig.json"], redisLegacy);
+  // Validate the minimum advertised BullMQ peer with the packed public declarations.
+  const bullmqLegacy = join(temporary, "bullmq-legacy");
+  await mkdir(bullmqLegacy);
+  await writeFile(
+    join(bullmqLegacy, "package.json"),
+    JSON.stringify({
+      private: true,
+      type: "module",
+      dependencies: {
+        healthzkit: dependencies.healthzkit,
+        "@healthzkit/shared": dependencies["@healthzkit/shared"],
+        "@healthzkit/bullmq": dependencies["@healthzkit/bullmq"],
+        bullmq: "5.0.0",
+        "@types/node": dependencies["@types/node"],
+        typescript: dependencies.typescript,
+      },
+    }),
+  );
+  run(
+    "npm",
+    ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--legacy-peer-deps"],
+    bullmqLegacy,
+  );
+  await writeFile(
+    join(bullmqLegacy, "consumer.mts"),
+    `
+import type { Queue } from 'bullmq';
+import type { HealthAdapter } from 'healthzkit';
+import { bullmqAdapter } from '@healthzkit/bullmq/bullmq';
+declare const queue: Queue<{ email: string }, void, 'send'>;
+const adapter: HealthAdapter = bullmqAdapter({ queue, thresholds: { waiting: 0 } });
+void adapter;
+// @ts-expect-error Unsupported states must not silently pass type checking.
+bullmqAdapter({ queue, thresholds: { completed: 10 } });
+`,
+  );
+  await writeFile(
+    join(bullmqLegacy, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: {
+        strict: true,
+        noEmit: true,
+        module: "NodeNext",
+        moduleResolution: "NodeNext",
+        target: "ES2022",
+        skipLibCheck: false,
+        types: ["node"],
+      },
+      files: ["consumer.mts"],
+    }),
+  );
+  run(process.execPath, ["node_modules/typescript/bin/tsc", "-p", "tsconfig.json"], bullmqLegacy);
   assert.ok(entrypoints.length > 0);
   console.log(
-    `Packed consumer smoke passed: ${directories.length} packages, ${entrypoints.length} entrypoints (runtime + strict TypeScript), plus minimum Redis 4 peer declarations.`,
+    `Packed consumer smoke passed: ${directories.length} packages, ${entrypoints.length} entrypoints (runtime + strict TypeScript), plus minimum Redis 4 and BullMQ 5 peer declarations.`,
   );
 } finally {
   await rm(temporary, { recursive: true, force: true });

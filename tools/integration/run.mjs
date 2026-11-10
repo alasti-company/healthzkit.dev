@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 
-const supported = ["postgres", "redis", "rabbitmq", "kafka", "mysql", "mongo"];
+const supported = ["postgres", "redis", "bullmq", "rabbitmq", "kafka", "mysql", "mongo"];
 const selected = process.argv.slice(2);
 const packages = selected.length ? selected : supported;
 if (packages.some((name) => !supported.includes(name))) {
