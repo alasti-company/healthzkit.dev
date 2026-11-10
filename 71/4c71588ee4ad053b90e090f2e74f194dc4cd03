@@ -1,0 +1,19 @@
+apps/docs/guide/integrate-healthzkit.mdx
+  s_8525e203062b74::t_a0b2445bf66f77 79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "714c71588ee4ad053b90e090f2e74f194dc4cd03",
+  "prompts": {},
+  "sessions": {
+    "s_8525e203062b74": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c396-4741-7da1-b19e-bb22cbc96870",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
