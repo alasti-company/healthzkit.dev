@@ -76,6 +76,16 @@ import { pgAdapter } from '@healthzkit/postgres/pg';
 import { httpAdapter } from '@healthzkit/http/http';
 import { nodeRedisAdapter } from '@healthzkit/redis/redis';
 import { createClient } from 'redis';
+import { azureServiceBusAdapter } from '@healthzkit/azure-service-bus';
+import { ServiceBusAdministrationClient } from '@azure/service-bus';
+const administrationClient = new ServiceBusAdministrationClient('Endpoint=sb://example.servicebus.windows.net/;SharedAccessKeyName=manage;SharedAccessKey=a2V5');
+const serviceBus: HealthAdapter = azureServiceBusAdapter({ client: administrationClient, queueName: 'orders' });
+void serviceBus;
+azureServiceBusAdapter({ connectionString: 'connection', queueName: 'orders', clientOptions: { retryOptions: { maxRetries: 0 } } });
+// @ts-expect-error Client and connection string are exclusive.
+azureServiceBusAdapter({ client: administrationClient, connectionString: 'connection', queueName: 'orders' });
+// @ts-expect-error Queue names must be strings.
+azureServiceBusAdapter({ client: administrationClient, queueName: 123 });
 nodeRedisAdapter({ client: createClient() });
 const postgres: HealthAdapter = pgAdapter({ connectionString: 'postgres://localhost/smoke' });
 const http: HealthAdapter = httpAdapter({ url: 'https://example.com' });

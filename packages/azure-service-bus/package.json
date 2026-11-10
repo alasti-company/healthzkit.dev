@@ -1,0 +1,68 @@
+{
+  "name": "@healthzkit/azure-service-bus",
+  "version": "0.1.0",
+  "description": "Azure Service Bus queue management health-check adapter for healthzkit.",
+  "keywords": [
+    "azure",
+    "health-check",
+    "healthzkit",
+    "readiness",
+    "service-bus"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/azure-service-bus",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/azure-service-bus"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./azure-service-bus": "./dist/azure-service-bus.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "dependencies": {
+    "@healthzkit/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@azure/service-bus": "7.10.0",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "bumpp": "catalog:",
+    "healthzkit": "workspace:*",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "@azure/service-bus": "^7.10.0"
+  },
+  "peerDependenciesMeta": {
+    "@azure/service-bus": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
