@@ -1,0 +1,51 @@
+tools/integration/run.mjs
+  s_cd545021073331::t_40771dfd4ea775 3
+packages/bullmq/tests/bullmq.test.ts
+  s_cd545021073331::t_40771dfd4ea775 1-125
+packages/bullmq/vite.config.ts
+  s_cd545021073331::t_40771dfd4ea775 1-26
+apps/docs/docs.json
+  ai_agent 69
+pnpm-workspace.yaml
+  s_cd545021073331::t_40771dfd4ea775 11-12
+pnpm-lock.yaml
+  ai_agent 202-229,1449-1451,1547-1576,2616-2624,2678-2682,3028-3031,3210-3213,3349-3355,3385-3387,3392-3395,3689-3693,3874-3876,4810-4811,4911-4928,5762-5774,5824-5827,6069-6080,6243-6244,6356-6371,6404-6405,6408-6412,6853-6854,7046
+.changeset/quiet-queues-read.md
+  s_cd545021073331::t_40771dfd4ea775 1-5
+apps/docs/adapter/bullmq.mdx
+  s_cd545021073331::t_40771dfd4ea775 1-90
+packages/bullmq/tsconfig.json
+  s_cd545021073331::t_40771dfd4ea775 1-20
+README.md
+  s_cd545021073331::t_40771dfd4ea775 64
+packages/bullmq/tests/integration.test.ts
+  s_cd545021073331::t_40771dfd4ea775 1-106
+tools/package-smoke.mjs
+  s_cd545021073331::t_40771dfd4ea775 87-95,178-229,232
+tools/integration/README.md
+  s_cd545021073331::t_40771dfd4ea775 50,90-91
+packages/bullmq/src/index.ts
+  s_cd545021073331::t_40771dfd4ea775 1-2
+packages/bullmq/src/bullmq.ts
+  s_cd545021073331::t_40771dfd4ea775 1-59
+packages/bullmq/package.json
+  s_cd545021073331::t_40771dfd4ea775 1-67
+packages/bullmq/README.md
+  s_cd545021073331::t_40771dfd4ea775 1-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6e5b34c114ef7b63ba661f255e50627082f54d27",
+  "prompts": {},
+  "sessions": {
+    "s_cd545021073331": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c404-e60c-7b32-96ea-1726aadd4e33",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
