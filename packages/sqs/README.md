@@ -28,7 +28,11 @@ const kit = createHealthKit({
         config: {
           region: "us-east-1",
           maxAttempts: 1,
-          requestHandler: new NodeHttpHandler({ connectionTimeout: 500, requestTimeout: 1_500 }),
+          requestHandler: new NodeHttpHandler({
+            connectionTimeout: 500,
+            requestTimeout: 1_500,
+            throwOnRequestTimeout: true,
+          }),
         },
         // Optional: choose a limit appropriate for your workload.
         backlogThresholds: { visible: 1_000 },
