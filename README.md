@@ -6,7 +6,7 @@
 
 Framework-agnostic **liveness**, **readiness**, and **startup** probes for Node.js. Define checks as small adapters; healthzkit runs them in parallel, rolls up status, maps to HTTP responses, and can schedule checks in the background so probes read cached results instead of hitting dependencies on every request.
 
-This monorepo publishes the core library and optional adapters for common data stores.
+This monorepo publishes the core library and optional adapters for common data stores and Node.js resources.
 
 ```bash
 npm install healthzkit hono @healthzkit/postgres pg
@@ -65,6 +65,7 @@ app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup(
 | [`@healthzkit/http`](./packages/http)                   | `@healthzkit/http`          | Adapter that probes HTTP/HTTPS endpoints via global **`fetch`** — status codes, timeouts, redirects, and optional response metadata                                                                           |
 | [`@healthzkit/drizzle`](./packages/drizzle)             | `@healthzkit/drizzle`       | Adapter for [Drizzle ORM](https://orm.drizzle.team/) — health-check an existing `db` instance via `execute` / `run` (peer: `drizzle-orm` only; drivers stay in your app)                                      |
 | [`@healthzkit/prisma`](./packages/prisma)               | `@healthzkit/prisma`        | Adapter for [Prisma](https://www.prisma.io/) — health-check an existing `PrismaClient` via `$connect` and `$queryRawUnsafe` (peer: `@prisma/client`; drivers stay in your app)                                |
+| [`@healthzkit/node`](./packages/node)                   | `@healthzkit/node`          | Node.js process memory, event-loop delay, and filesystem capacity checks                                                                                                                                      |
 
 See each package README for install instructions, API details, and examples.
 

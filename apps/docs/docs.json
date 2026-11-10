@@ -93,6 +93,10 @@
             "pages": ["adapter/elasticsearch"]
           },
           {
+            "group": "Runtime",
+            "pages": ["adapter/node"]
+          },
+          {
             "group": "HTTP",
             "pages": ["adapter/http"]
           }

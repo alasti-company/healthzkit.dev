@@ -58,6 +58,20 @@ for (const specifier of ${JSON.stringify(entrypoints)}) {
 }
 const { createHealthKit, toFetchResponse } = await import('healthzkit');
 const { httpAdapter } = await import('@healthzkit/http/http');
+const { memoryAdapter, diskAdapter, eventLoopAdapter } = await import('@healthzkit/node');
+assert.equal((await memoryAdapter({ maxBytes: Number.MAX_SAFE_INTEGER }).check()).status, 'ok');
+assert.equal((await diskAdapter({ path: '.', minAvailableBytes: 1 }).check()).status, 'ok');
+const loop = eventLoopAdapter({ maxDelayMs: 1000, windowMs: 100, resolutionMs: 10 });
+assert.equal((await loop.check()).metadata.warmingUp, true);
+const resourcesKit = createHealthKit({ checks: [{ name: 'event-loop', type: ['readiness'], adapter: loop }] });
+assert.equal((await resourcesKit.handleReadiness()).status, 503);
+await new Promise(resolve => setTimeout(resolve, 150));
+assert.equal((await loop.check()).metadata.warmingUp, false);
+assert.ok((await loop.check()).metadata.sampleCount > 0);
+assert.equal((await resourcesKit.handleReadiness()).status, 200);
+await resourcesKit.close();
+await loop.dispose();
+assert.equal((await loop.check()).status, 'fail');
 assert.equal(typeof httpAdapter, 'function');
 const kit = createHealthKit({ checks: [{ name: 'process', type: ['readiness'], adapter: { check: async () => ({ status: 'ok' }) } }] });
 assert.equal(toFetchResponse(await kit.handleReadiness()).status, 200);
@@ -72,6 +86,15 @@ assert.equal(toFetchResponse(await kit.handleReadiness()).status, 200);
       )
       .join("\n") +
       `\nimport { createHealthKit, type HealthAdapter } from 'healthzkit';
+import { memoryAdapter } from '@healthzkit/node/memory';
+import { diskAdapter } from '@healthzkit/node/disk';
+import { eventLoopAdapter } from '@healthzkit/node/event-loop';
+const resources: HealthAdapter[] = [memoryAdapter({ maxBytes: 1024 }), diskAdapter({ path: '.', minAvailablePercent: 10 }), eventLoopAdapter({ maxDelayMs: 100 })];
+void resources;
+// @ts-expect-error Explicit memory threshold is required.
+memoryAdapter({});
+// @ts-expect-error Event-loop thresholds use milliseconds as numbers.
+eventLoopAdapter({ maxDelayMs: '100' });
 import { pgAdapter } from '@healthzkit/postgres/pg';
 import { httpAdapter } from '@healthzkit/http/http';
 import { nodeRedisAdapter } from '@healthzkit/redis/redis';
@@ -106,6 +129,16 @@ void invalid;
     }),
   );
   run(process.execPath, ["runtime.mjs"], temporary);
+  // A constructed monitor must not keep an otherwise idle process alive.
+  execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      "import { eventLoopAdapter } from '@healthzkit/node'; eventLoopAdapter({ maxDelayMs: 100 });",
+    ],
+    { cwd: temporary, timeout: 5000, stdio: "inherit" },
+  );
   run(process.execPath, ["node_modules/typescript/bin/tsc", "-p", "tsconfig.json"], temporary);
   // Verify the advertised minimum Redis peer using packed declarations, without
   // skipLibCheck hiding references to types only available in newer drivers.
