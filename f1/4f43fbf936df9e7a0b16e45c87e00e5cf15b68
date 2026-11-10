@@ -1,0 +1,51 @@
+packages/bullmq/tests/integration.test.ts
+  s_ad131e94c3d30e::t_fb74d179ede777 13-14,26-50,52,54-62,64-66
+  s_ad131e94c3d30e::t_a959fa5df7f6e6 1-12,15-25,51,53,63
+packages/bullmq/README.md
+  s_ad131e94c3d30e::t_fb74d179ede777 29-41
+  s_ad131e94c3d30e::t_b8e4e79b9ba50c 1-28,42-87
+packages/bullmq/src/index.ts
+  s_ad131e94c3d30e::t_41aea9ff46f328 1-2
+pnpm-lock.yaml
+  ai_agent 157,200-228,259,278,287,318,346,367,392,423,460,488,519,553,590,618,652,680,686,717,754,785,806,1369-1371,1467-1496,2536-2544,2598-2602,2948-2951,3130-3133,3269-3275,3305-3307,3312-3315,3609-3613,3794-3796,4596-4597,4697-4714,4916,4918,4920-4922,4924,4926,4928,4930,4932,4934,5161-5173,5177-5178,5185,5189-5208,5215,5218,5225,5233,5236,5243,5251,5258-5276,5299,5307,5325-5371,5375,5548-5560,5610-5613,5646,5649,5653,5655,5855-5866,6029-6030,6142-6157,6190-6191,6194-6198,6229,6252,6254,6277,6279,6302,6313,6335,6337,6359,6361,6383,6567,6569-6573,6639-6640,6832-6833,6894,6899-6901,6906-6907,6909-6910,6955,6960-6962,6967-6968,6970-6971,7016,7021-7023,7028-7029,7031-7032,7077,7079-7092,7094-7097,7101,7104,7115,7120,7125,7128,7139,7142-7144
+apps/docs/docs.json
+  s_ad131e94c3d30e::t_b8e4e79b9ba50c 69
+tools/integration/run.mjs
+  s_ad131e94c3d30e::t_a959fa5df7f6e6 3
+tools/integration/README.md
+  s_ad131e94c3d30e::t_a959fa5df7f6e6 90-91
+  s_ad131e94c3d30e::t_fb74d179ede777 50
+.changeset/quiet-queues-read.md
+  s_ad131e94c3d30e::t_b8e4e79b9ba50c 1-5
+pnpm-workspace.yaml
+  s_ad131e94c3d30e::t_56d9e8d296e416 11-12
+apps/docs/adapter/bullmq.mdx
+  s_ad131e94c3d30e::t_b8e4e79b9ba50c 1-31,45-90
+  s_ad131e94c3d30e::t_fb74d179ede777 32-44
+packages/bullmq/package.json
+  s_ad131e94c3d30e::t_e4a5bb5f11ab7c 1-53,55-67
+packages/bullmq/src/bullmq.ts
+  s_ad131e94c3d30e::t_41aea9ff46f328 1-25,27-59
+packages/bullmq/tsconfig.json
+  s_ad131e94c3d30e::t_e4a5bb5f11ab7c 1-20
+packages/bullmq/vite.config.ts
+  s_ad131e94c3d30e::t_e4a5bb5f11ab7c 1-26
+README.md
+  s_ad131e94c3d30e::t_fb74d179ede777 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f14f43fbf936df9e7a0b16e45c87e00e5cf15b68",
+  "prompts": {},
+  "sessions": {
+    "s_ad131e94c3d30e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c40e-f24f-7361-8636-d5fbeb70027e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
