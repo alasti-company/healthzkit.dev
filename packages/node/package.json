@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/node",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Node.js memory, event-loop delay, and disk-capacity health adapters for healthzkit.",
   "keywords": [
     "disk",

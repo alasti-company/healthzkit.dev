@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/azure-service-bus",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Azure Service Bus queue management health-check adapter for healthzkit.",
   "keywords": [
     "azure",
