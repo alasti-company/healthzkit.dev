@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/bullmq",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "BullMQ Queue access and optional backlog health checks for healthzkit.",
   "keywords": [
     "bullmq",
