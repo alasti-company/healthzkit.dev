@@ -74,6 +74,14 @@ assert.equal(toFetchResponse(await kit.handleReadiness()).status, 200);
       `\nimport { createHealthKit, type HealthAdapter } from 'healthzkit';
 import { pgAdapter } from '@healthzkit/postgres/pg';
 import { httpAdapter } from '@healthzkit/http/http';
+import { sqsV3Adapter } from '@healthzkit/sqs/v3';
+import { SQSClient } from '@aws-sdk/client-sqs';
+const sqs: HealthAdapter = sqsV3Adapter({ queueUrl: 'https://sqs.us-east-1.amazonaws.com/123/jobs', client: new SQSClient({}), backlogThresholds: { visible: 0 } });
+void sqs;
+// @ts-expect-error Supply client or config, never both.
+sqsV3Adapter({ queueUrl: 'queue', client: new SQSClient({}), config: {} });
+// @ts-expect-error Thresholds must be numeric.
+sqsV3Adapter({ queueUrl: 'queue', backlogThresholds: { visible: '0' } });
 import { nodeRedisAdapter } from '@healthzkit/redis/redis';
 import { createClient } from 'redis';
 import { Queue } from 'bullmq';
