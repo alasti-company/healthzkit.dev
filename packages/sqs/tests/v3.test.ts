@@ -68,6 +68,14 @@ test.each([-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])(
   },
 );
 
+test.each(["visble", "constructor", "toString"])("rejects unknown threshold key %s", (key) => {
+  const { client, send } = fixture();
+  expect(() => sqsV3Adapter({ client, queueUrl, backlogThresholds: { [key]: 0 } })).toThrow(
+    TypeError,
+  );
+  expect(send).not.toHaveBeenCalled();
+});
+
 test("requires a nonempty queue URL", () => {
   expect(() => sqsV3Adapter({ queueUrl: " " })).toThrow(TypeError);
 });

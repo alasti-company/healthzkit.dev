@@ -77,7 +77,7 @@ client.destroy(); // Only when all application users have stopped.
 
 Each check requests only `ApproximateNumberOfMessages`, `ApproximateNumberOfMessagesNotVisible`, and `ApproximateNumberOfMessagesDelayed`. Success returns `ok` with `metadata.latencyMs` and numeric `metadata.approximateBacklog: { visible, notVisible, delayed }`.
 
-A count strictly greater than its configured threshold returns `degraded`; equality remains `ok`. `visible` counts messages available for retrieval, `notVisible` counts in-flight messages, and `delayed` counts messages awaiting their delay. Limits are independent; counts are not summed. Zero is a valid limit. Invalid limits throw when creating the adapter. Missing or invalid response counts return `fail` rather than silently assuming zero. SDK or metadata hook errors return `fail` with the caught error.
+A count strictly greater than its configured threshold returns `degraded`; equality remains `ok`. `visible` counts messages available for retrieval, `notVisible` counts in-flight messages, and `delayed` counts messages awaiting their delay. Limits are independent; counts are not summed. Zero is a valid limit. Invalid limits and unknown threshold keys throw when creating the adapter. Missing or invalid response counts return `fail` rather than silently assuming zero. SDK or metadata hook errors return `fail` with the caught error.
 
 Counts are approximate and eventually consistent. [AWS documents](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_GetQueueAttributes.html) that they may take at least one minute to become consistent after producers stop. A backlog can be normal; opt into thresholds only when they indicate a readiness problem for your workload.
 

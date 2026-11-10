@@ -45,7 +45,10 @@ export type SQSV3AdapterOptions = SQSV3AdapterOptionsWithClient | SQSV3AdapterOp
 
 export function sqsV3Adapter(options: SQSV3AdapterOptions): HealthAdapter {
   if (!options.queueUrl.trim()) throw new TypeError("queueUrl must not be empty");
-  for (const limit of Object.values(options.backlogThresholds ?? {})) {
+  for (const [key, limit] of Object.entries(options.backlogThresholds ?? {})) {
+    if (!Object.hasOwn(countAttributes, key)) {
+      throw new TypeError("Backlog threshold keys must be visible, notVisible, or delayed");
+    }
     if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 0)) {
       throw new RangeError("Backlog thresholds must be nonnegative safe integers");
     }
