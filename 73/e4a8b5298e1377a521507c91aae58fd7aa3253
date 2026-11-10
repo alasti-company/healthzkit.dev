@@ -1,0 +1,87 @@
+packages/azure-service-bus/tsconfig.json
+  s_cd545021073331::t_21aae51fcf2d77 1-20
+pnpm-lock.yaml
+  ai_agent 157,200-256,287,306,315,346,374,395,420,451,488,516,547,581,643,671,705,733,739,770,807-835,866,887,903-906,911-914,919-922,927-930,935-938,943-946,951-954,959-962,967-970,975-978,995-998,1003-1006,1015-1018,1031-1074,1546-1548,1644-1673,2317-2320,2624-2627,2721-2732,2786-2790,2987-2990,3113-3120,3148-3151,3168-3171,3224-3226,3337-3340,3476-3482,3512-3514,3519-3522,3699-3702,3713-3721,3776-3781,3835-3839,4020-4022,4291-4302,4314-4324,4333-4340,4351-4360,4377-4392,4402-4410,4425,4427-4432,4435,4439,4447,4449,4455,4458-4460,4465-4500,4522-4528,4540-4550,4567-4575,4588-4697,5066-5067,5167-5184,5386,5388,5390-5392,5394,5396,5398,5400,5402,5404,5597-5605,5640-5652,5656-5657,5664,5668-5687,5694,5697,5704,5712,5715,5722,5730-5748,5755,5778,5786,5804-5827,5831-5854,5938-5939,6029-6046,6096-6099,6132,6135,6139,6141,6211-6212,6325-6342,6361-6372,6405-6406,6452-6453,6539-6540,6652-6667,6700-6701,6704-6708,6739,6762,6764,6787,6789,6812,6823,6845,6847,6869,6871,6893,7008-7009,7028-7029,7081,7083-7087,7096-7109,7167-7168,7360-7361,7422,7427-7429,7434-7435,7437-7438,7483,7488-7490,7495-7496,7498-7499,7544,7549-7551,7556-7557,7559-7560,7605,7607-7620,7622-7625,7629,7632,7643,7648,7653,7656,7667,7670-7672
+packages/sqs/src/index.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-2
+packages/azure-service-bus/tests/azure-service-bus.test.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-170
+packages/azure-service-bus/src/index.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-2
+tools/integration/run.mjs
+  s_cd545021073331::t_21aae51fcf2d77 3
+packages/sqs/tests/v3.test.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-222
+packages/azure-service-bus/tests/sdk.test.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-36
+packages/sqs/tsconfig.json
+  s_cd545021073331::t_21aae51fcf2d77 1-20
+tools/integration/README.md
+  s_cd545021073331::t_21aae51fcf2d77 50,90-91
+packages/sqs/src/v3.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-134
+packages/sqs/vite.config.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-26
+packages/bullmq/src/index.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-2
+packages/bullmq/src/bullmq.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-59
+packages/azure-service-bus/package.json
+  s_cd545021073331::t_21aae51fcf2d77 1-68
+.changeset/quiet-azure-queues.md
+  s_cd545021073331::t_21aae51fcf2d77 1-5
+packages/bullmq/package.json
+  s_cd545021073331::t_21aae51fcf2d77 1-67
+tools/package-smoke.mjs
+  s_cd545021073331::t_21aae51fcf2d77 102-109,112-130,223-274,277
+packages/azure-service-bus/src/azure-service-bus.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-113
+apps/docs/adapter/azure-service-bus.mdx
+  s_cd545021073331::t_21aae51fcf2d77 1-82
+packages/sqs/package.json
+  s_cd545021073331::t_21aae51fcf2d77 1-72
+.changeset/quiet-queues-read.md
+  s_cd545021073331::t_21aae51fcf2d77 1-5
+packages/bullmq/tests/integration.test.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-106
+packages/bullmq/tsconfig.json
+  s_cd545021073331::t_21aae51fcf2d77 1-20
+.changeset/quiet-sqs-queues.md
+  s_cd545021073331::t_21aae51fcf2d77 1-5
+packages/azure-service-bus/vite.config.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-26
+packages/bullmq/README.md
+  s_cd545021073331::t_21aae51fcf2d77 1-87
+apps/docs/docs.json
+  s_cd545021073331::t_21aae51fcf2d77 69-75
+apps/docs/adapter/bullmq.mdx
+  s_cd545021073331::t_21aae51fcf2d77 1-90
+apps/docs/adapter/sqs.mdx
+  s_cd545021073331::t_21aae51fcf2d77 1-114
+packages/azure-service-bus/README.md
+  s_cd545021073331::t_21aae51fcf2d77 1-79
+packages/bullmq/vite.config.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-26
+packages/sqs/README.md
+  s_cd545021073331::t_21aae51fcf2d77 1-111
+packages/bullmq/tests/bullmq.test.ts
+  s_cd545021073331::t_21aae51fcf2d77 1-125
+pnpm-workspace.yaml
+  s_cd545021073331::t_21aae51fcf2d77 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "73e4a8b5298e1377a521507c91aae58fd7aa3253",
+  "prompts": {},
+  "sessions": {
+    "s_cd545021073331": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1c404-e60c-7b32-96ea-1726aadd4e33",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
