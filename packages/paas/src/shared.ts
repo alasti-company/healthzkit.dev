@@ -305,7 +305,17 @@ export function createPaasFetchHandler(
   return async (request) => {
     const response = await handlePaas(kit, profiles, request);
     if (!response) return null;
-    const body = request.method.toUpperCase() === "HEAD" ? null : response.body;
-    return new Response(body, { status: response.status, headers: response.headers });
+    return new Response(fetchBody(request.method, response), {
+      status: response.status,
+      headers: response.headers,
+    });
   };
+}
+
+function fetchBody(method: string, response: PaasResponse): string | null {
+  if (method.toUpperCase() === "HEAD") return null;
+  if (response.status === 204 || response.status === 205 || response.status === 304) {
+    return null;
+  }
+  return response.body;
 }

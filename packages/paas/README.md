@@ -35,7 +35,7 @@ app.all(platform.path, async (c) => {
 
 Point the platform at `platform.path` (`/healthz` on Fly, `/health` on Railway and Render, `/api/health` on Vercel). healthzkit still serves `/healthz/live`, `/healthz/ready`, and `/healthz/startup` when you mount those routes yourself.
 
-The handler accepts GET and HEAD. Any other method on that pathname returns **405** with `Allow: GET, HEAD`. A different pathname returns `null` from `platform.handle()` and from `createPaasFetchHandler`, so the request can fall through to the rest of the app. Status codes are passed through. The defaults are **200** for `ok` and `degraded`, and **503** for a failed readiness check. A custom `onFail.httpStatus` has to sit outside `platform.healthyStatus`, or the platform will treat the failure as healthy.
+The handler accepts GET and HEAD. Any other method on that pathname returns **405** with `Allow: GET, HEAD`. A different pathname returns `null` from `platform.handle()` and from `createPaasFetchHandler`, so the request can fall through to the rest of the app. Status codes are passed through. Fetch rejects a body on 204, 205, and 304, so the fetch handler omits it for those statuses. The defaults are **200** for `ok` and `degraded`, and **503** for a failed readiness check. A custom `onFail.httpStatus` has to sit outside `platform.healthyStatus`, or the platform will treat the failure as healthy.
 
 `platform.metadata` is non-secret runtime identity for your logs. It is not written into the HTTP body. These URLs are often reachable on the public internet, so the example uses status-only output. See [Responses and HTTP](https://healthzkit.dev/guide/responses-and-http).
 

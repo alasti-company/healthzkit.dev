@@ -292,6 +292,16 @@ describe("handler", () => {
     expect(accepts(railway({ env: {} }), drained?.status ?? 0)).toBe(false);
   });
 
+  test.each([204, 205, 304])("returns status %i without a body", async (status) => {
+    const handler = createPaasFetchHandler(
+      fakeKit(status, '{"status":"ok"}'),
+      railway({ env: {} }),
+    );
+    const response = await handler(new Request("http://127.0.0.1/health"));
+    expect(response?.status).toBe(status);
+    expect(await response?.text()).toBe("");
+  });
+
   test("passes a failed readiness check through unchanged", async () => {
     const kit = createHealthKit({
       checks: [
