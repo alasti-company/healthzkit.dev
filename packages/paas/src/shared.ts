@@ -152,10 +152,13 @@ function canonicalPath(path: string): string {
   if (/[?#\\\s%]/.test(path)) {
     throw new TypeError("path must be a pathname without a query, hash, or percent-encoding");
   }
+  if (path.includes("//")) throw new TypeError("path must not contain empty segments");
   const canonical = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
-  if (canonical.includes("//")) throw new TypeError("path must not contain empty segments");
   if (canonical.split("/").some((segment) => segment === "." || segment === "..")) {
     throw new TypeError("path must not contain . or .. segments");
+  }
+  if (requestPathname(canonical) !== canonical) {
+    throw new TypeError("path must match the URL pathname exactly");
   }
   return canonical;
 }

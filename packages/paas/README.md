@@ -27,7 +27,10 @@ kit.start();
 
 const health = createPaasFetchHandler(kit, platform);
 const app = new Hono();
-app.all(platform.path, (c) => health(c.req.raw));
+app.all(platform.path, async (c) => {
+  const response = await health(c.req.raw);
+  return response ?? c.notFound();
+});
 ```
 
 Point the platform at `platform.path` (`/healthz` on Fly, `/health` on Railway and Render, `/api/health` on Vercel). healthzkit still serves `/healthz/live`, `/healthz/ready`, and `/healthz/startup` when you mount those routes yourself.

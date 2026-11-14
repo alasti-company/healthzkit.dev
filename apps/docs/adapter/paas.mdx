@@ -30,7 +30,10 @@ kit.start();
 
 const health = createPaasFetchHandler(kit, platform);
 const app = new Hono();
-app.all(platform.path, (c) => health(c.req.raw));
+app.all(platform.path, async (c) => {
+  const response = await health(c.req.raw);
+  return response ?? c.notFound();
+});
 ```
 
 Configure the platform with `platform.path`: `/healthz` on Fly, `/health` on Railway and Render, `/api/health` on Vercel. You can still mount `/healthz/live`, `/healthz/ready`, and `/healthz/startup` beside that URL.
