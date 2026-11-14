@@ -1,0 +1,72 @@
+{
+  "name": "@healthzkit/paas",
+  "version": "0.0.1",
+  "description": "Serve Fly, Vercel, Railway, Render, and other PaaS health checks from healthzkit liveness, readiness, and startup probes.",
+  "keywords": [
+    "azure",
+    "cloud-run",
+    "fly",
+    "health-check",
+    "healthcheck",
+    "healthzkit",
+    "koyeb",
+    "liveness",
+    "paas",
+    "railway",
+    "readiness",
+    "render",
+    "vercel"
+  ],
+  "homepage": "https://healthzkit.dev/adapter/paas",
+  "bugs": {
+    "url": "https://github.com/alasti-company/healthzkit.dev/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Alasti Company",
+    "url": "https://healthzkit.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alasti-company/healthzkit.dev",
+    "directory": "packages/paas"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./azure-app-service": "./dist/azure-app-service.mjs",
+    "./azure-container-apps": "./dist/azure-container-apps.mjs",
+    "./cloud-run": "./dist/cloud-run.mjs",
+    "./digitalocean": "./dist/digitalocean.mjs",
+    "./fly": "./dist/fly.mjs",
+    "./koyeb": "./dist/koyeb.mjs",
+    "./railway": "./dist/railway.mjs",
+    "./render": "./dist/render.mjs",
+    "./vercel": "./dist/vercel.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "bumpp": "catalog:",
+    "healthzkit": "workspace:*",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

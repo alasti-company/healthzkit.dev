@@ -103,6 +103,10 @@
             "pages": ["adapter/node"]
           },
           {
+            "group": "Platforms",
+            "pages": ["adapter/paas"]
+          },
+          {
             "group": "HTTP",
             "pages": ["adapter/http"]
           }

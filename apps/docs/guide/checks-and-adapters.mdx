@@ -96,11 +96,15 @@ control normal check frequency; it does not replace driver timeouts.
 
 ## Official adapters
 
-This monorepo publishes optional packages that return a `HealthAdapter` for runtime resources and common infrastructure: **queues**, **databases**, **storage**, **search**, and **HTTP endpoints**. For anything else, use a custom `adapter.check()` implementation.
+This monorepo publishes optional packages for runtime resources and common infrastructure. **Queues**, **databases**, **storage**, **search**, and **HTTP endpoints** return a `HealthAdapter`. The platform package serves one PaaS health URL from an existing HealthKit. For anything else, use a custom `adapter.check()` implementation.
 
 ### Runtime
 
 - [Node.js resources](/adapter/node) — `@healthzkit/node`
+
+### Platforms
+
+- [PaaS health checks](/adapter/paas) — `@healthzkit/paas`
 
 ### Queues
 
