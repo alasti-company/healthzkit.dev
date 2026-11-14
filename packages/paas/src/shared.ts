@@ -38,6 +38,11 @@ export interface PaasRequest {
 export interface PaasResponse {
   status: number;
   headers: Record<string, string>;
+  /**
+   * Probe body as a string, or `""` for HEAD.
+   * Statuses 204, 205, and 304 still carry that string.
+   * Use `createPaasFetchHandler` to build a Fetch `Response`; passing this string to `new Response` throws for those statuses.
+   */
   body: string;
 }
 
@@ -82,6 +87,7 @@ export interface PaasProfile<Id extends PaasId = PaasId> {
    * Run the mapped probe when the pathname matches.
    * Returns null for any other pathname. GET and HEAD run the probe.
    * Any other method on this pathname returns 405.
+   * The body stays a string. `createPaasFetchHandler` drops it for 204, 205, and 304.
    */
   handle(kit: PaasKit, input: PaasRequest | Request): Promise<PaasResponse | null>;
 }
