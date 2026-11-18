@@ -1,6 +1,6 @@
 {
   "name": "@healthzkit/paas",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Serve Fly, Vercel, Railway, Render, and other PaaS health checks from healthzkit liveness, readiness, and startup probes.",
   "keywords": [
     "azure",
