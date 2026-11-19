@@ -166,18 +166,14 @@ Replace the process check when startup depends on asynchronous initialization. T
     kit.start();
 
     const app = Fastify();
-    app.route({
-      method: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"],
-      url: "/healthz/:route",
-      handler: async (request, reply) => {
-        const out = await kit.handleRequest({
-          method: request.method,
-          path: request.url.split("?")[0] ?? "/",
-        });
-        if (!out) return reply.callNotFound();
-        for (const [name, value] of Object.entries(out.headers)) reply.header(name, value);
-        return reply.status(out.status).send(request.method === "HEAD" ? null : out.body);
-      },
+    app.all("/healthz/:route", async (request, reply) => {
+      const out = await kit.handleRequest({
+        method: request.method,
+        path: request.url.split("?")[0] ?? "/",
+      });
+      if (!out) return reply.callNotFound();
+      for (const [name, value] of Object.entries(out.headers)) reply.header(name, value);
+      return reply.status(out.status).send(request.method === "HEAD" ? null : out.body);
     });
 
     const shutdown = bindShutdown(() => app.close());
@@ -189,10 +185,12 @@ Replace the process check when startup depends on asynchronous initialization. T
     }
     ```
 
+    `app.all` registers every method Fastify supports, including TRACE and QUERY. Fastify does not route CONNECT.
+
   </Tab>
 
   <Tab title="Elysia">
-    Bun and Node can both host this long-lived server. Call `kit.start()` after you own the process.
+    Elysia runs this long-lived server on Bun. On Node, install `@elysia/node`, import `{ node }`, and pass `adapter: node()` to `new Elysia()`. Call `kit.start()` after you own the process.
 
     ```ts
     import { Elysia } from "elysia";
