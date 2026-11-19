@@ -13,6 +13,12 @@ export interface CachedResult {
   cachedAt: Date;
 }
 
+interface ScheduledPending {
+  operation: Promise<AdapterResult>;
+  result: Promise<CachedResult>;
+  generation: number;
+}
+
 /**
  * Uniform integer from 0 through `jitterMs`, inclusive.
  * A zero span does not draw, so a fixed interval stays deterministic.
@@ -32,12 +38,11 @@ export class Scheduler {
   private timers = new Map<string, ReturnType<typeof setInterval>>();
   private jitterTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private active = new Set<string>();
+  /** Checks whose next adapter start is still the initial jitter delay. */
+  private initialWait = new Set<string>();
   private cache = new Map<string, CachedResult>();
   private executor = new CheckExecutor();
-  private pending = new Map<
-    string,
-    { operation: Promise<AdapterResult>; result: Promise<CachedResult> }
-  >();
+  private pending = new Map<string, ScheduledPending>();
   private generation = 0;
   private observed = new WeakSet<Promise<AdapterResult>>();
   private statuses = new Map<string, CheckStatus>();
@@ -70,6 +75,7 @@ export class Scheduler {
 
   stopTimers(): void {
     this.active.clear();
+    this.initialWait.clear();
     for (const timer of this.timers.values()) {
       clearInterval(timer);
     }
@@ -94,25 +100,35 @@ export class Scheduler {
   }
 
   getPending(name: string): Promise<CachedResult> | undefined {
-    return this.active.has(name) ? this.pending.get(name)?.result : undefined;
+    return this.currentPending(name)?.result;
   }
 
   /**
-   * Share an in-flight scheduled run. If the initial delay has not started
-   * the adapter, start it now so the caller waits for the check deadline
-   * rather than the remaining jitter.
+   * Share an in-flight scheduled run from the current lifecycle. A run retained
+   * across stop() belongs to the previous lifecycle and is not shared. If the
+   * initial delay has not started the adapter, start it now so the caller waits
+   * for the check deadline rather than the remaining jitter. A refresh delay is
+   * left in place; only the initial wait is promoted.
    */
   prepareScheduled(check: CheckConfig, timeoutMs: number): Promise<CachedResult> | undefined {
     if (!this.active.has(check.name)) return undefined;
-    const pending = this.pending.get(check.name);
+    const pending = this.currentPending(check.name);
     if (pending) return pending.result;
-    if (!this.jitterTimers.has(check.name)) return undefined;
+    if (!this.initialWait.has(check.name)) return undefined;
+    this.initialWait.delete(check.name);
     this.clearJitter(check.name);
     const jitterMs = check.schedule?.jitterMs ?? 0;
     const intervalMs = check.schedule?.intervalMs ?? 0;
     this.runAndCache(check, timeoutMs);
     if (jitterMs > 0) this.armRefresh(check, timeoutMs, jitterMs, intervalMs);
-    return this.pending.get(check.name)?.result;
+    return this.currentPending(check.name)?.result;
+  }
+
+  private currentPending(name: string): ScheduledPending | undefined {
+    if (!this.active.has(name)) return undefined;
+    const pending = this.pending.get(name);
+    if (!pending || pending.generation !== this.generation) return undefined;
+    return pending;
   }
 
   private startJittered(
@@ -122,6 +138,7 @@ export class Scheduler {
     intervalMs: number,
   ): void {
     const begin = () => {
+      this.initialWait.delete(check.name);
       this.runAndCache(check, timeoutMs);
       this.armRefresh(check, timeoutMs, jitterMs, intervalMs);
     };
@@ -130,6 +147,7 @@ export class Scheduler {
       begin();
       return;
     }
+    this.initialWait.add(check.name);
     this.armDelay(check.name, initial, begin);
   }
 
@@ -254,6 +272,7 @@ export class Scheduler {
     this.pending.set(check.name, {
       operation,
       result: this.executeAndCache(check, operation),
+      generation: this.generation,
     });
   }
 

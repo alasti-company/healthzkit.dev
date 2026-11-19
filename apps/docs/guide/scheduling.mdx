@@ -33,7 +33,7 @@ await kit.close();
 
 `schedule.jitterMs`, when set, must be an integer from **0** through that check's `intervalMs`, inclusive. **0** selects a fixed interval, the same schedule as omitting `jitterMs`. A value above the interval, or a negative, fractional, or non-finite value, throws a `RangeError` naming the check and `schedule.jitterMs`.
 
-Zero does not disable a timeout or interval. Zero, negative, fractional, non-finite, and oversized values are rejected instead of being coerced by runtime timers. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` for on-demand checks. Timing settings are captured at construction; later mutations of the original defaults or schedule do not affect the kit.
+Zero does not disable a timeout or an interval. Zero, negative, fractional, non-finite, and oversized values for those settings are rejected instead of being coerced by runtime timers. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` for on-demand checks. Timing settings are captured at construction; later mutations of the original defaults or schedule do not affect the kit.
 
 ## Behavior
 
@@ -43,7 +43,7 @@ Zero does not disable a timeout or interval. Zero, negative, fractional, non-fin
 
 Scheduled runs use the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A timeout aborts the adapter context signal and replaces the cached result with a failure. Cancellation is cooperative: the adapter must use the signal with a driver or API that supports it (see [Deadlines and cancellation](/guide/checks-and-adapters#deadlines-and-cancellation)). Refreshes do not overlap: if an adapter remains pending after its timeout, later refreshes skip it until it settles. A late result cannot overwrite the timeout failure.
 
-A cached success becomes a failure when its age reaches **`intervalMs + jitterMs + timeout`**. `jitterMs` is **0** when it is omitted, so the limit stays **`intervalMs + timeout`**. That window is one interval, the maximum jitter delay, and one refresh deadline. Healthzkit does not serve a cached success older than the limit. Failures follow your configured `onFail` behavior. While the initial scheduled check is pending, probes await that same check and share its result or timeout. If that run is still waiting for its initial jitter delay, the probe starts it immediately and then shares it. When scheduling is inactive and there is no cached result, probes run the check on demand with the same timeout.
+A cached success becomes a failure when its age reaches **`intervalMs + jitterMs + timeout`**. `jitterMs` is **0** when it is omitted, so the limit stays **`intervalMs + timeout`**. That window is one interval, the maximum jitter delay, and one refresh deadline. Healthzkit does not serve a cached success older than the limit. Failures follow your configured `onFail` behavior. While the initial scheduled check is pending, probes await that same check and share its result or timeout. If that run is still waiting for its initial jitter delay, the health request starts it immediately and then shares it. When scheduling is inactive and there is no cached result, probes run the check on demand with the same timeout.
 
 Timers use `unref` when available so they do not keep the process alive by themselves.
 
@@ -57,9 +57,9 @@ schedule: { intervalMs: 30_000, jitterMs: 5_000 }
 
 Omit `jitterMs`, or set it to **0**, and the first run starts immediately, then repeats every `intervalMs`. Healthzkit does not draw a random delay for that schedule.
 
-When `jitterMs` is greater than 0, each initial run and each refresh draws a new uniform integer from **0** through **`jitterMs`** milliseconds, inclusive. The initial run waits only that delay. Each refresh waits **`intervalMs` plus a new draw**. After the first run, scheduled starts are at least `intervalMs` apart and at most **`intervalMs + jitterMs`** apart. `stop()` drops a delay that has not started a run. `start()` after `stop()` draws new delays. Checks draw independently.
+When `jitterMs` is greater than 0, each initial run and each refresh draws a new uniform integer from **0** through **`jitterMs`** milliseconds, inclusive. The initial run waits only that delay. Each refresh attempt waits **`intervalMs` plus a new draw**. If the previous adapter run is still pending, that attempt is skipped until it settles. Refresh attempts are at least `intervalMs` apart and at most **`intervalMs + jitterMs`** apart. `stop()` drops a delay that has not started a run. `start()` after `stop()` draws new delays. Checks draw independently.
 
-Jitter only moves the start of a background run. The check deadline still begins when the adapter run starts, and it still lasts for the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A probe does not wait out a remaining initial delay, so that response stays inside the check deadline. The freshness limit includes `jitterMs` so a refresh that uses the full extra delay can still finish inside its deadline. The deadline itself does not grow.
+Jitter only moves the start of a background run. The check deadline still begins when the adapter run starts, and it still lasts for the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A health request does not wait out a remaining initial delay, so that response stays inside the check deadline. The freshness limit includes `jitterMs` so a refresh that uses the full extra delay can still finish inside its deadline. The deadline itself does not grow.
 
 ## Shutdown and disposal
 

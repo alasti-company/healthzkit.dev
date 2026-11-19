@@ -247,7 +247,7 @@ Within one kit, concurrent requests for the same check share one operation, incl
 
 `schedule.jitterMs`, when set, must be an integer from **0** through that check's `intervalMs`, inclusive. **0** selects a fixed interval, the same schedule as omitting `jitterMs`. A value above the interval, or a negative, fractional, or non-finite value, throws a `RangeError` naming the check and `schedule.jitterMs`.
 
-Zero does **not** disable timeouts or scheduling; it is rejected along with negative, fractional, non-finite, and oversized values instead of relying on runtime timer coercion. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` to run on demand. Timing settings are captured at construction, so mutating the original defaults or schedule afterward does not change them.
+Zero does **not** disable a timeout or an interval. Those settings reject zero, along with negative, fractional, non-finite, and oversized values, instead of relying on runtime timer coercion. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` to run on demand. Timing settings are captured at construction, so mutating the original defaults or schedule afterward does not change them.
 
 ## Scheduling
 
@@ -290,7 +290,7 @@ schedule: { intervalMs: 30_000, jitterMs: 5_000 }
 
 Omit `jitterMs`, or set it to **0**, and the first run starts immediately, then repeats every `intervalMs`. Healthzkit does not draw a random delay for that schedule.
 
-When `jitterMs` is greater than 0, each initial run and each refresh draws a new uniform integer from **0** through **`jitterMs`** milliseconds, inclusive. The initial run waits only that delay. Each refresh waits **`intervalMs` plus a new draw**. After the first run, scheduled starts are at least `intervalMs` apart and at most **`intervalMs + jitterMs`** apart. `stop()` drops a delay that has not started a run. `start()` after `stop()` draws new delays. Checks draw independently.
+When `jitterMs` is greater than 0, each initial run and each refresh draws a new uniform integer from **0** through **`jitterMs`** milliseconds, inclusive. The initial run waits only that delay. Each refresh attempt waits **`intervalMs` plus a new draw**. If the previous adapter run is still pending, that attempt is skipped until it settles. Refresh attempts are at least `intervalMs` apart and at most **`intervalMs + jitterMs`** apart. `stop()` drops a delay that has not started a run. `start()` after `stop()` draws new delays. Checks draw independently.
 
 Jitter only moves the start of a background run. The check deadline still begins when the adapter run starts, and it still lasts for the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A probe does not wait out a remaining initial delay, so that response stays inside the check deadline. The freshness limit includes `jitterMs` so a refresh that uses the full extra delay can still finish inside its deadline. The deadline itself does not grow.
 

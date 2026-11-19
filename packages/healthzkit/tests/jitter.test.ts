@@ -194,6 +194,79 @@ describe("schedule jitter", () => {
     }
   });
 
+  test("a health request after restart shares the new run, not the stopped one", async () => {
+    let resolveCheck: (result: AdapterResult) => void = () => {};
+    const check = vi.fn(
+      () =>
+        new Promise<AdapterResult>((resolve) => {
+          resolveCheck = resolve;
+        }),
+    );
+    const random = vi.spyOn(Math, "random").mockReturnValue(0);
+    const kit = createHealthKit({
+      checks: [scheduled(check, { intervalMs: 100, jitterMs: 40 }, "db", 25)],
+    });
+    kit.start();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(check).toHaveBeenCalledTimes(1);
+    kit.stop();
+    resolveCheck({ status: "ok" });
+    await vi.advanceTimersByTimeAsync(0);
+
+    random.mockReturnValue(LATEST);
+    kit.start();
+    try {
+      const pending = kit.handleReadiness();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(check).toHaveBeenCalledTimes(2);
+      resolveCheck({ status: "ok" });
+      const response = await pending;
+      expect(response.status).toBe(200);
+      expect(JSON.parse(response.body).checks.db).toMatchObject({
+        status: "ok",
+        latency: 0,
+        cachedAt: expect.any(String),
+      });
+      expect(JSON.parse(response.body).checks.db.error).toBeUndefined();
+    } finally {
+      kit.stop();
+    }
+  });
+
+  test("a restarted initial wait does not share or postpone around a stopped run", async () => {
+    let resolveCheck: (result: AdapterResult) => void = () => {};
+    const check = vi.fn(
+      () =>
+        new Promise<AdapterResult>((resolve) => {
+          resolveCheck = resolve;
+        }),
+    );
+    const random = vi.spyOn(Math, "random").mockReturnValue(0);
+    const scheduler = new Scheduler();
+    const config = scheduled(check, { intervalMs: 100, jitterMs: 40 }, "db", 25);
+    scheduler.start([config]);
+    await vi.advanceTimersByTimeAsync(0);
+    scheduler.stop();
+
+    random.mockReturnValue(LATEST);
+    scheduler.start([config]);
+    try {
+      expect(scheduler.prepareScheduled(config, 25)).toBeUndefined();
+      expect(check).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(50);
+      expect(scheduler.prepareScheduled(config, 25)).toBeUndefined();
+      resolveCheck({ status: "ok" });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(scheduler.getCache("db")).toBeUndefined();
+      await vi.advanceTimersByTimeAsync(89);
+      expect(check).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(check).toHaveBeenCalledTimes(2);
+    } finally {
+      scheduler.stop();
+    }
+  });
+
   test("close cancels a delay that has not started", async () => {
     vi.spyOn(Math, "random").mockReturnValue(LATEST);
     const check = vi.fn(async () => ({ status: "ok" as const }));
