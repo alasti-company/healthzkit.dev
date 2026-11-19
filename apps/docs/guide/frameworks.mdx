@@ -275,6 +275,7 @@ There is no process-wide drain. The platform discards the isolate, so route modu
       query_timeout: 1_500,
       statement_timeout: 1_500,
     });
+    pool.on("error", () => console.error("Postgres idle connection failed"));
 
     export const kit = createHealthKit({
       output: { exposeError: false, exposeMetadata: false },
@@ -294,7 +295,7 @@ There is no process-wide drain. The platform discards the isolate, so route modu
     });
     ```
 
-    Keep `max` small. Each isolate can hold its own pool. Prefer your host's connection pooler for Postgres.
+    Keep `max` small. Each isolate can hold its own pool. Prefer your host's connection pooler for Postgres. Handle idle client errors. Node can exit when an idle `pg` client emits `error` and no listener is attached.
 
     ```ts app/healthz/[route]/route.ts
     import { createFetchHandler } from "healthzkit";

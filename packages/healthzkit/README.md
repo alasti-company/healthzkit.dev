@@ -84,6 +84,10 @@ const handle = createFetchHandler(kit);
 export const GET = handle;
 export const HEAD = handle;
 export const POST = handle;
+export const PUT = handle;
+export const PATCH = handle;
+export const DELETE = handle;
+export const OPTIONS = handle;
 ```
 
 Build `kit` with filtered output, a process check for liveness and startup, and a real readiness check. In a serverless Next.js deployment, omit `schedule` and do not call `kit.start()`. A long-lived `next start` process can use the scheduled kit and shut it down from process bootstrap.
