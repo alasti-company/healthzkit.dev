@@ -14,10 +14,12 @@ The package is ESM-only. Runtime: Node.js 22.12+ (CI). Other runtimes with `fetc
 
 ```ts
 import { Hono } from "hono";
-import { createHealthKit, toFetchResponse } from "healthzkit";
+import { createFetchHandler, createHealthKit } from "healthzkit";
 import { pgAdapter } from "@healthzkit/postgres/pg";
 
 const kit = createHealthKit({
+  output: { exposeError: false, exposeMetadata: false },
+  defaults: { timeout: 2_000 },
   checks: [
     {
       name: "process",
@@ -36,14 +38,15 @@ const kit = createHealthKit({
 kit.start();
 
 const app = new Hono();
-app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
-app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
-app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup()));
+const health = createFetchHandler(kit);
+app.all("/healthz/*", (c) => health(c.req.raw));
 
 export default app;
 ```
 
-Point Kubernetes (or any orchestrator) at `GET /healthz/live`, `GET /healthz/ready`, and `GET /healthz/startup`. A failed readiness check returns **503** by default so the instance is taken out of rotation.
+Point Kubernetes (or any orchestrator) at `GET /healthz/live`, `GET /healthz/ready`, and `GET /healthz/startup`. The handler also accepts HEAD and returns **405** for other methods. A failed readiness check returns **503** by default so the instance is taken out of rotation.
+
+`kit.start()` is for a long-lived process. `pgAdapter({ connectionString })` opens an adapter-owned pool with `max: 1` and no query deadline. Pass the application's existing pool, with finite connection and statement limits, when you already have one. On shutdown, call `kit.beginDrain()`, stop accepting requests, `await kit.close()`, then close that pool, inside a deadline shorter than the orchestrator grace period. Serverless hosts run checks on demand and skip `kit.start()`. Complete framework wiring is in the [framework guide](https://healthzkit.dev/guide/frameworks). The runnable long-lived app is [`apps/example-node`](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node).
 
 ## Fetch, Next.js, Bun, Workers
 
@@ -53,8 +56,13 @@ Point Kubernetes (or any orchestrator) at `GET /healthz/live`, `GET /healthz/rea
 import { createFetchHandler, createHealthKit } from "healthzkit";
 
 const kit = createHealthKit({
+  output: { exposeError: false, exposeMetadata: false },
   checks: [
-    { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
+    {
+      name: "process",
+      type: ["liveness", "startup"],
+      adapter: { check: async () => ({ status: "ok" }) },
+    },
   ],
 });
 
@@ -63,55 +71,49 @@ const handler = createFetchHandler(kit);
 Deno.serve(handler); // also: Bun.serve({ fetch: handler })
 ```
 
-GET and HEAD are served on the live/ready routes; other methods on those routes return **405** with `Allow: GET, HEAD`. Unknown paths return **404**.
+GET and HEAD are served on the live, ready, and startup routes. The handler forwards every response header. Other methods on those routes return **405** with `Allow: GET, HEAD`. Unknown paths return **404**. Add a real readiness check before you rely on `/healthz/ready`. With the default rollup, a route that matches no checks returns 200. Call `kit.start()` only in a long-lived process.
 
-```ts
-// app/healthz/live/route.ts  (Next.js App Router)
-import { createHealthKit, toFetchResponse } from "healthzkit";
-
-const kit = createHealthKit({
-  checks: [
-    {
-      name: "process",
-      type: ["liveness", "readiness"],
-      adapter: { check: async () => ({ status: "ok" }) },
-    },
-  ],
-});
+```ts app/healthz/[route]/route.ts
+import { createFetchHandler } from "healthzkit";
+import { kit } from "../kit";
 
 export const dynamic = "force-dynamic";
-export const GET = async () => toFetchResponse(await kit.handleLiveness());
-export const HEAD = async () => toFetchResponse(await kit.handleLiveness(), "HEAD");
+
+const handle = createFetchHandler(kit);
+
+export const GET = handle;
+export const HEAD = handle;
+export const POST = handle;
 ```
+
+Build `kit` with filtered output, a process check for liveness and startup, and a real readiness check. In a serverless Next.js deployment, omit `schedule` and do not call `kit.start()`. A long-lived `next start` process can use the scheduled kit and shut it down from process bootstrap.
 
 ## Express
 
+Mount the quick start kit. Copy every header, including `Cache-Control` and `Allow`.
+
 ```ts
 import express from "express";
-import { createHealthKit } from "healthzkit";
+import type { HealthKit } from "healthzkit";
 
-const kit = createHealthKit({
-  checks: [
-    {
-      name: "process",
-      type: ["liveness", "readiness"],
-      adapter: { check: async () => ({ status: "ok" }) },
-    },
-  ],
-});
-
-const app = express();
-app.get("/healthz/live", async (_req, res) => {
-  const out = await kit.handleLiveness();
-  res.status(out.status).set(out.headers).send(out.body);
-});
-app.get("/healthz/ready", async (_req, res) => {
-  const out = await kit.handleReadiness();
-  res.status(out.status).set(out.headers).send(out.body);
-});
+export function mountHealth(app: express.Express, kit: HealthKit) {
+  app.use("/healthz", async (req, res, next) => {
+    const out = await kit.handleRequest({
+      method: req.method,
+      path: `${req.baseUrl}${req.path}`,
+    });
+    if (!out) {
+      next();
+      return;
+    }
+    res.status(out.status).set(out.headers);
+    if (req.method === "HEAD") res.end();
+    else res.send(out.body);
+  });
+}
 ```
 
-More frameworks: [healthzkit.dev/guide/frameworks](https://healthzkit.dev/guide/frameworks).
+`handleRequest` covers startup, liveness, readiness, HEAD, and 405. Draining and bounded shutdown for Express, Fastify, Elysia, Hono, Next.js, and Node `http` are in the [framework guide](https://healthzkit.dev/guide/frameworks).
 
 ## `handleRequest`
 

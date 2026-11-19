@@ -160,6 +160,9 @@ importers:
 
   apps/example-hono:
     dependencies:
+      '@healthzkit/http':
+        specifier: workspace:*
+        version: link:../../packages/http
       healthzkit:
         specifier: workspace:*
         version: link:../../packages/healthzkit

@@ -1,158 +1,215 @@
 ---
 title: Framework guides
-description: Wire Healthzkit into Elysia, Express, Fastify, Hono, Next.js, and Node http—examples that map AgnosticResponse status, headers, and body to each framework response API.
+description: Wire healthzkit into Elysia, Express, Fastify, Hono, Next.js, and Node http with startup, liveness, and readiness routes, filtered output, and runtime-appropriate shutdown.
 ---
 
-Use these examples to wire healthzkit into common runtimes. Fetch-based frameworks can use `toFetchResponse` or `createFetchHandler`; Express and Node `http` map `status`, `headers`, and `body` onto the native response.
+Mount healthzkit on your HTTP framework. Fetch-based frameworks can return `createFetchHandler` or `toFetchResponse`. Express, Fastify, and Node `http` copy `status`, `headers`, and `body` onto the native response. Copy every header, including `Cache-Control` and `Allow`.
 
-For a runnable long-lived Node.js deployment, see the [production Hono + Postgres example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node). It includes Kubernetes probes, shared-pool ownership, error redaction, and bounded graceful shutdown.
+Two runnable applications cover the surrounding lifecycle:
+
+- [Long-lived Node example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node) — Hono, a shared Postgres pool, finite driver limits, filtered output, Kubernetes probes, draining, and a bounded shutdown deadline. The tested helper is [`createShutdown`](https://github.com/alasti-company/healthzkit.dev/blob/main/apps/example-node/src/shutdown.ts).
+- [Workers example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-hono) — on-demand checks in a serverless isolate.
+
+The [integration recipe](/guide/integrate-healthzkit) is the canonical kit. The blocks below keep each framework's routing and server shutdown.
+
+## When to schedule
+
+Call `kit.start()` in a process you start and stop: a Node server, a Bun process, or another long-lived host. Scheduled readiness checks then serve cached results. Detection of a new failure waits for the refresh interval plus the check timeout. See [Scheduling](/guide/scheduling).
+
+In Cloudflare Workers, serverless functions, and other isolates the platform freezes between requests, run checks on demand. Leave out `kit.start()` and `schedule`. A timer started during a request does not give you a reliable refresh loop, and the platform can discard the isolate before a shutdown handler runs.
+
+Next.js follows the host. App Router handlers on a serverless platform stay on demand. A long-lived `next start` process on a VM can use the long-lived kit from process bootstrap.
+
+## Long-lived process
+
+Share one pool between application queries and the readiness adapter. Keep connection, query, and statement limits shorter than the healthzkit deadline. A healthzkit timeout does not cancel a `pg` query. See [driver timeouts](/guide/checks-and-adapters#driver-timeouts).
+
+Hide driver errors and metadata on the public response. Use a process check for liveness and startup. Put Postgres on readiness only.
+
+```ts kit.ts
+import { createHealthKit } from "healthzkit";
+import { pgAdapter } from "@healthzkit/postgres/pg";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  connectionTimeoutMillis: 1_000,
+  query_timeout: 1_500,
+  statement_timeout: 1_500,
+});
+pool.on("error", () => console.error("Postgres idle connection failed"));
+
+export const kit = createHealthKit({
+  output: { exposeError: false, exposeMetadata: false },
+  defaults: { timeout: 2_000 },
+  checks: [
+    {
+      name: "process",
+      type: ["liveness", "startup"],
+      adapter: { check: async () => ({ status: "ok" }) },
+    },
+    {
+      name: "database",
+      type: ["readiness"],
+      adapter: pgAdapter({ client: pool }),
+      schedule: { intervalMs: 5_000 },
+    },
+  ],
+});
+
+export function bindShutdown(closeServer: () => Promise<void>) {
+  let pending: Promise<void> | undefined;
+  return () => {
+    if (pending) return pending;
+    kit.beginDrain();
+    kit.stop();
+    const deadline = setTimeout(() => {
+      console.error("Shutdown deadline exceeded");
+      process.exit(1);
+    }, 25_000);
+    pending = (async () => {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 5_000));
+        await closeServer();
+        await kit.close();
+        await pool.end();
+      } finally {
+        clearTimeout(deadline);
+      }
+    })();
+    return pending;
+  };
+}
+```
+
+Call `kit.start()` once when the process begins listening. On `SIGTERM` or `SIGINT`, `beginDrain()` makes readiness return 503 while liveness stays available. The five-second wait gives the load balancer time to notice. Then stop accepting connections, wait for active handlers, `await kit.close()`, and end the pool you own. `close()` waits for checks already in flight and disposes adapter-owned clients. It does not end a pool you passed in. Keep the 25-second deadline shorter than the orchestrator grace period. Repeated signals share one shutdown.
+
+Replace the process check when startup depends on asynchronous initialization. The runnable example rejects a missing `DATABASE_URL`, listens on `0.0.0.0`, and includes the Kubernetes manifest.
 
 <Tabs>
   <Tab title="Hono">
-    ```ts
-    import { Hono } from "hono";
-    import { createHealthKit, toFetchResponse } from "healthzkit";
+    `createFetchHandler` serves `GET` and `HEAD` on `/healthz/live`, `/healthz/ready`, and `/healthz/startup`, forwards every header, and returns 405 for other methods on those paths.
 
-    const kit = createHealthKit({
-      checks: [
-        {
-          name: "process",
-          type: ["liveness", "readiness"],
-          adapter: { check: async () => ({ status: "ok" }) },
-        },
-      ],
-    });
+    ```ts
+    import { serve } from "@hono/node-server";
+    import { Hono } from "hono";
+    import { createFetchHandler } from "healthzkit";
+    import { bindShutdown, kit } from "./kit.ts";
+
+    kit.start();
 
     const app = new Hono();
+    const health = createFetchHandler(kit);
+    app.all("/healthz/*", (c) => health(c.req.raw));
 
-    app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
-    app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
-
-    export default app;
+    const server = serve({ fetch: app.fetch, hostname: "0.0.0.0", port: 3000 });
+    const shutdown = bindShutdown(
+      () =>
+        new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()));
+        }),
+    );
+    for (const signal of ["SIGTERM", "SIGINT"] as const) {
+      process.on(signal, () => {
+        void shutdown().catch(() => process.exit(1));
+      });
+    }
     ```
+
+    On Workers, mount the same `app.all("/healthz/*", ...)` handler and skip `kit.start()` and `bindShutdown`. Use the [Workers example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-hono).
 
   </Tab>
 
   <Tab title="Express">
     ```ts
     import express from "express";
-    import { createHealthKit } from "healthzkit";
+    import { bindShutdown, kit } from "./kit.ts";
 
-    const kit = createHealthKit({
-      checks: [
-        {
-          name: "process",
-          type: ["liveness", "readiness"],
-          adapter: { check: async () => ({ status: "ok" }) },
-        },
-      ],
-    });
+    kit.start();
 
     const app = express();
-
-    app.get("/healthz/live", async (_req, res) => {
-      const out = await kit.handleLiveness();
-      res.status(out.status).set(out.headers).send(out.body);
-    });
-
-    app.get("/healthz/ready", async (_req, res) => {
-      const out = await kit.handleReadiness();
-      res.status(out.status).set(out.headers).send(out.body);
+    app.use("/healthz", async (req, res, next) => {
+      const out = await kit.handleRequest({
+        method: req.method,
+        path: `${req.baseUrl}${req.path}`,
+      });
+      if (!out) return next();
+      res.status(out.status).set(out.headers);
+      if (req.method === "HEAD") res.end();
+      else res.send(out.body);
     });
 
     const server = app.listen(3000);
+    const shutdown = bindShutdown(
+      () =>
+        new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()));
+        }),
+    );
+    for (const signal of ["SIGTERM", "SIGINT"] as const) {
+      process.on(signal, () => {
+        void shutdown().catch(() => process.exit(1));
+      });
+    }
+    ```
 
-    process.on("SIGTERM", () => {
-      kit.stop();
-      server.close();
+    `res.set(out.headers)` forwards `Cache-Control` and `Allow`. `handleRequest` covers startup, liveness, readiness, `HEAD`, and 405.
+
+  </Tab>
+
+  <Tab title="Fastify">
+    ```ts
+    import Fastify from "fastify";
+    import { bindShutdown, kit } from "./kit.ts";
+
+    kit.start();
+
+    const app = Fastify();
+    app.route({
+      method: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"],
+      url: "/healthz/:route",
+      handler: async (request, reply) => {
+        const out = await kit.handleRequest({
+          method: request.method,
+          path: request.url.split("?")[0] ?? "/",
+        });
+        if (!out) return reply.callNotFound();
+        for (const [name, value] of Object.entries(out.headers)) reply.header(name, value);
+        return reply.status(out.status).send(request.method === "HEAD" ? null : out.body);
+      },
     });
+
+    const shutdown = bindShutdown(() => app.close());
+    await app.listen({ host: "0.0.0.0", port: 3000 });
+    for (const signal of ["SIGTERM", "SIGINT"] as const) {
+      process.on(signal, () => {
+        void shutdown().catch(() => process.exit(1));
+      });
+    }
     ```
 
   </Tab>
 
   <Tab title="Elysia">
-    Bun + Elysia with a scheduled Postgres check:
+    Bun and Node can both host this long-lived server. Call `kit.start()` after you own the process.
 
     ```ts
-    import { createHealthKit, toFetchResponse } from "healthzkit";
     import { Elysia } from "elysia";
-    import { pgAdapter } from "@healthzkit/postgres/pg";
-    import { env } from "../env";
-
-    export const kit = createHealthKit({
-      checks: [
-        {
-          name: "database",
-          type: ["readiness"],
-          adapter: pgAdapter({
-            connectionString: env.DATABASE_URL,
-          }),
-          schedule: { intervalMs: 60_000 },
-        },
-      ],
-    });
+    import { createFetchHandler } from "healthzkit";
+    import { bindShutdown, kit } from "./kit.ts";
 
     kit.start();
 
-    const healthRoutes = new Elysia({ prefix: "/healthz", tags: ["Healthzkit"] })
-      .get("/live", async () => toFetchResponse(await kit.handleLiveness()))
-      .get("/ready", async () => toFetchResponse(await kit.handleReadiness()));
-
-    const app = new Elysia().use(healthRoutes).listen(8000);
-
-    process.on("SIGINT", async () => {
-      kit.stop();
+    const health = createFetchHandler(kit);
+    const app = new Elysia().all("/healthz/*", ({ request }) => health(request)).listen(8000);
+    const shutdown = bindShutdown(async () => {
       await app.stop();
-      process.exit(0);
     });
-    ```
-
-  </Tab>
-
-  <Tab title="Next.js">
-    For serverless deployments, skip `kit.start()` and run checks on demand. If you run Next.js in a long-lived Node process, you can enable scheduling with `kit.start()` in process bootstrap code and `kit.stop()` on shutdown.
-
-    ```ts app/healthz/kit.ts
-    import { createHealthKit } from "healthzkit";
-
-    export const kit = createHealthKit({
-      checks: [
-        {
-          name: "process",
-          type: ["liveness", "readiness"],
-          adapter: { check: async () => ({ status: "ok" }) },
-        },
-      ],
-    });
-    ```
-
-    ```ts app/healthz/live/route.ts
-    import { toFetchResponse } from "healthzkit";
-    import { kit } from "../kit";
-
-    export const dynamic = "force-dynamic";
-
-    export async function GET() {
-      return toFetchResponse(await kit.handleLiveness());
-    }
-
-    export async function HEAD() {
-      return toFetchResponse(await kit.handleLiveness(), "HEAD");
-    }
-    ```
-
-    ```ts app/healthz/ready/route.ts
-    import { toFetchResponse } from "healthzkit";
-    import { kit } from "../kit";
-
-    export const dynamic = "force-dynamic";
-
-    export async function GET() {
-      return toFetchResponse(await kit.handleReadiness());
-    }
-
-    export async function HEAD() {
-      return toFetchResponse(await kit.handleReadiness(), "HEAD");
+    for (const signal of ["SIGTERM", "SIGINT"] as const) {
+      process.on(signal, () => {
+        void shutdown().catch(() => process.exit(1));
+      });
     }
     ```
 
@@ -161,32 +218,111 @@ For a runnable long-lived Node.js deployment, see the [production Hono + Postgre
   <Tab title="Node HTTP">
     ```ts
     import http from "node:http";
-    import { createHealthKit } from "healthzkit";
+    import { bindShutdown, kit } from "./kit.ts";
 
-    const kit = createHealthKit({
-      checks: [
-        { name: "process", type: ["liveness"], adapter: { check: async () => ({ status: "ok" }) } },
-      ],
-    });
+    kit.start();
 
     const server = http.createServer(async (req, res) => {
       const out = await kit.handleRequest({
         method: req.method ?? "GET",
-        path: req.url ?? "/",
+        path: (req.url ?? "/").split("?")[0] ?? "/",
       });
-
       if (!out) {
-        res.statusCode = 404;
+        res.writeHead(404, { "Cache-Control": "no-store" });
         res.end("not found");
         return;
       }
-
       res.writeHead(out.status, out.headers);
       res.end(out.body);
     });
 
-    server.listen(3000);
+    server.listen(3000, "0.0.0.0");
+    const shutdown = bindShutdown(
+      () =>
+        new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()));
+        }),
+    );
+    for (const signal of ["SIGTERM", "SIGINT"] as const) {
+      process.on(signal, () => {
+        void shutdown().catch(() => process.exit(1));
+      });
+    }
     ```
+
+    `writeHead(out.status, out.headers)` forwards the kit headers. `handleRequest` already omits the body for `HEAD`.
+
+  </Tab>
+</Tabs>
+
+## Serverless handlers
+
+Run checks when a health request arrives. Use a driver that this runtime supports, and set a finite client timeout. The Node `pg.Pool` above belongs to a long-lived process. Public responses still hide errors and metadata.
+
+There is no process-wide drain. The platform discards the isolate, so route modules should not call `kit.beginDrain()`, `kit.close()`, or `pool.end()` at the end of a request. When you operate a long-lived Node server yourself, use the shutdown sequence above from process bootstrap.
+
+<Tabs>
+  <Tab title="Next.js">
+    Use this shape for serverless App Router deployments. Readiness stays on demand, so omit `schedule` and do not call `kit.start()`.
+
+    ```ts app/healthz/kit.ts
+    import { createHealthKit } from "healthzkit";
+    import { pgAdapter } from "@healthzkit/postgres/pg";
+    import { Pool } from "pg";
+
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 1,
+      connectionTimeoutMillis: 1_000,
+      query_timeout: 1_500,
+      statement_timeout: 1_500,
+    });
+
+    export const kit = createHealthKit({
+      output: { exposeError: false, exposeMetadata: false },
+      defaults: { timeout: 2_000 },
+      checks: [
+        {
+          name: "process",
+          type: ["liveness", "startup"],
+          adapter: { check: async () => ({ status: "ok" }) },
+        },
+        {
+          name: "database",
+          type: ["readiness"],
+          adapter: pgAdapter({ client: pool }),
+        },
+      ],
+    });
+    ```
+
+    Keep `max` small. Each isolate can hold its own pool. Prefer your host's connection pooler for Postgres.
+
+    ```ts app/healthz/[route]/route.ts
+    import { createFetchHandler } from "healthzkit";
+    import { kit } from "../kit";
+
+    export const dynamic = "force-dynamic";
+
+    const handle = createFetchHandler(kit);
+
+    export const GET = handle;
+    export const HEAD = handle;
+    export const POST = handle;
+    export const PUT = handle;
+    export const PATCH = handle;
+    export const DELETE = handle;
+    export const OPTIONS = handle;
+    ```
+
+    `export const runtime = "nodejs"` when you use `pg`. For a long-lived `next start` server, switch this kit to the scheduled long-lived configuration and shut it down from process bootstrap.
+
+  </Tab>
+
+  <Tab title="Workers">
+    The [Workers example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-hono) mounts `createFetchHandler` on Hono and checks an HTTP dependency with `httpAdapter`. Liveness and startup only confirm the isolate can answer. Readiness uses the adapter's own timeout. The example does not call `kit.start()`.
+
+    Choose an adapter whose client works in Workers. A Node Postgres pool does not. Filtered output is unchanged: set `exposeError` and `exposeMetadata` to false.
 
   </Tab>
 </Tabs>

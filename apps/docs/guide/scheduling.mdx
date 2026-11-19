@@ -6,8 +6,9 @@ description: Use Healthzkit scheduling to run slow dependency checks on an inter
 For expensive checks (database, external APIs), run them on a timer and serve probes from cache.
 
 <Note>
-  Skip `kit.start()` on serverless platforms. Run checks on demand there, and use scheduling only in
-  long-lived processes.
+  Call `kit.start()` in a long-lived process you start and stop. In Workers and serverless handlers,
+  run checks on demand. See [Framework guides](/guide/frameworks) for the lifecycle that matches
+  each host.
 </Note>
 
 ```ts

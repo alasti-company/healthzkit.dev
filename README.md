@@ -14,10 +14,12 @@ npm install healthzkit hono @healthzkit/postgres pg
 
 ```ts
 import { Hono } from "hono";
-import { createHealthKit, toFetchResponse } from "healthzkit";
+import { createFetchHandler, createHealthKit } from "healthzkit";
 import { pgAdapter } from "@healthzkit/postgres/pg";
 
 const kit = createHealthKit({
+  output: { exposeError: false, exposeMetadata: false },
+  defaults: { timeout: 2_000 },
   checks: [
     {
       name: "process",
@@ -36,12 +38,13 @@ const kit = createHealthKit({
 kit.start();
 
 const app = new Hono();
-app.get("/healthz/live", async () => toFetchResponse(await kit.handleLiveness()));
-app.get("/healthz/ready", async () => toFetchResponse(await kit.handleReadiness()));
-app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup()));
+const health = createFetchHandler(kit);
+app.all("/healthz/*", (c) => health(c.req.raw));
 ```
 
-`GET /healthz/live`, `GET /healthz/ready`, and `GET /healthz/startup` are the Kubernetes-style probes. Failed readiness returns **503** by default. Full API: [`packages/healthzkit/README.md`](./packages/healthzkit/README.md) · site: [healthzkit.dev](https://healthzkit.dev).
+`GET /healthz/live`, `GET /healthz/ready`, and `GET /healthz/startup` are the Kubernetes-style probes. The handler also accepts HEAD and returns 405 for other methods. Failed readiness returns **503** by default.
+
+`kit.start()` belongs in a long-lived process. Pass your existing pool, with finite connection and statement limits, when the application already has one. On shutdown, call `kit.beginDrain()`, stop accepting requests, `await kit.close()`, then close that pool, inside a deadline shorter than the orchestrator grace period. Serverless hosts run checks on demand and skip `kit.start()`. Framework wiring: [healthzkit.dev/guide/frameworks](https://healthzkit.dev/guide/frameworks). Full API: [`packages/healthzkit/README.md`](./packages/healthzkit/README.md).
 
 ## Packages
 
@@ -77,7 +80,7 @@ See each package README for install instructions, API details, and examples.
 
 For an integration recipe you can follow with a coding agent, see [Integrate healthzkit](https://healthzkit.dev/guide/integrate-healthzkit). Agents can discover Markdown documentation through [llms.txt](https://healthzkit.dev/llms.txt), or read the [full documentation export](https://healthzkit.dev/llms-full.txt).
 
-See [`apps/example-node`](./apps/example-node) for a long-lived Node.js + Hono + Postgres application with Kubernetes probes, a shared database pool, safe error output, and bounded graceful shutdown. The existing [`apps/example-hono`](./apps/example-hono) demonstrates Cloudflare Workers instead.
+See [`apps/example-node`](./apps/example-node) for a long-lived Node.js + Hono + Postgres application with Kubernetes probes, a shared database pool, safe error output, and bounded graceful shutdown. [`apps/example-hono`](./apps/example-hono) runs the same probe routes on demand in Cloudflare Workers, without background scheduling.
 
 ## Development
 

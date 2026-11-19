@@ -78,7 +78,7 @@ On `SIGTERM` or `SIGINT`, call `kit.beginDrain()` to make readiness fail while k
 
 Use an application-level shutdown deadline shorter than the Kubernetes termination grace period: a driver that ignores cancellation can keep pending checks alive. `kit.close()` is terminal and idempotent. `kit.stop()` stops scheduling and clears cached results without disposing adapters; probes remain usable on demand, and `kit.start()` can restart scheduling. Supplied clients remain yours to close, and cleanup errors must be handled.
 
-The [runnable Node example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node) includes server bootstrap, pool configuration, signal handling, and Kubernetes configuration.
+The [runnable Node example](https://github.com/alasti-company/healthzkit.dev/tree/main/apps/example-node) includes server bootstrap, pool configuration, signal handling, and Kubernetes configuration. Express, Fastify, Elysia, Next.js, and Node `http` use this same kit and shutdown order. The server stop call differs. See [Framework guides](/guide/frameworks).
 
 ## Verify the integration
 
