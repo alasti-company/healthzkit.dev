@@ -52,6 +52,68 @@ describe("HealthKit configuration", () => {
       );
     });
 
+    test.each([undefined, 0, 1, 1_000, 2_147_483_647])(
+      "accepts schedule.jitterMs %s within the interval",
+      (jitterMs) => {
+        expect(() =>
+          create({
+            checks: [
+              {
+                name: "db",
+                type: ["readiness"],
+                adapter: { check: async () => ({ status: "ok" }) },
+                schedule: {
+                  intervalMs: 2_147_483_647,
+                  ...(jitterMs !== undefined && { jitterMs }),
+                },
+              },
+            ],
+          }),
+        ).not.toThrow();
+      },
+    );
+
+    test.each([-1, 0.5, 1.5, NaN, Infinity, -Infinity, 1_001, 2_147_483_648])(
+      "rejects schedule.jitterMs %s",
+      (jitterMs) => {
+        expect(() =>
+          create({
+            checks: [
+              {
+                name: "db",
+                type: ["readiness"],
+                adapter: { check: async () => ({ status: "ok" }) },
+                schedule: { intervalMs: 1_000, jitterMs },
+              },
+            ],
+          }),
+        ).toThrow(
+          new RangeError(
+            'Check "db" schedule.jitterMs must be an integer between 0 and 1000 milliseconds.',
+          ),
+        );
+      },
+    );
+
+    test("reports an invalid interval before an invalid jitter", () => {
+      expect(() =>
+        create({
+          checks: [
+            {
+              name: "db",
+              type: ["readiness"],
+              adapter: { check: async () => ({ status: "ok" }) },
+              schedule: { intervalMs: 0, jitterMs: -5 },
+            },
+          ],
+        }),
+      ).toThrow(
+        new RangeError(
+          'Check "db" schedule.intervalMs must be an integer between 1 and 2147483647 milliseconds.',
+        ),
+      );
+    });
+
     test("captures validated nested timing configuration", async () => {
       const defaults = { timeout: 5_000 };
       const schedule = { intervalMs: 60_000 };

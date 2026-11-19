@@ -1,6 +1,6 @@
 ---
 title: Scheduling
-description: Use Healthzkit scheduling to run slow dependency checks on an interval, serve probes from cache with low latency, and manage lifecycle with start, stop, and timestamps.
+description: Use Healthzkit scheduling to run slow dependency checks on an interval, spread replicas with optional jitter, and serve probes from a fresh cache.
 ---
 
 For expensive checks (database, external APIs), run them on a timer and serve probes from cache.
@@ -32,19 +32,35 @@ await kit.close();
 
 `timeout`, `defaults.timeout`, and `schedule.intervalMs` must be integer milliseconds from **1** to **2,147,483,647**, inclusive. Both `createHealthKit()` and `new HealthKit()` reject invalid values at construction with a `RangeError` identifying the field and, where applicable, the check name. Defaults are validated even if all checks override them.
 
-Zero does not disable a timeout or interval. Zero, negative, fractional, non-finite, and oversized values are rejected instead of being coerced by runtime timers. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` for on-demand checks. Timing settings are captured at construction; later mutations of the original defaults or schedule do not affect the kit.
+`schedule.jitterMs`, when set, must be an integer from **0** through that check's `intervalMs`, inclusive. **0** selects a fixed interval, the same schedule as omitting `jitterMs`. A value above the interval, or a negative, fractional, or non-finite value, throws a `RangeError` naming the check and `schedule.jitterMs`.
+
+Zero does not disable a timeout or an interval. Zero, negative, fractional, non-finite, and oversized values for those settings are rejected instead of being coerced by runtime timers. Omit `timeout` to inherit `defaults.timeout` or **5,000ms**; omit `schedule` for on-demand checks. Timing settings are captured at construction; later mutations of the original defaults or schedule do not affect the kit.
 
 ## Behavior
 
 - **`start()`** is idempotent; a second call does nothing.
-- **`stop()`** clears intervals and the cache.
+- **`stop()`** clears intervals, pending jitter delays, and the cache.
 - When a cached result is used, that check’s **`latency`** is **0** and **`cachedAt`** is an ISO timestamp on the check result.
 
-Scheduled runs use the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A timeout aborts the adapter context signal and replaces the cached result with a failure. Cancellation is cooperative: the adapter must use the signal with a driver or API that supports it (see [Deadlines and cancellation](/guide/checks-and-adapters#deadlines-and-cancellation)). Refreshes do not overlap: if an adapter remains pending after its timeout, later intervals skip it until it settles. A late result cannot overwrite the timeout failure.
+Scheduled runs use the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A timeout aborts the adapter context signal and replaces the cached result with a failure. Cancellation is cooperative: the adapter must use the signal with a driver or API that supports it (see [Deadlines and cancellation](/guide/checks-and-adapters#deadlines-and-cancellation)). Refreshes do not overlap: if an adapter remains pending after its timeout, later refreshes skip it until it settles. A late result cannot overwrite the timeout failure.
 
-A cached result becomes a failure when its age reaches **`intervalMs + timeout`**. This allows one interval plus the refresh timeout before a result becomes stale. Failures follow your configured `onFail` behavior. While the initial scheduled check is pending, probes await that same check and share its result or timeout. When scheduling is inactive and there is no cached result, probes run the check on demand with the same timeout.
+A cached success becomes a failure when its age reaches **`intervalMs + jitterMs + timeout`**. `jitterMs` is **0** when it is omitted, so the limit stays **`intervalMs + timeout`**. That window is one interval, the maximum jitter delay, and one refresh deadline. Healthzkit does not serve a cached success older than the limit. Failures follow your configured `onFail` behavior. While the initial scheduled check is pending, probes await that same check and share its result or timeout. If that run is still waiting for its initial jitter delay, the health request starts it immediately and then shares it. When scheduling is inactive and there is no cached result, probes run the check on demand with the same timeout.
 
 Timers use `unref` when available so they do not keep the process alive by themselves.
+
+## Jitter
+
+Replicas that call `start()` together can run the same scheduled check at the same moments and burst traffic onto a dependency. Opt in per check:
+
+```ts
+schedule: { intervalMs: 30_000, jitterMs: 5_000 }
+```
+
+Omit `jitterMs`, or set it to **0**, and the first run starts immediately, then repeats every `intervalMs`. Healthzkit does not draw a random delay for that schedule.
+
+When `jitterMs` is greater than 0, each initial run and each refresh draws a new uniform integer from **0** through **`jitterMs`** milliseconds, inclusive. The initial run waits only that delay. Each refresh attempt waits **`intervalMs` plus a new draw**. If the previous adapter run is still pending, that attempt is skipped until it settles. Refresh attempts are at least `intervalMs` apart and at most **`intervalMs + jitterMs`** apart. `stop()` drops a delay that has not started a run. `start()` after `stop()` draws new delays. Checks draw independently.
+
+Jitter only moves the start of a background run. The check deadline still begins when the adapter run starts, and it still lasts for the check's **`timeout`**, then **`defaults.timeout`**, then **5,000ms**. A health request does not wait out a remaining initial delay, so that response stays inside the check deadline. The freshness limit includes `jitterMs` so a refresh that uses the full extra delay can still finish inside its deadline. The deadline itself does not grow.
 
 ## Shutdown and disposal
 

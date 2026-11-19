@@ -1,6 +1,10 @@
-import type { Scheduler } from "./scheduler.ts";
+import type { CachedResult, Scheduler } from "./scheduler.ts";
 import { DEFAULT_TIMEOUTMS } from "./timeout.ts";
 import type { AdapterResult, CheckConfig, CheckResult } from "./types.ts";
+
+type ScheduledRunner = Pick<Scheduler, "getCache" | "getPending" | "runCheck"> & {
+  prepareScheduled?(check: CheckConfig, timeoutMs: number): Promise<CachedResult> | undefined;
+};
 
 async function executeCheck(
   check: CheckConfig,
@@ -26,21 +30,31 @@ async function executeCheck(
 
 export async function runChecks(
   checks: CheckConfig[],
-  scheduler: Pick<Scheduler, "getCache" | "getPending" | "runCheck">,
+  scheduler: ScheduledRunner,
   defaultTimeout: number = DEFAULT_TIMEOUTMS,
   exposeError: boolean = true,
 ): Promise<Record<string, CheckResult>> {
   const results = await Promise.all(
     checks.map(async (check) => {
       const timeoutMs = check.timeout ?? defaultTimeout;
-      const cached = scheduler.getCache(check.name) ?? (await scheduler.getPending(check.name));
+      const cachedHit = scheduler.getCache(check.name);
+      // A cache hit must not cancel a refresh delay. Promotion is only for the
+      // initial wait, when a probe would otherwise block on jitter.
+      const scheduled = cachedHit
+        ? undefined
+        : scheduler.prepareScheduled
+          ? scheduler.prepareScheduled(check, timeoutMs)
+          : scheduler.getPending(check.name);
+      const cached = cachedHit ?? (scheduled ? await scheduled : undefined);
 
       let adapterResult: AdapterResult;
       let latency: number;
       let cachedAt: string | undefined;
 
       if (cached) {
-        const maxAgeMs = check.schedule ? check.schedule.intervalMs + timeoutMs : undefined;
+        const maxAgeMs = check.schedule
+          ? check.schedule.intervalMs + (check.schedule.jitterMs ?? 0) + timeoutMs
+          : undefined;
         adapterResult =
           maxAgeMs !== undefined && Date.now() - cached.cachedAt.getTime() >= maxAgeMs
             ? {

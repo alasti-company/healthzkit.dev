@@ -2,6 +2,7 @@ import { format } from "./formatter/index.ts";
 import { computeRollupStatus } from "./rollup.ts";
 import { runChecks } from "./runner.ts";
 import { Scheduler } from "./scheduler.ts";
+import { MAX_TIMER_MS } from "./timeout.ts";
 import type {
   AgnosticRequest,
   AgnosticResponse,
@@ -14,11 +15,16 @@ import type {
 const DEFAULT_BASE_PATH = "/healthz";
 const DEFAULT_FAIL_STATUS = 503;
 const DEFAULT_DEGRADED_STATUS = 200;
-const MAX_TIMER_MS = 2_147_483_647;
 
 function validateTimer(value: number, field: string): void {
   if (!Number.isInteger(value) || value < 1 || value > MAX_TIMER_MS) {
     throw new RangeError(`${field} must be an integer between 1 and ${MAX_TIMER_MS} milliseconds.`);
+  }
+}
+
+function validateJitter(value: number, intervalMs: number, field: string): void {
+  if (!Number.isInteger(value) || value < 0 || value > intervalMs) {
+    throw new RangeError(`${field} must be an integer between 0 and ${intervalMs} milliseconds.`);
   }
 }
 
@@ -60,6 +66,13 @@ export class HealthKit {
       }
       if (check.schedule) {
         validateTimer(check.schedule.intervalMs, `Check "${check.name}" schedule.intervalMs`);
+        if (check.schedule.jitterMs !== undefined) {
+          validateJitter(
+            check.schedule.jitterMs,
+            check.schedule.intervalMs,
+            `Check "${check.name}" schedule.jitterMs`,
+          );
+        }
       }
     }
     this.scheduler = new Scheduler(this.config.hooks);
