@@ -1,0 +1,28 @@
+apps/docs/guide/checks-and-adapters.mdx
+  s_2ff1c6ae30949b::t_f3cb42e5cb0c29 47
+apps/docs/guide/scheduling.mdx
+  s_2ff1c6ae30949b::t_b45a6a11f71f4d 36,46,60,62
+packages/healthzkit/src/scheduler.ts
+  s_2ff1c6ae30949b::t_05d95714497e29 41-42,78,103,107-111,115,117-118,124,128-131,141,150,275
+  s_2ff1c6ae30949b::t_39c07d799676d3 16-21,45,127
+packages/healthzkit/README.md
+  s_2ff1c6ae30949b::t_9ff8e4ba358316 250,293
+packages/healthzkit/tests/jitter.test.ts
+  s_2ff1c6ae30949b::t_cd49595f8d854b 197-265
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a0d0e6174f79bf403c73d33cb29a3bc5539eb1c5",
+  "prompts": {},
+  "sessions": {
+    "s_2ff1c6ae30949b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a1f163-8fb3-72a2-9a81-4d8840363d57",
+        "model": "unknown"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
