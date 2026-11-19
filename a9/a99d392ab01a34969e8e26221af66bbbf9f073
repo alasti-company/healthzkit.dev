@@ -1,0 +1,21 @@
+packages/healthzkit/README.md
+  s_dd88137a7d684f::t_585487b7c36a63 87-90
+apps/docs/guide/frameworks.mdx
+  s_dd88137a7d684f::t_65c179ee1f3bed 278,298
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a9a99d392ab01a34969e8e26221af66bbbf9f073",
+  "prompts": {},
+  "sessions": {
+    "s_dd88137a7d684f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a1f163-5429-7c41-8f65-ee2a5409ebac",
+        "model": "unknown"
+      },
+      "human_author": "Kourosh Alasti <coding@kouroshalasti.com>"
+    }
+  }
+}
