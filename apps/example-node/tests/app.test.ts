@@ -27,7 +27,10 @@ describe("production probes", () => {
   it("shares the app pool, releases borrowed clients, and keeps ownership with the app", async () => {
     const { pool, query, release, end } = mockPool();
     const application = createApplication(pool);
-    expect((await application.app.request("/healthz/ready")).status).toBe(200);
+    const ready = await application.app.request("/healthz/ready");
+    expect(ready.status).toBe(200);
+    expect(ready.headers.get("cache-control")).toBe("no-store");
+    expect(await ready.text()).not.toMatch(/latencyMs/);
     expect((await application.app.request("/")).status).toBe(200);
     expect(query).toHaveBeenCalledTimes(2);
     expect(release).toHaveBeenCalledTimes(1);
@@ -35,6 +38,8 @@ describe("production probes", () => {
     expect((await application.app.request("/healthz/ready")).status).toBe(503);
     expect((await application.app.request("/healthz/live")).status).toBe(200);
     expect((await application.app.request("/")).status).toBe(503);
+    expect(end).not.toHaveBeenCalled();
+    await application.close();
     expect(end).not.toHaveBeenCalled();
   });
 

@@ -25,6 +25,7 @@ import { Hono } from "hono";
 import { createHealthKit, toFetchResponse } from "healthzkit";
 
 const kit = createHealthKit({
+  output: { exposeError: false, exposeMetadata: false },
   checks: [
     {
       name: "process",
@@ -52,7 +53,7 @@ app.get("/healthz/startup", async () => toFetchResponse(await kit.handleStartup(
 export default app;
 ```
 
-Point a liveness probe at `GET /healthz/live` and a readiness probe at `GET /healthz/ready`.
+Point a liveness probe at `GET /healthz/live` and a readiness probe at `GET /healthz/ready`. `toFetchResponse` forwards every response header. For pool limits, draining, and bounded shutdown, follow [Integrate healthzkit](/guide/integrate-healthzkit).
 
 <Tip>
   Need Express, Fastify, Elysia, Next.js, or Node `http`? See [Framework guides](/guide/frameworks).
@@ -83,7 +84,7 @@ const kit = createHealthKit({
 const handler = createFetchHandler(kit);
 ```
 
-`createFetchHandler` answers `{basePath}/live`, `{basePath}/ready`, and `{basePath}/startup` (default `/healthz`) on GET and HEAD. Other methods on those routes return 405. Unknown paths return 404.
+`createFetchHandler` answers `{basePath}/live`, `{basePath}/ready`, and `{basePath}/startup` (default `/healthz`) on GET and HEAD, and forwards every response header. Other methods on those routes return 405. Unknown paths return 404. Add a real readiness check before you rely on `/healthz/ready`. With the default rollup, a route that matches no checks returns 200. This handler runs checks on demand. Call `kit.start()` only in a long-lived process. See [Framework guides](/guide/frameworks).
 
 ## `handleRequest`
 

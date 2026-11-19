@@ -6,7 +6,7 @@ import type { Pool } from "pg";
 export function createApplication(pool: Pool) {
   let draining = false;
   const kit = createHealthKit({
-    output: { exposeError: false },
+    output: { exposeError: false, exposeMetadata: false },
     defaults: { timeout: 2_000 },
     checks: [
       {
@@ -43,5 +43,6 @@ export function createApplication(pool: Pool) {
       kit.beginDrain();
       kit.stop();
     },
+    close: () => kit.close(),
   };
 }

@@ -26,7 +26,10 @@ const shutdown = createShutdown({
     new Promise<void>((resolve, reject) => {
       server.close((error) => (error ? reject(error) : resolve()));
     }),
-  closePool: () => pool.end(),
+  closePool: async () => {
+    await application.close();
+    await pool.end();
+  },
   drainMs: 5_000,
   deadlineMs: 25_000,
   forceExit: () => {
