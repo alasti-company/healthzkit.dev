@@ -29,6 +29,11 @@ export interface CheckConfig {
   schedule?: {
     /** Integer milliseconds, 1–2_147_483_647. */
     intervalMs: number;
+    /**
+     * Optional spread, integer milliseconds from 0 through intervalMs.
+     * Omit or set 0 for a fixed interval.
+     */
+    jitterMs?: number;
   };
   onFail?: {
     httpStatus?: number; // default 503

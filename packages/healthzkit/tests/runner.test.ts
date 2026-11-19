@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vite-plus/test";
+import { describe, expect, test, vi } from "vite-plus/test";
 import { runChecks } from "../src/runner.ts";
 import { Scheduler } from "../src/scheduler.ts";
 import type { CheckConfig } from "../src/types.ts";
@@ -143,6 +143,95 @@ describe("scheduled cache freshness", () => {
     const hidden = await runChecks(checks, scheduler, 50, false);
     expect(hidden.db.status).toBe("degraded");
     expect(hidden.db.error).toBeUndefined();
+  });
+
+  test("keeps the interval-plus-timeout limit when jitter is omitted", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_700_000_000_000);
+    try {
+      const timeoutMs = 20;
+      const intervalMs = 100;
+      const limit = intervalMs + timeoutMs;
+      const checks: CheckConfig[] = [
+        {
+          name: "db",
+          type: ["readiness"],
+          adapter: {
+            check: () => {
+              throw new Error("stale cache must not run");
+            },
+          },
+          schedule: { intervalMs },
+          timeout: timeoutMs,
+        },
+      ];
+      const fresh = await runChecks(
+        checks,
+        schedulerWithCache({
+          db: { result: { status: "ok" }, cachedAt: new Date(Date.now() - (limit - 1)) },
+        }),
+      );
+      expect(fresh.db.status).toBe("ok");
+      const stale = await runChecks(
+        checks,
+        schedulerWithCache({
+          db: { result: { status: "ok" }, cachedAt: new Date(Date.now() - limit) },
+        }),
+      );
+      expect(stale.db.status).toBe("fail");
+      expect(stale.db.error).toBe(`Check "db" cached result is stale after ${limit}ms`);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("extends the freshness limit by jitter and fails at that bound", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_700_000_000_000);
+    try {
+      const timeoutMs = 20;
+      const intervalMs = 100;
+      const jitterMs = 30;
+      const limit = intervalMs + jitterMs + timeoutMs;
+      const checks: CheckConfig[] = [
+        {
+          name: "db",
+          type: ["readiness"],
+          adapter: {
+            check: () => {
+              throw new Error("stale cache must not run");
+            },
+          },
+          schedule: { intervalMs, jitterMs },
+          timeout: timeoutMs,
+        },
+      ];
+      const read = (age: number) =>
+        runChecks(
+          checks,
+          schedulerWithCache({
+            db: {
+              result: { status: "ok", metadata: { old: true } },
+              cachedAt: new Date(Date.now() - age),
+            },
+          }),
+        );
+      const withinOldLimit = await read(intervalMs + timeoutMs);
+      expect(withinOldLimit.db.status).toBe("ok");
+      const stillFresh = await read(limit - 1);
+      expect(stillFresh.db.status).toBe("ok");
+      expect(stillFresh.db.metadata).toEqual({ old: true });
+      const stale = await read(limit);
+      expect(stale.db.status).toBe("fail");
+      expect(stale.db.error).toBe(`Check "db" cached result is stale after ${limit}ms`);
+      expect(stale.db.metadata).toBeUndefined();
+      expect(stale.db.latency).toBe(0);
+      const beyond = await read(limit + 1);
+      expect(beyond.db.status).toBe("fail");
+      expect(beyond.db.error).toBe(`Check "db" cached result is stale after ${limit}ms`);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test("uses a scheduled result while it is still fresh", async () => {

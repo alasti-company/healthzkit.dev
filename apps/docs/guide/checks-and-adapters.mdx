@@ -13,7 +13,7 @@ Each check is a `CheckConfig` entry in the `checks` array on the root config:
 | **`type`**       | One or more of `"liveness"`, `"readiness"`, and `"startup"`. Only checks that include the probe type run for that probe. With the default rollup, no matching checks returns **200** with empty `checks`; a custom rollup still determines the status. |
 | **`adapter`**    | Must implement `HealthAdapter`: `check(context?: CheckContext): Promise<AdapterResult>`.                                                                                                                                                               |
 | **`timeout`**    | Per-check timeout in milliseconds. Default **5000**, unless overridden by `defaults.timeout`.                                                                                                                                                          |
-| **`schedule`**   | Optional `{ intervalMs }`. When `kit.start()` has been called, the adapter runs on that interval and results are **cached** (see [Scheduling](/guide/scheduling)).                                                                                     |
+| **`schedule`**   | Optional `{ intervalMs, jitterMs? }`. When `kit.start()` has been called, the adapter runs in the background and results are **cached**. Omit `jitterMs` for a fixed interval. Set it to spread replicas (see [Scheduling](/guide/scheduling)).        |
 | **`onFail`**     | Optional `httpStatus`, `treatAs` (for example map `"fail"` to `"degraded"` for rollup and body while adjusting HTTP rules).                                                                                                                            |
 | **`onDegraded`** | Optional `httpStatus` override when this check and the overall rollup are `"degraded"` (see [Responses and HTTP](/guide/responses-and-http)).                                                                                                          |
 
@@ -44,7 +44,7 @@ const adapter: HealthAdapter = {
 };
 ```
 
-A deadline bounds the health response; it does not forcibly cancel driver work. Adapters must use the signal with an API that supports cancellation. The HTTP adapter forwards it to `fetch`, AWS SDK v3 S3 and DynamoDB pass it as `abortSignal`, AWS SDK v2 aborts the individual request, and Elasticsearch passes it as a request `signal`. These paths leave shared clients open.
+A deadline bounds the health response; it does not forcibly cancel driver work. Scheduling jitter waits before a background run starts and does not change this deadline. A probe does not wait out a pending initial delay. Adapters must use the signal with an API that supports cancellation. The HTTP adapter forwards it to `fetch`, AWS SDK v3 S3 and DynamoDB pass it as `abortSignal`, AWS SDK v2 aborts the individual request, and Elasticsearch passes it as a request `signal`. These paths leave shared clients open.
 
 Within one kit, concurrent requests for the same check share one operation, including liveness and readiness requests. If it times out, later requests fail immediately until the underlying operation settles. A late result cannot turn that timeout into a success. After settlement, checks without an active scheduled cache start a fresh operation on the next request. Scheduled checks keep serving the cached result until a later interval refreshes it. Other checks and other kit instances run independently. Stopping or restarting scheduling does not release pending adapter work.
 
